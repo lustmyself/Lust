@@ -122,7 +122,41 @@ def patch_core_dll(tree):
                          "check where it finds the plugins folder before releasing")
     for old in ("Rose", "ROSE"):
         data = data.replace(old.encode("utf-16-le"), swap(old).encode("utf-16-le"))
+    data = patch_welcome_popup(data)
     dll.write_bytes(data)
+
+
+POPUP_ICON = ROOT / "lust" / "assets" / "popup_icon.jpg"
+POPUP_IMAGE_RE = re.compile(rb"data:image/jpeg;base64,([A-Za-z0-9+/]+=*)")
+POPUP_BADGES = b'class="flex mt-5 space-x-1"'  # Discord / Ko-fi / GitHub badges
+
+
+def jpeg_base64_of_length(jpeg, length):
+    """Base64 of jpeg, padded with a JPEG comment segment to exactly `length` chars."""
+    import base64
+    target = length // 4 * 3  # bytes that encode to `length` chars without "="
+    filler = target - len(jpeg) - 4  # COM marker + 2 length bytes
+    if length % 4 or not 0 <= filler <= 65533:
+        raise SystemExit(f"[sync] popup icon cannot be fitted into {length} base64 chars")
+    comment = b"\xff\xfe" + (filler + 2).to_bytes(2, "big") + b" " * filler
+    encoded = base64.b64encode(jpeg[:2] + comment + jpeg[2:])  # right after SOI
+    assert len(encoded) == length
+    return encoded
+
+
+def patch_welcome_popup(data):
+    """Kai'Sa instead of the rose in Pengu's welcome popup, without the badges.
+    Every replacement keeps the byte length, so the DLL layout is untouched."""
+    images = list(POPUP_IMAGE_RE.finditer(data))
+    if len(images) != 1:
+        raise SystemExit(f"[sync] expected one embedded JPEG in core.dll, found {len(images)}")
+    start, end = images[0].span(1)
+    data = data[:start] + jpeg_base64_of_length(POPUP_ICON.read_bytes(), end - start) + data[end:]
+
+    if data.count(POPUP_BADGES) != 1:
+        raise SystemExit("[sync] welcome popup badges not found in core.dll")
+    hidden = b'style="display:none"'
+    return data.replace(POPUP_BADGES, hidden + b" " * (len(POPUP_BADGES) - len(hidden)))
 
 
 def copy_overlay(tree):

@@ -248,7 +248,7 @@ EDITS = [
      "    'threads.core.lcu_monitor_thread',\n    'threads.core.lobby_reveal_thread',\n"),
 ]
 
-# LTK patcher from an LTK Manager install (injection/tools/ltk_manager.py in the overlay)
+# LTK patcher via LTK Manager (injection/tools/ltk_manager*.py in the overlay)
 EDITS += [
     ('main/__init__.py',
      '    """Return (title, status_title, status_body, steps) for an LTK patcher problem."""\n    source = "Get both files from LTK Manager."\n',
@@ -270,7 +270,7 @@ EDITS += [
      '        f"{status_title}\\n\\n{status_body}\\n\\nHow to fix it:\\n{steps}\\n\\n"\n        "Get LTK Manager only from its official GitHub page:\\n"\n        "https://github.com/LeagueToolkit/ltk-manager/releases/latest\\n\\n"\n'),
     ('main/__init__.py',
      '    _sync_cslol_stub(tools_dir)\n    status = check_ltk_patcher(tools_dir)\n',
-     '    _sync_cslol_stub(tools_dir)\n    try:\n        from injection.tools.ltk_manager import import_from_ltk_manager\n        import_from_ltk_manager(tools_dir)\n    except Exception as e:\n        log.warning(f"[LTK] Could not look for an LTK Manager install: {e}")\n    status = check_ltk_patcher(tools_dir)\n'),
+     '    _sync_cslol_stub(tools_dir)\n    try:\n        # Copies the patcher from LTK Manager, offering to get LTK Manager when needed\n        from injection.tools.ltk_manager_setup import startup_check\n        startup_check(tools_dir)\n    except Exception as e:\n        log.warning(f"[LTK] Could not set up the patcher from LTK Manager: {e}")\n    status = check_ltk_patcher(tools_dir)\n'),
     ('README.md',
      '- **League of Legends** installed\n- **LTK patcher** - You must provide it yourself (see below)\n',
      '- **League of Legends** installed\n- **LTK Manager** installed, for its LTK patcher (see below)\n'),

@@ -320,10 +320,11 @@ def _check_dll_present() -> bool:
     tools_dir = _get_tools_dir()
     _sync_cslol_stub(tools_dir)
     try:
-        from injection.tools.ltk_manager import import_from_ltk_manager
-        import_from_ltk_manager(tools_dir)
+        # Copies the patcher from LTK Manager, offering to get LTK Manager when needed
+        from injection.tools.ltk_manager_setup import startup_check
+        startup_check(tools_dir)
     except Exception as e:
-        log.warning(f"[LTK] Could not look for an LTK Manager install: {e}")
+        log.warning(f"[LTK] Could not set up the patcher from LTK Manager: {e}")
     status = check_ltk_patcher(tools_dir)
     if status.missing:
         return _show_dll_dialog(tools_dir, reason="missing", detail=" and ".join(status.missing))

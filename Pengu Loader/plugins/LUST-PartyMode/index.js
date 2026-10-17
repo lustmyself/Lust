@@ -2,7 +2,7 @@
  * @name Lust-PartyMode
  * @author Lust Team
  * @description Party Mode - See your friends' skins in game via P2P
- * @link https://github.com/Alban1911/Rose
+ * @link https://github.com/lustmyself/Lust
  */
 (function initPartyMode() {
   const LOG_PREFIX = "[Lust-PartyMode]";

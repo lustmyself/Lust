@@ -8,7 +8,7 @@
   const LOG_PREFIX = "[Lust-SettingsPanel]";
   const DISCORD_INVITE_URL = "https://discord.com/invite/roseskins";
   const KOFI_URL = "https://ko-fi.com/roseapp";
-  const GITHUB_URL = "https://github.com/Alban1911/Rose";
+  const GITHUB_URL = "https://github.com/lustmyself/Lust";
 
   const PANEL_ID = "lust-settings-panel";
   const FLYOUT_ID = "lust-settings-flyout";

@@ -13,10 +13,9 @@ from utils.core.logging import get_logger
 
 log = get_logger()
 
-# Lust has no release repo yet. Pointing this at Rose's releases would replace Lust
-# with Rose on the next update, so updates stay off until a Lust repo exists,
-# e.g. "https://api.github.com/repos/<you>/Lust/releases/latest".
-GITHUB_RELEASE_API = ""
+# Lust's own releases. Never point this at Rose's: its update would replace Lust with Rose.
+# An empty value turns update checks off.
+GITHUB_RELEASE_API = "https://api.github.com/repos/lustmyself/Lust/releases/latest"
 
 
 class GitHubClient:

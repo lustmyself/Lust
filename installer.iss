@@ -5,7 +5,7 @@
 #define MyAppVersion "1.4.9"
 #define MyAppVersionInfo "1.4.9.0"
 #define MyAppPublisher "Lust Team"
-#define MyAppURL "https://github.com/Alban1911/Rose"
+#define MyAppURL "https://github.com/lustmyself/Lust"
 #define MyAppExeName "Lust.exe"
 #define MyAppDescription "Effortless skin changer for League of Legends"
 ; Must match config.SINGLE_INSTANCE_MUTEX_NAME (used by the app to enforce single-instance)

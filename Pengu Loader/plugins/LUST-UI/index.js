@@ -15,7 +15,7 @@
   const DISCORD_INVITE_URL = "https://discord.com/invite/roseskins";
   const LUST_DISCORD_GUILD_ID = "1490473857075642621";
   const LUST_GITHUB_REPO_API_URL =
-    "https://api.github.com/repos/Alban1911/Rose";
+    "https://api.github.com/repos/lustmyself/Lust";
   const LUST_GITHUB_BADGE_FALLBACK_URL =
     "https://img.shields.io/badge/GitHub-Stars-32A832?style=flat&logo=github&logoColor=white";
   let lustGithubStarsPromise = null;

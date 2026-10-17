@@ -1,7 +1,7 @@
 import { DurableObject } from 'cloudflare:workers';
 
 /**
- * Rose Party Room - Durable Object
+ * Lust Party Room - Durable Object
  *
  * Shared room where party members broadcast their skin selections.
  * All messages are JSON, broadcast to everyone else in the room.
@@ -31,7 +31,7 @@ export class PartyRoom extends DurableObject {
   // Clients ping every 25s; a socket silent for longer is gone (PC asleep,
   // network lost...) even though no close frame arrived
   private static STALE_MS = 90_000;
-  // Rose before 1.4.0 never pings: timing its sockets out after 90s made those
+  // Lust before 1.4.0 never pings: timing its sockets out after 90s made those
   // clients reconnect, and wake the room, all day. Theirs only go after this
   private static NEVER_PINGED_STALE_MS = 30 * 60_000;
 

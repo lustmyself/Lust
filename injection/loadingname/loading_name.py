@@ -33,14 +33,14 @@ from utils.core.logging import get_logger
 
 log = get_logger()
 
-MOD_FOLDER = "ROSE-LoadingName"
+MOD_FOLDER = "LUST-LoadingName"
 TABLE_PATH = Path("RAW") / "DATA" / "Menu" / "en_US" / "lol.stringtable"
 TABLE_HASH = 0x062D6ED714BFF7DF  # xxh64("data/menu/en_us/lol.stringtable"), fixed for every language
 RST_MASK = (1 << 38) - 1
-# The champion's record points here instead, for the chat and the name over its head. "rose" is as long as "game",
+# The champion's record points here instead, for the chat and the name over its head. "lust" is as long as "game",
 # so the record's text keeps its length and the file keeps its layout.
 RECORD_KEY = "game_character_displayname_"
-RECORD_KEY_OWN = "rose_character_displayname_"
+RECORD_KEY_OWN = "lust_character_displayname_"
 
 
 # --------------------------------------------------------------------------------------
@@ -373,7 +373,7 @@ def build(game_dir: Path, mods_dir: Path, mod_folder: Path, skin_id: int) -> Opt
                 (target / TABLE_PATH.parent).mkdir(parents=True, exist_ok=True)
                 (target / "META").mkdir(parents=True, exist_ok=True)
                 (target / "META" / "info.json").write_text(json.dumps({
-                    "Author": "Rose",
+                    "Author": "Lust",
                     "Description": name,
                     "Name": "Loading screen name",
                     "Version": "1.0.0",

@@ -132,7 +132,7 @@ class Broadcaster:
             from utils.core.historic import is_custom_mod_path
             if is_custom_mod_path(historic_skin_id):
                 # Custom mod popups are handled by the custom-mod-state broadcast
-                # (which goes through ROSE-CustomWheel's skin-matching logic).
+                # (which goes through LUST-CustomWheel's skin-matching logic).
                 # Don't show a popup here — it would bypass the skin check.
                 try:
                     from pathlib import Path
@@ -321,7 +321,7 @@ class Broadcaster:
         self._send_message(json.dumps(payload))
     
     def broadcast_language_changed(self) -> None:
-        """Tell the plugins to load the texts of Rose's new menu language (ROSE-I18n)"""
+        """Tell the plugins to load the texts of Lust's new menu language (LUST-I18n)"""
         self._send_message(json.dumps({"type": "language-changed"}))
 
     def broadcast_raw(self, message: str) -> None:
@@ -363,6 +363,12 @@ class Broadcaster:
         )
 
         self._send_message(json.dumps(payload))
+
+    def broadcast_lobby_reveal(self, payload: dict) -> None:
+        """Broadcast revealed champ select teammates to the LobbyReveal plugin"""
+        if not self.websocket_server.loop or not self.websocket_server.connections:
+            return
+        self._send_message(json.dumps({"type": "lobby-reveal", **payload}))
 
     def _send_message(self, message: str) -> None:
         """Send message to all connected clients"""

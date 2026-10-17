@@ -4,9 +4,9 @@ interface Env {
   ROOM: DurableObjectNamespace;
 }
 
-// Rose before this version could keep a room awake all day (reconnecting every
+// Lust before this version could keep a room awake all day (reconnecting every
 // 100s when its pings never got through): it is refused here, before waking the
-// room, and Rose 1.4.2+ stops retrying on this status. Older Rose sends no version
+// room, and Lust 1.4.2+ stops retrying on this status. Older Lust sends no version
 const MIN_VERSION = [1, 4, 4];
 
 function supported(version: string | null): boolean {
@@ -25,7 +25,7 @@ export default {
 
     // Health check
     if (url.pathname === '/' && request.method === 'GET') {
-      return new Response(JSON.stringify({ status: 'ok', service: 'rose-party-relay' }), {
+      return new Response(JSON.stringify({ status: 'ok', service: 'lust-party-relay' }), {
         headers: { 'Content-Type': 'application/json' },
       });
     }
@@ -38,7 +38,7 @@ export default {
         return new Response('Invalid room key', { status: 400 });
       }
       if (!supported(url.searchParams.get('v'))) {
-        return new Response('Update Rose to use party mode', { status: 426 });
+        return new Response('Update Lust to use party mode', { status: 426 });
       }
 
       const id = env.ROOM.idFromName(roomKey);
@@ -46,6 +46,6 @@ export default {
       return stub.fetch(request);
     }
 
-    return new Response('Rose Party Relay - WebSocket upgrade required', { status: 426 });
+    return new Response('Lust Party Relay - WebSocket upgrade required', { status: 426 });
   },
 };

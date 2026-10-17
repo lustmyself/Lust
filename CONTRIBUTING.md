@@ -1,11 +1,11 @@
-# Contributing to Rose
+# Contributing to Lust
 
 Contributions are welcome! Report bugs or suggest features through the [issue forms](https://github.com/Alban1911/Rose/issues/new/choose), submit pull requests, or join our [Discord](https://discord.com/invite/roseskins) for discussions and installation help.
 
 ## Reporting bugs
 
-Use the **Bug report** form. Besides your Rose version, League patch, client,
-region and game mode, it asks for the message shown in Rose's Troubleshooting
+Use the **Bug report** form. Besides your Lust version, League patch, client,
+region and game mode, it asks for the message shown in Lust's Troubleshooting
 panel and the latest log file from **Open Logs Folder**. Remove party tokens,
 account identifiers and personal paths before posting. For ideas, use the
 **Feature request** form.
@@ -14,16 +14,16 @@ account identifiers and personal paths before posting. For ideas, use the
 
 ```powershell
 # Create conda environment with Python 3.11
-conda create -n rose python=3.11 -y
+conda create -n lust python=3.11 -y
 
 # Activate the environment
-conda activate rose
+conda activate lust
 
 # Clone the repository
 git clone https://github.com/Alban1911/Rose.git
 
 # Navigate to project directory
-cd Rose
+cd Lust
 
 # Create a feature branch (e.g. feat/skin-preview, fix/chroma-crash, docs/readme)
 git checkout -b feat/your-feature-name
@@ -36,36 +36,36 @@ pip install -r requirements.txt
 
 ## Building locally
 
-Rose builds the Pengu Loader executable from the vendored source in
+Lust builds the Pengu Loader executable from the vendored source in
 `vendor/PenguLoader-1.1.6/` during packaging. A prebuilt `Pengu Loader.exe`
 is intentionally not committed to the repository.
 
 In addition to Python 3.11+ and the Python dependencies above, install Visual
 Studio Build Tools with the .NET desktop build tools, WPF support, and the
 .NET Framework 4.7.2 targeting pack (for Pengu Loader), and the MSVC C++ build
-tools (for Rose's stand-in `cslol-dll.dll`, built from `native/cslol_stub/`).
+tools (for Lust's stand-in `cslol-dll.dll`, built from `native/cslol_stub/`).
 Install Inno Setup 6 only if you also want to build the Windows installer.
 
 ```powershell
 # Build Pengu Loader only
 python scripts/build_pengu_loader.py
 
-# Build Rose (rebuilds Pengu Loader and the cslol-dll.dll stand-in)
+# Build Lust (rebuilds Pengu Loader and the cslol-dll.dll stand-in)
 python scripts/build_pyinstaller.py
 
-# Build Rose and the Windows installer (installer/Rose_Setup_<version>.exe)
+# Build Lust and the Windows installer (installer/Lust_Setup_<version>.exe)
 python scripts/build_all.py
 
-# Zip dist/Rose into the auto-updater's package (installer/update_package_<version>.zip)
+# Zip dist/Lust into the auto-updater's package (installer/update_package_<version>.zip)
 python scripts/create_update_package.py
 ```
 
-To test Rose itself, you also need the LTK patcher (`ltk_patcher_host.exe`
+To test Lust itself, you also need the LTK patcher (`ltk_patcher_host.exe`
 and `ltk_patcher_dll.dll` from an LTK Manager install) in `injection/tools/`.
 
-`scripts/build_pyinstaller.py` is the canonical Rose package build entry point; it
+`scripts/build_pyinstaller.py` is the canonical Lust package build entry point; it
 compiles the loader before invoking PyInstaller. Use it or `scripts/build_all.py`
-instead of invoking `pyinstaller Rose.spec` directly.
+instead of invoking `pyinstaller Lust.spec` directly.
 
 ## Tests and checks
 
@@ -100,16 +100,16 @@ changes on pull requests.
 
 ## Writing plugins
 
-`ROSE-SkinMonitor` hosts the WebSocket bridge to Rose and exposes it as
-`window.__roseBridge` once the bridge port is known; other plugins wait for
+`LUST-SkinMonitor` hosts the WebSocket bridge to Lust and exposes it as
+`window.__lustBridge` once the bridge port is known; other plugins wait for
 that object to appear. It offers `send(payload)`, `subscribe(type, cb)` /
-`unsubscribe(type, cb)` for messages from Rose, `onReady(cb)`, and
-`onDisconnect(cb)`, which runs when an open connection to Rose closes (not on
+`unsubscribe(type, cb)` for messages from Lust, `onReady(cb)`, and
+`onDisconnect(cb)`, which runs when an open connection to Lust closes (not on
 each failed reconnect), so a plugin waiting on an answer can give up.
 
 ## Translations
 
-Rose's menus are translated in `Pengu Loader/plugins/ROSE-I18n/locales/`, one
+Lust's menus are translated in `Pengu Loader/plugins/LUST-I18n/locales/`, one
 `<language>.json` per language, keyed by the English text. English is the
 fallback, so a missing text shows in English. Both the plugins and the Python
 side (`utils/core/i18n.py`) read these files.
@@ -117,7 +117,7 @@ side (`utils/core/i18n.py`) read these files.
 ## Project Structure
 
 ```
-Rose/
+Lust/
 ├── main.py                 # Application entry point
 ├── config.py               # Configuration constants
 ├── requirements.txt        # Python dependencies
@@ -323,30 +323,30 @@ Rose/
 │       └── analytics_thread.py  # Background thread for startup/heartbeat/close pings
 │
 ├── scripts/                # Build scripts (loader, stand-in DLL, PyInstaller, installer, update package)
-├── native/cslol_stub/      # Source of Rose's stand-in cslol-dll.dll
-├── vendor/PenguLoader-1.1.6/  # Pengu Loader source, built with Rose
+├── native/cslol_stub/      # Source of Lust's stand-in cslol-dll.dll
+├── vendor/PenguLoader-1.1.6/  # Pengu Loader source, built with Lust
 │
 └── Pengu Loader/           # Runtime loader files and plugins
     ├── Pengu Loader.exe    # Generated during builds from vendor/PenguLoader-1.1.6
     ├── core.dll            # Pengu Loader's hook, loaded into the League client
     └── plugins/            # JavaScript plugins
-        ├── ROSE-UI/
-        ├── ROSE-SkinMonitor/
-        ├── ROSE-ChromaWheel/
-        ├── ROSE-FormsWheel/
-        ├── ROSE-CustomSkinSelector/
-        ├── ROSE-CustomWheel/
-        ├── ROSE-SettingsPanel/
-        ├── ROSE-RandomSkin/
-        ├── ROSE-HistoricMode/
-        ├── ROSE-PartyMode/
-        ├── ROSE-I18n/      # Translations (locales/<language>.json)
-        └── ROSE-Jade/      # Shipped disabled (index.js_)
+        ├── LUST-UI/
+        ├── LUST-SkinMonitor/
+        ├── LUST-ChromaWheel/
+        ├── LUST-FormsWheel/
+        ├── LUST-CustomSkinSelector/
+        ├── LUST-CustomWheel/
+        ├── LUST-SettingsPanel/
+        ├── LUST-RandomSkin/
+        ├── LUST-HistoricMode/
+        ├── LUST-PartyMode/
+        ├── LUST-I18n/      # Translations (locales/<language>.json)
+        └── LUST-Jade/      # Shipped disabled (index.js_)
 ```
 
 ## Credits
 
-Rose uses the [official Pengu Loader](https://github.com/PenguLoader/PenguLoader)
-project. Its source is vendored and built as part of Rose, with Rose-specific
+Lust uses the [official Pengu Loader](https://github.com/PenguLoader/PenguLoader)
+project. Its source is vendored and built as part of Lust, with Lust-specific
 lifecycle integration added around the loader. See the
 [official Pengu Loader license](https://github.com/PenguLoader/PenguLoader/blob/main/LICENSE).

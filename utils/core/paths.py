@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Path utilities for Rose
+Path utilities for Lust
 Handles user data directories and permissions
 """
 
@@ -19,7 +19,7 @@ def _get_desktop_user_info() -> Tuple[Optional[str], Optional[str]]:
     """
     Get the actual desktop user's username and profile path.
     This finds the user who is logged into the desktop session,
-    even if Rose is running elevated as a different admin account.
+    even if Lust is running elevated as a different admin account.
 
     Returns:
         Tuple of (username, profile_path) or (None, None) if detection fails
@@ -140,13 +140,13 @@ def get_user_data_dir() -> Path:
     Get the user data directory where the application can write files.
 
     IMPORTANT: This function detects the actual desktop user, not the elevated
-    admin account. This ensures that Rose's data directory matches what Pengu
+    admin account. This ensures that Lust's data directory matches what Pengu
     Loader (running in League's process) will use.
 
     This handles the case where:
     - User "daish" is logged into Windows
-    - User runs Rose as "Admin" (different admin account)
-    - Rose needs to use daish's AppData, not Admin's AppData
+    - User runs Lust as "Admin" (different admin account)
+    - Lust needs to use daish's AppData, not Admin's AppData
     """
     global _cached_user_data_dir
 
@@ -155,7 +155,7 @@ def get_user_data_dir() -> Path:
 
     if os.name == "nt":  # Windows
         # First, try to detect the actual desktop user
-        # This handles the case where Rose runs as a different admin account
+        # This handles the case where Lust runs as a different admin account
         desktop_username, desktop_profile = _get_desktop_user_info()
 
         current_username = os.environ.get("USERNAME", "").lower()
@@ -166,7 +166,7 @@ def get_user_data_dir() -> Path:
                 # User mismatch detected! Use the desktop user's AppData
                 desktop_localappdata = _get_localappdata_for_user(desktop_profile)
                 if desktop_localappdata:
-                    _cached_user_data_dir = desktop_localappdata / "Rose"
+                    _cached_user_data_dir = desktop_localappdata / "Lust"
                     # Ensure the directory exists with proper permissions
                     try:
                         _cached_user_data_dir.mkdir(parents=True, exist_ok=True)
@@ -177,13 +177,13 @@ def get_user_data_dir() -> Path:
         # No mismatch or detection failed - use current user's LOCALAPPDATA
         localappdata = os.environ.get("LOCALAPPDATA")
         if localappdata:
-            _cached_user_data_dir = Path(localappdata) / "Rose"
+            _cached_user_data_dir = Path(localappdata) / "Lust"
             return _cached_user_data_dir
 
         # Fallback to user profile
         userprofile = os.environ.get("USERPROFILE")
         if userprofile:
-            _cached_user_data_dir = Path(userprofile) / "AppData" / "Local" / "Rose"
+            _cached_user_data_dir = Path(userprofile) / "AppData" / "Local" / "Lust"
             return _cached_user_data_dir
 
         # Last resort: current directory
@@ -194,15 +194,15 @@ def get_user_data_dir() -> Path:
         # Use XDG_DATA_HOME or fallback to ~/.local/share
         xdg_data_home = os.environ.get("XDG_DATA_HOME")
         if xdg_data_home:
-            _cached_user_data_dir = Path(xdg_data_home) / "Rose"
+            _cached_user_data_dir = Path(xdg_data_home) / "Lust"
         else:
-            _cached_user_data_dir = Path.home() / ".local" / "share" / "Rose"
+            _cached_user_data_dir = Path.home() / ".local" / "share" / "Lust"
         return _cached_user_data_dir
 
 
 def get_appdata_dir() -> Path:
     """
-    Get the Rose AppData directory.
+    Get the Lust AppData directory.
     Alias for get_user_data_dir() for backwards compatibility.
     """
     return get_user_data_dir()

@@ -26,7 +26,7 @@ def _read_install_id(path: Path) -> Optional[str]:
 
 
 def get_install_id() -> str:
-    """Return the stable, randomly generated ID for this Rose installation."""
+    """Return the stable, randomly generated ID for this Lust installation."""
     global _install_id_cache
 
     if _install_id_cache is not None:

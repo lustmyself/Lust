@@ -153,7 +153,7 @@ class LoadingNameTests(unittest.TestCase):
         record = b'\x01\x02' + struct.pack('<H', len(key)) + key + b'\x03'
         patched = loading_name._with_own_record_key(record, 'zed')
         self.assertEqual(len(patched), len(record))
-        self.assertIn(struct.pack('<H', len(key)) + b'rose_character_displayname_Zed', patched)
+        self.assertIn(struct.pack('<H', len(key)) + b'lust_character_displayname_Zed', patched)
         self.assertIsNone(loading_name._with_own_record_key(b'nothing here', 'Zed'))
 
     def test_the_chat_keeps_the_champions_name(self):
@@ -179,10 +179,10 @@ class LoadingNameTests(unittest.TestCase):
         table = (mods / name / loading_name.TABLE_PATH).read_bytes()
         self.assertEqual(loading_name._text_of(table, loading_name._key_hash('game_character_displayname_Zed')),
                          'Shockblade Zed')
-        self.assertEqual(loading_name._text_of(table, loading_name._key_hash('rose_character_displayname_Zed')),
+        self.assertEqual(loading_name._text_of(table, loading_name._key_hash('lust_character_displayname_Zed')),
                          'Zed')
         written = (mods / name / 'RAW' / 'data' / 'characters' / 'zed' / 'zed.bin').read_bytes()
-        self.assertEqual(written, struct.pack('<H', len(key)) + b'rose_character_displayname_Zed')
+        self.assertEqual(written, struct.pack('<H', len(key)) + b'lust_character_displayname_Zed')
 
 
 def make_wad(data, path_hash=loading_name.TABLE_HASH):

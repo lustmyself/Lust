@@ -67,8 +67,8 @@ def initialize_core_components(args, injection_threshold: Optional[float] = None
             try:
                 ctypes.windll.user32.MessageBoxW(
                     0,
-                    f"Rose failed to initialize:\n\n{str(e)}\n\nCheck the log file for details:\n{log.handlers[0].baseFilename if log.handlers else 'N/A'}",
-                    "Rose - Initialization Error",
+                    f"Lust failed to initialize:\n\n{str(e)}\n\nCheck the log file for details:\n{log.handlers[0].baseFilename if log.handlers else 'N/A'}",
+                    "Lust - Initialization Error",
                     0x50010  # MB_OK | MB_ICONERROR | MB_SETFOREGROUND | MB_TOPMOST
                 )
             except Exception:
@@ -109,8 +109,8 @@ def initialize_core_components(args, injection_threshold: Optional[float] = None
             try:
                 ctypes.windll.user32.MessageBoxW(
                     0,
-                    f"Rose failed to initialize injection system:\n\n{str(e)}\n\nCheck the log file for details:\n{log.handlers[0].baseFilename if log.handlers else 'N/A'}",
-                    "Rose - Injection Error",
+                    f"Lust failed to initialize injection system:\n\n{str(e)}\n\nCheck the log file for details:\n{log.handlers[0].baseFilename if log.handlers else 'N/A'}",
+                    "Lust - Injection Error",
                     0x50010  # MB_OK | MB_ICONERROR | MB_SETFOREGROUND | MB_TOPMOST
                 )
             except Exception:

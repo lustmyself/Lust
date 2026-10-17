@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Security helpers for Rose's localhost bridge.
+Security helpers for Lust's localhost bridge.
 """
 
 from urllib.parse import urlparse

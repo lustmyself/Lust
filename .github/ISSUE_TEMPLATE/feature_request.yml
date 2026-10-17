@@ -1,5 +1,5 @@
 name: Feature request
-description: Suggest an improvement or new capability for Rose
+description: Suggest an improvement or new capability for Lust
 title: "[FEATURE] "
 labels:
   - enhancement
@@ -45,5 +45,5 @@ body:
       options:
         - label: I searched the existing issues and pull requests and did not find a duplicate.
           required: true
-        - label: This request is about Rose itself, not general League support or obtaining third-party patcher files.
+        - label: This request is about Lust itself, not general League support or obtaining third-party patcher files.
           required: true

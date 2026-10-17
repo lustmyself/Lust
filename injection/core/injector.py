@@ -264,7 +264,7 @@ class SkinInjector:
                 "warning",
                 "Injection failed.",
                 details={"total_s": f"{total_duration:.2f}", "mkoverlay_s": f"{mkoverlay_duration:.2f}", "skin": skin_name},
-                hint="Check Rose logs for details, then retry.",
+                hint="Check Lust logs for details, then retry.",
             )
         
         return result == 0

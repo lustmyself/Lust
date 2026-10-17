@@ -21,7 +21,7 @@ from config import (
 def setup_arguments() -> argparse.Namespace:
     """Parse and return command line arguments"""
     ap = argparse.ArgumentParser(
-        description="Rose - Windows UI API skin detection"
+        description="Lust - Windows UI API skin detection"
     )
     
     # General arguments
@@ -30,7 +30,7 @@ def setup_arguments() -> argparse.Namespace:
     ap.add_argument("--debug", action="store_true", default=False,
                    help="Enable ultra-detailed debug logging (includes function traces and variable dumps)")
     ap.add_argument("--dev", action="store_true", default=False,
-                   help="Skip the Windows launcher so Rose runs directly for development")
+                   help="Skip the Windows launcher so Lust runs directly for development")
     ap.add_argument("--logs", action="store_true", default=False,
                    help="Force writing log files even in dev mode (overrides --dev log suppression)")
     ap.add_argument("--lockfile", type=str, default=None)

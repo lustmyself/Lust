@@ -59,10 +59,10 @@ class ModStorageService:
     # display name is retained for the final directory, but including it in
     # the temporary directory name can push deeply nested WAD paths over the
     # legacy MAX_PATH limit before the import is renamed into place.
-    IMPORT_TEMP_PREFIX = ".rose-import-"
-    TARGET_METADATA = "rose_mod_targets.json"
-    LEGACY_TARGET_METADATA = "rose_wad_targets.json"
-    CATEGORY_METADATA = "rose_category_mods.json"
+    IMPORT_TEMP_PREFIX = ".lust-import-"
+    TARGET_METADATA = "lust_mod_targets.json"
+    LEGACY_TARGET_METADATA = "lust_wad_targets.json"
+    CATEGORY_METADATA = "lust_category_mods.json"
 
     CATEGORY_SKINS = "skins"
     CATEGORY_MAPS = "maps"
@@ -167,7 +167,7 @@ class ModStorageService:
 
     def _ensure_mods_root_layout(self) -> None:
         """
-        Ensure `%LOCALAPPDATA%\\Rose\\mods` contains only the expected root category folders.
+        Ensure `%LOCALAPPDATA%\\Lust\\mods` contains only the expected root category folders.
 
         - Creates missing category folders.
         - Removes *extra* root-level folders not in our category list.

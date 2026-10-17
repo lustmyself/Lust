@@ -9,7 +9,7 @@ MORDEKAISER = 82
 
 
 class LateLockReplayTests(unittest.TestCase):
-    """A champion already locked when Rose picks up the champ select gets the
+    """A champion already locked when Lust picks up the champ select gets the
     skin the client showed just before, so every plugin learns the new skin"""
 
     def setUp(self):

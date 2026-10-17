@@ -24,7 +24,7 @@ def perform_cleanup(state: SharedState, thread_manager: ThreadManager, tray_mana
     """Perform application cleanup"""
     log_section(log, "Cleanup", "")
 
-    # A suspension outlives Rose: resume first, or closing during mkoverlay freezes the game for good
+    # A suspension outlives Lust: resume first, or closing during mkoverlay freezes the game for good
     if injection_manager:
         try:
             injection_manager.resume_if_suspended()

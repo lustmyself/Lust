@@ -42,7 +42,7 @@ class PenguLoaderIntegrationTests(unittest.TestCase):
             _CONFIG_FILE=self.config_file,
         )
         self.paths.start()
-        external = patch.object(pengu_loader, '_external_pengu_with_rose_plugins', return_value=None)
+        external = patch.object(pengu_loader, '_external_pengu_with_lust_plugins', return_value=None)
         external.start()
         self.addCleanup(external.stop)
         processes = patch.object(pengu_loader, '_process_running', return_value=False)
@@ -74,7 +74,7 @@ class PenguLoaderIntegrationTests(unittest.TestCase):
         program_source = Path('vendor/PenguLoader-1.1.6/loader/Program.cs').read_text(encoding='utf-8')
         ifeo_source = Path('vendor/PenguLoader-1.1.6/loader/Main/IFEO.cs').read_text(encoding='utf-8')
 
-        for forbidden in ('--rose-managed', '--rose-stop', '--force-deactivate', 'taskkill'):
+        for forbidden in ('--lust-managed', '--lust-stop', '--force-deactivate', 'taskkill'):
             self.assertNotIn(forbidden, integration_source)
             self.assertNotIn(forbidden, program_source)
 
@@ -86,7 +86,7 @@ class PenguLoaderIntegrationTests(unittest.TestCase):
         self.assertFalse(Path('vendor/PenguLoader-1.1.6/loader/Main/Win32Registry.cs').exists())
 
     def test_legacy_pengu_logs_are_removed(self):
-        for filename in ('rose.log', 'rose.log.old', 'crash.log'):
+        for filename in ('lust.log', 'lust.log.old', 'crash.log'):
             path = self.pengu_dir / filename
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text('legacy diagnostics', encoding='utf-8')
@@ -94,13 +94,13 @@ class PenguLoaderIntegrationTests(unittest.TestCase):
 
         pengu_loader._remove_legacy_pengu_logs(self.pengu_dir)
 
-        for filename in ('rose.log', 'rose.log.old', 'crash.log'):
+        for filename in ('lust.log', 'lust.log.old', 'crash.log'):
             self.assertFalse((self.pengu_dir / filename).exists())
         self.assertTrue(self.pengu_log.exists())
 
     def test_legacy_cleanup_and_packaging_exclusions_are_wired(self):
         source = Path(pengu_loader.__file__).read_text(encoding='utf-8')
-        spec_source = Path('Rose.spec').read_text(encoding='utf-8')
+        spec_source = Path('Lust.spec').read_text(encoding='utf-8')
         program_source = Path(
             'vendor/PenguLoader-1.1.6/loader/Program.cs'
         ).read_text(encoding='utf-8')
@@ -151,8 +151,8 @@ class PenguLoaderIntegrationTests(unittest.TestCase):
     def test_successful_activation_creates_session(self, _running, activate, _status, _available):
         self.assertTrue(pengu_loader.activate_on_start())
         state = json.loads(self.session_file.read_text(encoding='utf-8'))
-        self.assertFalse(state['pengu_was_active_before_rose'])
-        self.assertTrue(state['rose_activated_pengu'])
+        self.assertFalse(state['pengu_was_active_before_lust'])
+        self.assertTrue(state['lust_activated_pengu'])
         activate.assert_called_once_with()
 
     @patch.object(pengu_loader, '_is_available', return_value=True)
@@ -197,8 +197,8 @@ class PenguLoaderIntegrationTests(unittest.TestCase):
         activate.assert_not_called()
         deactivate.assert_not_called()
         state = json.loads(self.session_file.read_text(encoding='utf-8'))
-        self.assertTrue(state['rose_activated_pengu'])
-        self.assertFalse(state['pengu_was_active_before_rose'])
+        self.assertTrue(state['lust_activated_pengu'])
+        self.assertFalse(state['pengu_was_active_before_lust'])
 
     @patch.object(pengu_loader, '_is_available', return_value=True)
     @patch.object(pengu_loader, 'get_status', return_value=pengu_loader.PenguStatus.ACTIVE)
@@ -206,18 +206,18 @@ class PenguLoaderIntegrationTests(unittest.TestCase):
     @patch.object(pengu_loader, 'restart_client', return_value=True)
     @patch.object(pengu_loader, 'deactivate', return_value=True)
     @patch.object(pengu_loader, 'activate')
-    def test_rose_loader_left_active_is_unloaded_on_exit(
+    def test_lust_loader_left_active_is_unloaded_on_exit(
         self, activate, deactivate, restart_client, _running, _status, _available
     ):
-        # --status reports only this loader's own core.dll: an earlier Rose left it
-        # on without a session, so this Rose owns it and unloads it when it quits
+        # --status reports only this loader's own core.dll: an earlier Lust left it
+        # on without a session, so this Lust owns it and unloads it when it quits
         self.assertTrue(pengu_loader.activate_on_start())
         activate.assert_not_called()
         state = json.loads(self.session_file.read_text(encoding='utf-8'))
-        self.assertTrue(state['rose_activated_pengu'])
-        self.assertFalse(state['pengu_was_active_before_rose'])
+        self.assertTrue(state['lust_activated_pengu'])
+        self.assertFalse(state['pengu_was_active_before_lust'])
 
-        self.assertTrue(pengu_loader.restore_after_rose())
+        self.assertTrue(pengu_loader.restore_after_lust())
         deactivate.assert_called_once_with()
         restart_client.assert_called_once_with()
 
@@ -226,7 +226,7 @@ class PenguLoaderIntegrationTests(unittest.TestCase):
     @patch.object(pengu_loader, 'deactivate', return_value=True)
     def test_successful_shutdown_removes_session(self, deactivate, _running, _available):
         pengu_loader._write_session(False, True)
-        self.assertTrue(pengu_loader.restore_after_rose())
+        self.assertTrue(pengu_loader.restore_after_lust())
         self.assertFalse(self.session_file.exists())
         deactivate.assert_called_once_with()
 
@@ -238,7 +238,7 @@ class PenguLoaderIntegrationTests(unittest.TestCase):
         self, deactivate, restart_client, _running, _available
     ):
         pengu_loader._write_session(False, True)
-        self.assertTrue(pengu_loader.restore_after_rose())
+        self.assertTrue(pengu_loader.restore_after_lust())
         deactivate.assert_called_once_with()
         restart_client.assert_called_once_with()
         self.assertFalse(self.session_file.exists())
@@ -247,14 +247,14 @@ class PenguLoaderIntegrationTests(unittest.TestCase):
     @patch.object(pengu_loader, 'deactivate', return_value=False)
     def test_failed_shutdown_keeps_recovery_session(self, deactivate, _available):
         pengu_loader._write_session(False, True)
-        self.assertFalse(pengu_loader.restore_after_rose())
+        self.assertFalse(pengu_loader.restore_after_lust())
         self.assertTrue(self.session_file.exists())
         deactivate.assert_called_once_with()
 
     @patch.object(pengu_loader, 'deactivate')
     def test_preexisting_active_state_is_preserved(self, deactivate):
         pengu_loader._write_session(True, False)
-        self.assertTrue(pengu_loader.restore_after_rose())
+        self.assertTrue(pengu_loader.restore_after_lust())
         self.assertFalse(self.session_file.exists())
         deactivate.assert_not_called()
 
@@ -341,8 +341,8 @@ class PenguLoaderIntegrationTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
         self.assertNotIn('should not be included', '\n'.join(logs.output))
 
-    def test_loader_writes_roses_config_ini(self):
-        self.assertEqual(os.environ['ROSE_CONFIG_PATH'], str(config.get_config_file_path()))
+    def test_loader_writes_lusts_config_ini(self):
+        self.assertEqual(os.environ['LUST_CONFIG_PATH'], str(config.get_config_file_path()))
 
     @patch.object(pengu_loader, '_is_available', return_value=True)
     @patch.object(pengu_loader, 'get_status', return_value=pengu_loader.PenguStatus.ACTIVE)
@@ -376,7 +376,7 @@ class PenguLoaderIntegrationTests(unittest.TestCase):
         self, activate, restart_client, _running, _status, _available
     ):
         # The client may have started while the hook was off, or still run the
-        # plugins of a closed Rose: it loads Rose's only when it starts
+        # plugins of a closed Lust: it loads Lust's only when it starts
         self.assertTrue(pengu_loader.activate_on_start())
         activate.assert_not_called()
         restart_client.assert_called_once_with()
@@ -396,7 +396,7 @@ class PenguLoaderIntegrationTests(unittest.TestCase):
     @patch.object(pengu_loader.subprocess, 'run')
     def test_deactivate_leaves_another_loaders_hook_on(self, run, _available):
         # --uninstall would still switch off the config.ini that loader's core.dll reads
-        other_core = Path(self.temp_dir.name) / 'Other Rose' / 'core.dll'
+        other_core = Path(self.temp_dir.name) / 'Other Lust' / 'core.dll'
         with patch.object(pengu_loader, '_registered_pengu_core', return_value=other_core):
             self.assertTrue(pengu_loader.deactivate())
         run.assert_not_called()
@@ -407,15 +407,15 @@ class PenguLoaderIntegrationTests(unittest.TestCase):
     @patch.object(pengu_loader.subprocess, 'run')
     def test_shutdown_leaves_another_loaders_hook_on(self, run, restart_client, _running, _available):
         pengu_loader._write_session(False, True)
-        other_core = Path(self.temp_dir.name) / 'Other Rose' / 'core.dll'
+        other_core = Path(self.temp_dir.name) / 'Other Lust' / 'core.dll'
         with patch.object(pengu_loader, '_registered_pengu_core', return_value=other_core):
-            self.assertTrue(pengu_loader.restore_after_rose())
+            self.assertTrue(pengu_loader.restore_after_lust())
         run.assert_not_called()
         restart_client.assert_not_called()
         self.assertFalse(self.session_file.exists())
 
     def test_the_bundled_copy_is_not_another_loader(self):
-        bundled = Path(self.temp_dir.name) / 'Program Files' / 'Rose' / '_internal' / 'Pengu Loader'
+        bundled = Path(self.temp_dir.name) / 'Program Files' / 'Lust' / '_internal' / 'Pengu Loader'
         with patch.object(pengu_loader, '_get_bundled_pengu_dir', return_value=bundled), \
                 patch.object(pengu_loader, '_registered_pengu_core', return_value=bundled / 'core.dll'):
             self.assertIsNone(pengu_loader._hook_of_another_loader())
@@ -426,16 +426,16 @@ class PenguLoaderIntegrationTests(unittest.TestCase):
     @patch.object(pengu_loader.subprocess, 'run')
     def test_shutdown_removes_a_hook_left_on_the_bundled_copy(self, run, remove_hook, _running, _available):
         # The loader's --uninstall leaves a hook on another core.dll and --status
-        # calls it inactive: the hook stayed while Rose thought it was gone
+        # calls it inactive: the hook stayed while Lust thought it was gone
         run.side_effect = [
             self._result([], stdout='Pengu has been deactivated.'),
             self._result([], code=1, stdout='Pengu is currently INACTIVE.'),
         ]
-        bundled = Path(self.temp_dir.name) / 'Program Files' / 'Rose' / '_internal' / 'Pengu Loader'
+        bundled = Path(self.temp_dir.name) / 'Program Files' / 'Lust' / '_internal' / 'Pengu Loader'
         pengu_loader._write_session(False, True)
         with patch.object(pengu_loader, '_get_bundled_pengu_dir', return_value=bundled), \
                 patch.object(pengu_loader, '_registered_pengu_core', return_value=bundled / 'core.dll'):
-            self.assertTrue(pengu_loader.restore_after_rose())
+            self.assertTrue(pengu_loader.restore_after_lust())
         self.assertEqual(run.call_args_list[0].args[0][1:], ['--uninstall', '--silent'])
         remove_hook.assert_called_once_with(bundled / 'core.dll')
         self.assertFalse(self.session_file.exists())
@@ -454,10 +454,10 @@ class PenguLoaderIntegrationTests(unittest.TestCase):
 
 @unittest.skipUnless(sys.platform == 'win32', 'a loaded DLL is locked on Windows')
 class RuntimeLoaderSyncTests(unittest.TestCase):
-    """Rose copies its loader to a writable folder at start. With the client
-    open, core.dll is loaded there and can't be replaced: Rose ran the bundled
+    """Lust copies its loader to a writable folder at start. With the client
+    open, core.dll is loaded there and can't be replaced: Lust ran the bundled
     copy instead, took its own runtime loader for another one, and left its
-    hook on at exit, every time the client was open when Rose started"""
+    hook on at exit, every time the client was open when Lust started"""
 
     def setUp(self):
         temp_dir = tempfile.TemporaryDirectory()
@@ -470,8 +470,8 @@ class RuntimeLoaderSyncTests(unittest.TestCase):
             folder.mkdir(parents=True)
             (folder / 'Pengu Loader.exe').write_bytes(b'loader')
             (folder / 'core.dll').write_bytes(real_dll.read_bytes())
-        (self.bundled / 'plugins' / 'ROSE-UI').mkdir(parents=True)
-        (self.bundled / 'plugins' / 'ROSE-UI' / 'index.js').write_text('new plugin', encoding='utf-8')
+        (self.bundled / 'plugins' / 'LUST-UI').mkdir(parents=True)
+        (self.bundled / 'plugins' / 'LUST-UI' / 'index.js').write_text('new plugin', encoding='utf-8')
 
     def test_a_core_dll_in_use_keeps_the_runtime_loader(self):
         loaded = ctypes.WinDLL(str(self.runtime / 'core.dll'))  # the client runs it
@@ -485,13 +485,13 @@ class RuntimeLoaderSyncTests(unittest.TestCase):
                 self.assertLogs(pengu_loader.log, level='WARNING'):
             self.assertEqual(pengu_loader._resolve_pengu_dir(), self.runtime)
         # Everything else was still updated
-        self.assertEqual((self.runtime / 'plugins' / 'ROSE-UI' / 'index.js').read_text(encoding='utf-8'), 'new plugin')
+        self.assertEqual((self.runtime / 'plugins' / 'LUST-UI' / 'index.js').read_text(encoding='utf-8'), 'new plugin')
 
 
 @unittest.skipUnless(sys.platform == 'win32', 'config.ini is shared through the Windows INI API')
 class ConfigIniTests(unittest.TestCase):
     """config.ini is read by core.dll and written by the Pengu loader through
-    the Windows INI API (ANSI code page), and by Rose in Python"""
+    the Windows INI API (ANSI code page), and by Lust in Python"""
 
     def setUp(self):
         temp_dir = tempfile.TemporaryDirectory()
@@ -511,8 +511,8 @@ class ConfigIniTests(unittest.TestCase):
         ctypes.windll.kernel32.WritePrivateProfileStringW('General', key, value, str(self.config_file))
 
     @unittest.skipUnless(_ansi_can_encode('é'), 'the ANSI code page has no é')
-    def test_non_ascii_loaderpath_survives_rose_writes(self):
-        loader_dir = r'C:\Users\José\AppData\Local\Rose\Pengu Loader'
+    def test_non_ascii_loaderpath_survives_lust_writes(self):
+        loader_dir = r'C:\Users\José\AppData\Local\Lust\Pengu Loader'
         self.config_file.write_text('[General]\ninjection_threshold = 0.5\n', encoding='mbcs')
         self.loader_writes('disabled', '0')
         self.loader_writes('loaderpath', loader_dir)
@@ -525,7 +525,7 @@ class ConfigIniTests(unittest.TestCase):
         self.assertEqual(config.get_config_option('General', 'loaderpath'), loader_dir)
 
     @unittest.skipUnless(_ansi_can_encode('é'), 'the ANSI code page has no é')
-    def test_reads_lines_older_rose_wrote_as_utf8(self):
+    def test_reads_lines_older_lust_wrote_as_utf8(self):
         self.config_file.write_bytes(
             '[General]\r\nleaguepath = C:\\Jeux\\Légendes\r\n'.encode('utf-8')
             + 'loaderpath=C:\\Users\\José\\Pengu Loader\r\n'.encode('mbcs')

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Build script for Rose using PyInstaller
+Build script for Lust using PyInstaller
 Fast builds with Windows UI API support
 """
 
@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 MIN_PYTHON = (3, 11)
 if sys.version_info < MIN_PYTHON:
     sys.stderr.write(
-        f"Rose build scripts require Python {MIN_PYTHON[0]}.{MIN_PYTHON[1]} or newer.\n"
+        f"Lust build scripts require Python {MIN_PYTHON[0]}.{MIN_PYTHON[1]} or newer.\n"
         "Please re-run using an updated interpreter.\n"
     )
     sys.exit(1)
@@ -66,7 +66,7 @@ def clean_previous_builds():
 
 
 def build_pengu_loader():
-    """Build the vendored Pengu Loader source before packaging Rose."""
+    """Build the vendored Pengu Loader source before packaging Lust."""
     print_step(2, 4, "Building Pengu Loader From Source")
 
     script = ROOT / "scripts" / "build_pengu_loader.py"
@@ -109,7 +109,7 @@ def build_with_pyinstaller():
         "pyinstaller",
         "--clean",
         "--noconfirm",
-        "Rose.spec",
+        "Lust.spec",
     ]
     
     print(f"Running: {' '.join(cmd)}\n")
@@ -127,7 +127,7 @@ def organize_output():
     """Organize output files and verify"""
     print_step(4, 4, "Organizing Output & Verification")
     
-    dist_folder = ROOT / "dist/Rose"
+    dist_folder = ROOT / "dist/Lust"
     
     if not dist_folder.exists():
         print("[ERROR] Build output not found!")
@@ -138,7 +138,7 @@ def organize_output():
 
 def main():
     """Main build process"""
-    print_header("Rose - PyInstaller Build")
+    print_header("Lust - PyInstaller Build")
     
     start_time = time.time()
     
@@ -169,7 +169,7 @@ def main():
     
     print_header("[OK] BUILD COMPLETED SUCCESSFULLY!")
     
-    exe_path = ROOT / "dist/Rose/Rose.exe"
+    exe_path = ROOT / "dist/Lust/Lust.exe"
     
     if exe_path.exists():
         size_mb = exe_path.stat().st_size / (1024 * 1024)
@@ -188,8 +188,8 @@ def main():
         print(f"  - Good enough against casual theft")
         
         print(f"\nTo test:")
-        print(f"  cd dist\\Rose")
-        print(f"  Rose.exe")
+        print(f"  cd dist\\Lust")
+        print(f"  Lust.exe")
     else:
         print("[ERROR] Executable not found!")
         sys.exit(1)

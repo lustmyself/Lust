@@ -13,7 +13,10 @@ from utils.core.logging import get_logger
 
 log = get_logger()
 
-GITHUB_RELEASE_API = "https://api.github.com/repos/Alban1911/Rose/releases/latest"
+# Lust has no release repo yet. Pointing this at Rose's releases would replace Lust
+# with Rose on the next update, so updates stay off until a Lust repo exists,
+# e.g. "https://api.github.com/repos/<you>/Lust/releases/latest".
+GITHUB_RELEASE_API = ""
 
 
 class GitHubClient:
@@ -28,6 +31,9 @@ class GitHubClient:
         Returns:
             Release data dictionary or None if failed
         """
+        if not GITHUB_RELEASE_API:
+            log.info("Update check skipped: no release repository configured")
+            return None
         try:
             response = requests.get(GITHUB_RELEASE_API, timeout=self.timeout)
             response.raise_for_status()

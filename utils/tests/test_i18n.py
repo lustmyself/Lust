@@ -17,7 +17,7 @@ from utils.core.i18n import (
     text_fields,
 )
 
-SHIPPED_LOCALES = Path(__file__).resolve().parents[2] / "Pengu Loader" / "plugins" / "ROSE-I18n" / "locales"
+SHIPPED_LOCALES = Path(__file__).resolve().parents[2] / "Pengu Loader" / "plugins" / "LUST-I18n" / "locales"
 
 
 class LanguageTests(unittest.TestCase):

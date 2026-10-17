@@ -3,7 +3,7 @@
  *
  * mod-tools.exe links cslol-dll.dll at load time, so Windows refuses to start
  * it without a DLL of that name, even for "mkoverlay", which never calls into
- * it. Rose serves overlays through the user-provided LTK patcher instead of
+ * it. Lust serves overlays through the user-provided LTK patcher instead of
  * "runoverlay", so these exports only need to exist. None of them do anything;
  * each reports failure in case something calls it anyway.
  */
@@ -12,7 +12,7 @@
 
 #define EXPORT __declspec(dllexport)
 
-static const char stub_error[] = "cslol-dll stub: runoverlay is not supported by Rose";
+static const char stub_error[] = "cslol-dll stub: runoverlay is not supported by Lust";
 
 EXPORT const char* cslol_init(void) { return stub_error; }
 EXPORT const char* cslol_set_config(const wchar_t* prefix) { (void)prefix; return stub_error; }

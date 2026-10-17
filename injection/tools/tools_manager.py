@@ -25,7 +25,7 @@ class ToolsManager:
         """Check if the runtime injection tool is present."""
         required_tools = [
             "mod-tools.exe",
-            "cslol-dll.dll",  # Rose's stand-in; mod-tools.exe will not start without it
+            "cslol-dll.dll",  # Lust's stand-in; mod-tools.exe will not start without it
             LTK_PATCHER_HOST,
             LTK_PATCHER_DLL,
         ]

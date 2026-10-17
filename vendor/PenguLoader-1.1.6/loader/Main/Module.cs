@@ -94,7 +94,7 @@ namespace PenguLoader.Main
                     return false;
             }
 
-            RoseConfig.SetLoaderState(active);
+            LustConfig.SetLoaderState(active);
             return true;
         }
     }

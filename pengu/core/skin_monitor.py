@@ -4,7 +4,7 @@
 Pengu Skin Monitor
 ------------------
 
-Receives skin hover notifications from the Pengu Loader `ROSE-SkinMonitor` plugin
+Receives skin hover notifications from the Pengu Loader `LUST-SkinMonitor` plugin
 over WebSocket and updates the shared application state accordingly. This
 replaces the legacy UIA-based skin detection pipeline.
 """
@@ -32,7 +32,7 @@ logging.getLogger("websockets.server").setLevel(logging.WARNING)
 logging.getLogger("websockets.protocol").setLevel(logging.WARNING)
 
 # The bridge takes the first free one of these ports. The plugins look for it on
-# the same ones (DISCOVERY_*_PORT in ROSE-SkinMonitor and ROSE-PartyMode)
+# the same ones (DISCOVERY_*_PORT in LUST-SkinMonitor and LUST-PartyMode)
 BRIDGE_FIRST_PORT = 50000
 BRIDGE_PORT_COUNT = 100
 

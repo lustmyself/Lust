@@ -94,7 +94,7 @@ def create_lock_file() -> bool:
         state_dir = get_state_dir()
         state_dir.mkdir(parents=True, exist_ok=True)
         
-        lock_file_path = state_dir / "rose.lock"
+        lock_file_path = state_dir / "lust.lock"
         app_state = get_app_state()
         app_state.lock_file_path = lock_file_path
         
@@ -232,12 +232,12 @@ def check_single_instance() -> None:
             try:
                 ctypes.windll.user32.MessageBoxW(
                     0,
-                    "Another instance of Rose is already running!\n\nPlease close the existing instance before starting a new one.",
-                    "Rose - Instance Already Running",
+                    "Another instance of Lust is already running!\n\nPlease close the existing instance before starting a new one.",
+                    "Lust - Instance Already Running",
                     0x50010,
                 )
             except Exception:
-                log.error("Another instance of Rose is already running!")
+                log.error("Another instance of Lust is already running!")
             sys.exit(1)
         return
 
@@ -250,17 +250,17 @@ def check_single_instance() -> None:
                 # = 0x50010 - Ensures dialog appears on top and gets focus
                 ctypes.windll.user32.MessageBoxW(
                     0, 
-                    "Another instance of Rose is already running!\n\nPlease close the existing instance before starting a new one.",
-                    "Rose - Instance Already Running",
+                    "Another instance of Lust is already running!\n\nPlease close the existing instance before starting a new one.",
+                    "Lust - Instance Already Running",
                     0x50010  # MB_OK | MB_ICONERROR | MB_SETFOREGROUND | MB_TOPMOST
                 )
             except (OSError, AttributeError) as e:
                 # Fallback to logging if MessageBox fails
                 log.error(f"Failed to show message box: {e}")
-                log.error("Another instance of Rose is already running!")
+                log.error("Another instance of Lust is already running!")
                 log.error("Please close the existing instance before starting a new one.")
         else:
-            log.error("Another instance of Rose is already running!")
+            log.error("Another instance of Lust is already running!")
             log.error("Please close the existing instance before starting a new one.")
         sys.exit(1)
 

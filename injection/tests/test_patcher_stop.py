@@ -13,8 +13,8 @@ from injection.overlay.process_manager import ProcessManager
 from injection.tools.patcher import LTK_PATCHER_HOST
 
 
-class RoseStoppedPatcherTests(unittest.TestCase):
-    """Rose's cleanup kills the patcher with exit code 1 (Popen) or 15 (psutil)"""
+class LustStoppedPatcherTests(unittest.TestCase):
+    """Lust's cleanup kills the patcher with exit code 1 (Popen) or 15 (psutil)"""
 
     def setUp(self):
         temp_dir = tempfile.TemporaryDirectory()
@@ -86,7 +86,7 @@ class RoseStoppedPatcherTests(unittest.TestCase):
         self.report_issue.assert_called_once()
         self.assertIn('exited with code 1', self.report_issue.call_args.args[2])
 
-    def test_patcher_errors_are_still_reported_when_rose_stops_it(self):
+    def test_patcher_errors_are_still_reported_when_lust_stops_it(self):
         proc, session = self._start_patcher()
         session['session']['error'] = 'the game started before the patcher, overlay not applied'
         code = self._serve_until(session, self.process_manager.stop_overlay_process)

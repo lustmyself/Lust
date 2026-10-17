@@ -1,15 +1,15 @@
-; Rose Installer Script for Inno Setup
+; Lust Installer Script for Inno Setup
 ; This creates a proper Windows installer that registers the app
 
-#define MyAppName "Rose"
+#define MyAppName "Lust"
 #define MyAppVersion "1.4.9"
 #define MyAppVersionInfo "1.4.9.0"
-#define MyAppPublisher "Rose Team"
+#define MyAppPublisher "Lust Team"
 #define MyAppURL "https://github.com/Alban1911/Rose"
-#define MyAppExeName "Rose.exe"
+#define MyAppExeName "Lust.exe"
 #define MyAppDescription "Effortless skin changer for League of Legends"
 ; Must match config.SINGLE_INSTANCE_MUTEX_NAME (used by the app to enforce single-instance)
-#define MyAppMutex "Local\RoseSingleInstance"
+#define MyAppMutex "Local\LustSingleInstance"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -26,7 +26,7 @@ DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 OutputDir=installer
-OutputBaseFilename=Rose_Setup_{#MyAppVersion}
+OutputBaseFilename=Lust_Setup_{#MyAppVersion}
 SetupIconFile=assets\icon.ico
 Compression=lzma
 SolidCompression=yes
@@ -40,7 +40,7 @@ VersionInfoVersion={#MyAppVersionInfo}
 VersionInfoCompany={#MyAppPublisher}
 VersionInfoDescription={#MyAppDescription}
 VersionInfoProductName={#MyAppName}
-; Prevent install/uninstall while Rose is running (mutex is created by the running app)
+; Prevent install/uninstall while Lust is running (mutex is created by the running app)
 AppMutex={#MyAppMutex}
 
 [Languages]
@@ -53,7 +53,7 @@ Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescrip
 [Files]
 ; Main application files
 ; hashes.game.txt is user-managed and must be preserved across installations.
-Source: "dist\Rose\*"; DestDir: "{app}"; Excludes: "injection\tools\hashes.game.txt"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "dist\Lust\*"; DestDir: "{app}"; Excludes: "injection\tools\hashes.game.txt"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
@@ -68,16 +68,16 @@ Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChang
 [UninstallRun]
 ; Uninstall Pengu Loader (removes its IFEO activation and disables the native hook)
 Filename: "{app}\_internal\Pengu Loader\Pengu Loader.exe"; Parameters: "--uninstall --silent"; Flags: runhidden waituntilterminated skipifdoesntexist
-; Always remove the Rose auto-start scheduled task (created via schtasks /TN "Rose")
-Filename: "{sys}\schtasks.exe"; Parameters: "/Delete /TN Rose /F"; Flags: runhidden
+; Always remove the Lust auto-start scheduled task (created via schtasks /TN "Lust")
+Filename: "{sys}\schtasks.exe"; Parameters: "/Delete /TN Lust /F"; Flags: runhidden
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}\_internal"
 Type: filesandordirs; Name: "{app}\injection\overlay"
 Type: filesandordirs; Name: "{app}\injection\mods"
 ; Remove user data stored in AppData
-; Rose stores user data in %LOCALAPPDATA%\Rose
-Type: filesandordirs; Name: "{localappdata}\Rose"
+; Lust stores user data in %LOCALAPPDATA%\Lust
+Type: filesandordirs; Name: "{localappdata}\Lust"
 ; Note: State files are now stored in user data directory, not in app directory
 
 [Code]
@@ -105,13 +105,13 @@ end;
 
 function InitializeUninstall(): Boolean;
 var
-  RoseRunning: Boolean;
+  LustRunning: Boolean;
   LeagueRunning: Boolean;
 begin
-  RoseRunning := CheckForMutexes('{#MyAppMutex}');
+  LustRunning := CheckForMutexes('{#MyAppMutex}');
   LeagueRunning := _IsLeagueRunning();
 
-  if RoseRunning and LeagueRunning then
+  if LustRunning and LeagueRunning then
   begin
     MsgBox(
       '{#MyAppName} and League of Legends are both currently running.'#13#10 +
@@ -123,7 +123,7 @@ begin
     exit;
   end;
 
-  if RoseRunning then
+  if LustRunning then
   begin
     MsgBox(
       '{#MyAppName} is currently running.'#13#10 +
@@ -174,7 +174,7 @@ begin
       { Remove legacy/broken startup entries that invoke rundll32 on Pengu Loader core.dll.
         This is what produces the RunDLL "module not found" dialog after uninstall. }
       if (_ContainsTextLower(ValLower, 'rundll32') and _ContainsTextLower(ValLower, 'pengu loader\core.dll')) or
-         _ContainsTextLower(ValLower, '\rose\_internal\pengu loader\core.dll') then
+         _ContainsTextLower(ValLower, '\lust\_internal\pengu loader\core.dll') then
       begin
         RegDeleteValue(RootKey, SubKey, Names[I]);
       end;
@@ -207,7 +207,7 @@ const
   IfeoKey = 'SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\LeagueClientUx.exe';
 
 { Pengu hooks the client with an IFEO debugger: rundll32 "<dir>\core.dll", #6000.
-  If that core.dll is gone (Rose uninstalled or moved), Windows shows a RunDLL
+  If that core.dll is gone (Lust uninstalled or moved), Windows shows a RunDLL
   "module not found" error on every League start, so remove the dead entry.
   A working Pengu install elsewhere keeps its key. }
 procedure _RemoveDeadPenguIfeo();
@@ -237,10 +237,10 @@ begin
     RegDeleteKeyIncludingSubkeys(HKLM, IfeoKey);
 end;
 
-procedure _DeleteLocalAppDataRose();
+procedure _DeleteLocalAppDataLust();
 begin
   { Ensure user data is removed before running external cleanup }
-  DelTree(ExpandConstant('{localappdata}\Rose'), True, True, True);
+  DelTree(ExpandConstant('{localappdata}\Lust'), True, True, True);
 end;
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
@@ -252,8 +252,8 @@ begin
 
   if CurUninstallStep = usPostUninstall then
   begin
-    _DeleteLocalAppDataRose();
-    { Remove the entire install directory (Program Files\Rose) in case
+    _DeleteLocalAppDataLust();
+    { Remove the entire install directory (Program Files\Lust) in case
       runtime-generated files (logs, caches, etc.) were left behind. }
     DelTree(ExpandConstant('{app}'), True, True, True);
     { Safety net if Pengu's own --uninstall could not run }
@@ -265,7 +265,7 @@ procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep = ssPostInstall then
   begin
-    { Clean up a dead hook left by an older Rose uninstall }
+    { Clean up a dead hook left by an older Lust uninstall }
     _RemoveDeadPenguIfeo();
 
     // Create registry entries for Windows Apps list

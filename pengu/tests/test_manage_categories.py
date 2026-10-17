@@ -7,7 +7,7 @@ from pengu.communication.message_handler import MessageHandler
 
 
 class ManageCategoriesTests(unittest.TestCase):
-    """The Manage Mods menu asks Rose which categories have a mod added"""
+    """The Manage Mods menu asks Lust which categories have a mod added"""
 
     def test_answers_with_the_categories_that_have_mods(self):
         handler = MessageHandler.__new__(MessageHandler)

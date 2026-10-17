@@ -6,7 +6,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import Mock, patch
 
-# Isolate configuration from an installed Rose instance. The patch is started in
+# Isolate configuration from an installed Lust instance. The patch is started in
 # setUpModule, not at import: discovery imports every test module before running
 # any, so an import-time patch leaked into the other modules' tests.
 from utils.core import paths
@@ -176,17 +176,17 @@ class PathsAndEncodingTests(unittest.TestCase):
 class ExternalPenguTests(unittest.TestCase):
     def test_external_loader_preserved_without_activation(self):
         from utils.integration import pengu_loader
-        with patch.object(pengu_loader, '_external_pengu_with_rose_plugins', return_value=Path('C:/ExternalPengu')), \
+        with patch.object(pengu_loader, '_external_pengu_with_lust_plugins', return_value=Path('C:/ExternalPengu')), \
              patch.object(pengu_loader, '_write_session', return_value=True) as write_session, \
              patch.object(pengu_loader, 'activate') as activate, \
              patch.object(pengu_loader, 'restart_client') as restart:
             self.assertTrue(pengu_loader.activate_on_start('E:/LOL/LeagueClient'))
-            write_session.assert_called_once_with(was_active=True, rose_activated=False)
+            write_session.assert_called_once_with(was_active=True, lust_activated=False)
             activate.assert_not_called()
             restart.assert_not_called()
 
     @unittest.skipUnless(sys.platform == 'win32', 'Windows registry integration')
-    def test_external_loader_requires_rose_plugins(self):
+    def test_external_loader_requires_lust_plugins(self):
         import winreg
         from utils.integration import pengu_loader
         with tempfile.TemporaryDirectory() as folder:
@@ -195,12 +195,12 @@ class ExternalPenguTests(unittest.TestCase):
             (directory / 'Pengu Loader.exe').touch()
             debugger = f'rundll32 "{directory / "core.dll"}", #6000 '
             with patch.object(winreg, 'OpenKey'), patch.object(winreg, 'QueryValueEx', return_value=(debugger, winreg.REG_SZ)):
-                self.assertIsNone(pengu_loader._external_pengu_with_rose_plugins())
-                for name in ('ROSE-SkinMonitor', 'ROSE-UI'):
+                self.assertIsNone(pengu_loader._external_pengu_with_lust_plugins())
+                for name in ('LUST-SkinMonitor', 'LUST-UI'):
                     plugin = directory / 'plugins' / name
                     plugin.mkdir(parents=True)
                     (plugin / 'index.js').touch()
-                self.assertEqual(pengu_loader._external_pengu_with_rose_plugins(), directory)
+                self.assertEqual(pengu_loader._external_pengu_with_lust_plugins(), directory)
 
 
 class OverlayLifetimeTests(unittest.TestCase):
@@ -272,8 +272,8 @@ class OverlayLifetimeTests(unittest.TestCase):
 
 
 class LoaderFallbackTests(unittest.TestCase):
-    """When the client starts, Rose's loader takes over if no loader is active
-    (a standalone Pengu disabled while Rose runs), without any polling."""
+    """When the client starts, Lust's loader takes over if no loader is active
+    (a standalone Pengu disabled while Lust runs), without any polling."""
 
     def setUp(self):
         from utils.integration import pengu_loader
@@ -282,7 +282,7 @@ class LoaderFallbackTests(unittest.TestCase):
         self.addCleanup(setattr, self.loader, '_restart_pending', frozenset())
         self.processes = self.enterContext(patch.object(self.loader, '_process_running', return_value=False))
         self.ux_pids = self.enterContext(patch.object(self.loader, '_process_ids', return_value=frozenset()))
-        self.external = self.enterContext(patch.object(self.loader, '_external_pengu_with_rose_plugins', return_value=None))
+        self.external = self.enterContext(patch.object(self.loader, '_external_pengu_with_lust_plugins', return_value=None))
         self.registered = self.enterContext(patch.object(self.loader, '_registered_pengu_core', return_value=None))
         self.enterContext(patch.object(self.loader, '_is_available', return_value=True))
         self.status = self.enterContext(patch.object(self.loader, 'get_status', return_value=self.loader.PenguStatus.INACTIVE))
@@ -292,7 +292,7 @@ class LoaderFallbackTests(unittest.TestCase):
         thread = self.enterContext(patch.object(self.loader.threading, 'Thread'))
         thread.side_effect = lambda target, **kwargs: SimpleNamespace(start=target)
 
-    def test_no_active_loader_enables_rose_loader(self):
+    def test_no_active_loader_enables_lust_loader(self):
         self.loader.ensure_active_for_client()
         self.activate.assert_called_once()
 
@@ -301,14 +301,14 @@ class LoaderFallbackTests(unittest.TestCase):
         self.loader.ensure_active_for_client()
         self.activate.assert_not_called()
 
-    def test_registered_rose_loader_needs_nothing(self):
+    def test_registered_lust_loader_needs_nothing(self):
         self.registered.return_value = self.loader.PENGU_DIR / 'core.dll'
         self.loader.ensure_active_for_client()
         self.status.assert_not_called()
         self.activate.assert_not_called()
 
     def test_another_active_loader_is_kept(self):
-        # An unreadable registry entry must not make Rose take over an active loader
+        # An unreadable registry entry must not make Lust take over an active loader
         self.status.return_value = self.loader.PenguStatus.ACTIVE
         self.loader.ensure_active_for_client()
         self.activate.assert_not_called()

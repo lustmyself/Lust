@@ -310,7 +310,7 @@ class UpdateSequence:
                     f"Failed to persist installed_version to config before update: {exc}"
                 )
 
-        # Start the script that copies the update over this install once Rose exits
+        # Start the script that copies the update over this install once Lust exits
         if not self.installer.install(
             extracted_root,
             install_dir,

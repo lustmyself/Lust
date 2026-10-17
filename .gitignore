@@ -115,8 +115,8 @@ Pengu Loader/pengu.log
 # Test artifacts
 test_party_punch.py
 test_party_relay.py
-Rose_PunchTest*.spec
-Rose_PartyTest.spec
+Lust_PunchTest*.spec
+Lust_PartyTest.spec
 relay_server.py
 
 # Relay config (contains Worker URL — keep secret)

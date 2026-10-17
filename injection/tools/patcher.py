@@ -3,7 +3,7 @@
 """
 LTK patcher binaries (ltk_patcher_host.exe + ltk_patcher_dll.dll).
 
-Users provide their own copy (e.g. from an LTK Manager install); Rose does
+Users provide their own copy (e.g. from an LTK Manager install); Lust does
 not ship or pin them. The DLL refuses game builds newer than its built-in
 end-of-life date, so we read that date and the game's build date to fail
 early instead of silently injecting nothing. A DLL past that date still works

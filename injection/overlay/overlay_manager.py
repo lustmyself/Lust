@@ -55,7 +55,7 @@ DISK_SPACE_ERROR_MARKERS = (
 )
 
 # LTK patcher host settings (see ltk-manager patcher/host/protocol.rs).
-# Flag 4 = CSLOL_HOOK_OPT_OUT_AH_V1: Rose replaces skin0 with the selected
+# Flag 4 = CSLOL_HOOK_OPT_OUT_AH_V1: Lust replaces skin0 with the selected
 # skin, which the DLL's base-skin check rejects and then disables the whole
 # overlay; opting out downgrades that to a warning (same as LTK Manager's
 # "enforce skinhack scan" setting turned off). Log level 0x10 = Info.
@@ -64,7 +64,7 @@ LTK_PATCHER_LOG_LEVEL = 0x10
 # Printed by the DLL when the game build is newer than its end-of-life date
 END_OF_LIFE_MESSAGE = "end of life reached"
 LATE_JOIN_MESSAGE = "joined too late"
-# Session error Rose records when the DLL reports a late join
+# Session error Lust records when the DLL reports a late join
 LATE_JOIN_ERROR = "the game started before the patcher, overlay not applied"
 # Exit code of a process another program terminated (DBG_TERMINATE_PROCESS),
 # most often an antivirus
@@ -72,7 +72,7 @@ KILLED_EXIT_CODE = 0x40010004
 
 
 def ltk_failure_cause(reason: str) -> str:
-    """Why the patcher failed, from the reason Rose reported: what to do about
+    """Why the patcher failed, from the reason Lust reported: what to do about
     it depends on it (Troubleshooting shows a hint for each)"""
     if "SetWindowsHookEx" in reason:
         return "hook"
@@ -191,7 +191,7 @@ class OverlayManager:
                 'overlay_path': str(self.mods_dir.parent),
                 'mods': '/'.join(mod_names or ()),
             },
-            hint='Free up disk space on the drive containing Rose injection files, then retry the skin.',
+            hint='Free up disk space on the drive containing Lust injection files, then retry the skin.',
         )
         return True
 
@@ -254,11 +254,11 @@ class OverlayManager:
                 "LTK_PATCHER_MISSING",
                 "error",
                 "Injection failed: the LTK patcher is missing.",
-                hint="Copy ltk_patcher_host.exe and ltk_patcher_dll.dll into Rose's tools folder.",
+                hint="Copy ltk_patcher_host.exe and ltk_patcher_dll.dll into Lust's tools folder.",
             )
             return 1
 
-        # League may have updated past the DLL's end of life since Rose started
+        # League may have updated past the DLL's end of life since Lust started
         patcher = check_ltk_patcher(ltk_host.parent)
         if patcher.expired_for(self.game_dir):
             eol = time.strftime("%Y-%m-%d %H:%M", time.localtime(patcher.eol))
@@ -392,7 +392,7 @@ class OverlayManager:
                 "error",
                 "Injection failed while preparing the overlay.",
                 details={"error": str(e)},
-                hint="Check Rose logs for details, then retry.",
+                hint="Check Lust logs for details, then retry.",
             )
             self._report_low_disk_space_failure(output_lines + error_lines, mod_names)
             self._abort_ltk_patcher(patcher_session)
@@ -415,7 +415,7 @@ class OverlayManager:
             if self._early_patcher is not None:
                 if self._early_patcher["proc"].poll() is None:
                     return
-                # Rose stopped it after the last game: scan again for this one
+                # Lust stopped it after the last game: scan again for this one
                 self._abort_ltk_patcher(self._early_patcher)
                 self._early_patcher = None
             from ..tools.tools_manager import ToolsManager
@@ -596,9 +596,9 @@ class OverlayManager:
                 self._report_ltk_patcher_failure(session["error"])
                 return 1
             if not game_ended and proc.returncode not in (0, None):
-                if getattr(proc, "stopped_by_rose", False):
-                    # Rose's own cleanup killed it (end of game, lobby, shutdown)
-                    log.info(f"[INJECT] LTK patcher stopped by Rose (exit code {proc.returncode})")
+                if getattr(proc, "stopped_by_lust", False):
+                    # Lust's own cleanup killed it (end of game, lobby, shutdown)
+                    log.info(f"[INJECT] LTK patcher stopped by Lust (exit code {proc.returncode})")
                     return 0
                 log.error(f"[INJECT] LTK patcher exited with return code: {proc.returncode} (0x{proc.returncode & 0xFFFFFFFF:08X})")
                 self._log_patcher_context(session, resumed_at)
@@ -629,7 +629,7 @@ class OverlayManager:
             "LTK_PATCHER_EOL",
             "error",
             f"Injection failed: LTK patcher reached its end of life{since}.",
-            hint="Update LTK Manager, copy its new ltk_patcher_host.exe and ltk_patcher_dll.dll into Rose's tools folder, then restart Rose.",
+            hint="Update LTK Manager, copy its new ltk_patcher_host.exe and ltk_patcher_dll.dll into Lust's tools folder, then restart Lust.",
         )
 
     def _log_patcher_context(self, session: dict, resumed_at: float):
@@ -650,8 +650,8 @@ class OverlayManager:
     @staticmethod
     def _ltk_failure_hint(reason: str) -> str:
         """What the user can do about a patcher failure, by the cause it reported."""
-        logs = "Details are in rose_runoverlay_*.log."
-        report = "report it with rose_*.log and rose_runoverlay_*.log"
+        logs = "Details are in lust_runoverlay_*.log."
+        report = "report it with lust_*.log and lust_runoverlay_*.log"
         cause = ltk_failure_cause(reason)
         if cause == "hook":
             return ("The patcher could not attach to the game this time. Retry the next game; "
@@ -662,11 +662,11 @@ class OverlayManager:
             return ("The patcher rejected the overlay built for this game. Try another skin or turn off custom mods; "
                     f"if every skin fails, update your LTK patcher files. {logs}")
         if cause == "start":
-            return ("Rose could not start ltk_patcher_host.exe. Check that it is still in Rose's tools folder: "
+            return ("Lust could not start ltk_patcher_host.exe. Check that it is still in Lust's tools folder: "
                     f"an antivirus may have removed it. {logs}")
         if cause == "killed":
             return ("Another program closed the LTK patcher, most often an antivirus. "
-                    f"Add Rose's folder to its exclusions, then retry. {logs}")
+                    f"Add Lust's folder to its exclusions, then retry. {logs}")
         if cause == "crashed":
             return ("The LTK patcher crashed. Retry the next game; if it crashes every game, "
                     f"update your LTK patcher files and {report}. {logs}")
@@ -735,7 +735,7 @@ class OverlayManager:
             logs_dir = get_user_data_dir() / "logs"
             logs_dir.mkdir(parents=True, exist_ok=True)
             timestamp = time.strftime("%d-%m-%Y_%H-%M-%S")
-            return open(logs_dir / f"rose_runoverlay_{timestamp}.log", "w+", encoding="utf-8", errors="replace")
+            return open(logs_dir / f"lust_runoverlay_{timestamp}.log", "w+", encoding="utf-8", errors="replace")
         except Exception as e:
             log.debug(f"[INJECT] Could not create runoverlay log: {e}")
             return None

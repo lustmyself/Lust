@@ -8,7 +8,7 @@ from utils.download.repo_downloader import RepoDownloader
 
 
 class ClassicLibraryTests(unittest.TestCase):
-    """LeagueSkins' classic/ folder is kept in %LOCALAPPDATA%/Rose/classic"""
+    """LeagueSkins' classic/ folder is kept in %LOCALAPPDATA%/Lust/classic"""
 
     def setUp(self):
         temp_dir = tempfile.TemporaryDirectory()

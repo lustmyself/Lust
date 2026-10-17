@@ -5,7 +5,7 @@ Helper utilities for interacting with Pengu Loader's command-line interface.
 
 The Pengu Loader CLI manages Pengu's IFEO activation and optionally
 restart the League client when required. This module provides a small wrapper
-around the executable bundled alongside Rose.
+around the executable bundled alongside Lust.
 """
 
 from __future__ import annotations
@@ -38,14 +38,14 @@ log = get_logger("pengu_loader")
 _SESSION_FILE = get_state_dir() / 'pengu_session.json'
 # core.dll reads its hook switch (disabled, loaderpath) from this file
 _CONFIG_FILE = get_config_file_path()
-# The loader runs elevated: when Rose was elevated with another account's
+# The loader runs elevated: when Lust was elevated with another account's
 # credentials, its own LocalApplicationData isn't the desktop user's config.ini
-os.environ['ROSE_CONFIG_PATH'] = str(_CONFIG_FILE)
+os.environ['LUST_CONFIG_PATH'] = str(_CONFIG_FILE)
 
 _ACTIVE_FLAG = get_state_dir() / "pengu_active.flag"
 _LEGACY_PENGU_LOGS = (
-    "rose.log",
-    "rose.log.old",
+    "lust.log",
+    "lust.log.old",
     "crash.log",
 )
 _PLUGIN_ENTRYPOINT = "index.js"
@@ -68,7 +68,7 @@ def _sanitize_plugin_entrypoints(pengu_dir: Path) -> None:
 
     Background:
     - Disabling a plugin renames `index.js` -> `index.js_`
-    - In frozen builds, Rose overlays the bundled `Pengu Loader` onto the runtime directory.
+    - In frozen builds, Lust overlays the bundled `Pengu Loader` onto the runtime directory.
       `copytree(..., dirs_exist_ok=True)` does not delete extra files, so a disabled plugin
       can end up with BOTH `index.js_` and a freshly-copied `index.js`, effectively re-enabling
       (or duplicating) the plugin on next launch.
@@ -119,7 +119,7 @@ def _sanitize_plugin_entrypoints(pengu_dir: Path) -> None:
                             exc,
                         )
     except Exception as exc:
-        # Non-fatal: never block Rose launch for a best-effort cleanup.
+        # Non-fatal: never block Lust launch for a best-effort cleanup.
         log.debug("Failed to sanitize plugin entrypoints: %s", exc)
 
 
@@ -265,7 +265,7 @@ def _resolve_pengu_dir() -> Path:
         # Keep the runtime directory and overlay updates on top of it.
         #
         # IMPORTANT: users can add custom plugins under:
-        #   %LOCALAPPDATA%\Rose\Pengu Loader\plugins
+        #   %LOCALAPPDATA%\Lust\Pengu Loader\plugins
         # Deleting the runtime directory on each launch wipes those user-installed plugins.
         runtime_dir.mkdir(parents=True, exist_ok=True)
 
@@ -287,7 +287,7 @@ def _resolve_pengu_dir() -> Path:
         except shutil.Error as exc:
             # copytree copies what it can and lists the rest. A running client
             # keeps core.dll loaded, so it can't be replaced: the hook runs the
-            # loader already here. Running the bundled copy instead made Rose
+            # loader already here. Running the bundled copy instead made Lust
             # take this one for another loader and leave its hook on at exit.
             if not ((runtime_dir / "Pengu Loader.exe").is_file() and (runtime_dir / "core.dll").is_file()):
                 raise
@@ -306,7 +306,7 @@ def _resolve_pengu_dir() -> Path:
         # Restore plugin enable/disable state after the overlay sync.
         _restore_plugin_enable_state(runtime_dir, enabled_plugins, disabled_plugins)
 
-        # Remove logs from versions that used separate Rose/crash diagnostics.
+        # Remove logs from versions that used separate Lust/crash diagnostics.
         _remove_legacy_pengu_logs(runtime_dir)
 
     except Exception as exc:
@@ -322,7 +322,7 @@ PENGU_EXE = PENGU_DIR / "Pengu Loader.exe"
 _PENGU_LOG = PENGU_DIR / "pengu.log"
 # The CLI normally answers in well under a second. A hung client, a locked
 # handle or a slow disk can block it forever, and on the cleanup path that
-# leaves Rose unable to exit with the game still suspended.
+# leaves Lust unable to exit with the game still suspended.
 _CLI_TIMEOUT_S = 15.0
 _LEAGUE_PROCESSES: set[str] = {
     'LeagueClient.exe', 'LeagueClientUx.exe',
@@ -331,7 +331,7 @@ _LEAGUE_PROCESSES: set[str] = {
 }
 _CREATE_NO_WINDOW = getattr(subprocess, 'CREATE_NO_WINDOW', 0)
 _operation_lock = threading.RLock()
-# The clients (LeagueClientUx.exe PIDs) Rose's loader waits to restart until a
+# The clients (LeagueClientUx.exe PIDs) Lust's loader waits to restart until a
 # safe phase (see retry_deferred_restart). A client started since then loads it.
 _restart_pending: frozenset[int] = frozenset()
 
@@ -493,7 +493,7 @@ def _close_loader_menu() -> None:
         for proc in psutil.process_iter(['pid', 'name']):
             if proc.info.get('name') != PENGU_EXE.name or proc.info.get('pid') == current:
                 continue
-            log.info('Closing the open Pengu Loader window (PID %s) so Rose can toggle Pengu.', proc.info['pid'])
+            log.info('Closing the open Pengu Loader window (PID %s) so Lust can toggle Pengu.', proc.info['pid'])
             try:
                 proc.terminate()
                 proc.wait(timeout=3)
@@ -634,7 +634,7 @@ def _ensure_loader_config() -> None:
     core.dll skips hooking unless disabled=0 and loads plugins from
     loaderpath. The loader writes both on --install only, so an active hook
     can be left switched off (another account's loader wrote its own
-    config.ini, an older Rose garbled loaderpath, or another Rose's loader
+    config.ini, an older Lust garbled loaderpath, or another Lust's loader
     deactivated while ours held the hook).
     """
     loader_dir = str(PENGU_DIR)
@@ -680,12 +680,12 @@ def _read_session() -> Optional[dict[str, object]]:
         return None
 
 
-def _write_session(was_active: bool, rose_activated: bool) -> bool:
+def _write_session(was_active: bool, lust_activated: bool) -> bool:
     record = {
         'version': 1,
-        'rose_pid': os.getpid(),
-        'pengu_was_active_before_rose': was_active,
-        'rose_activated_pengu': rose_activated,
+        'lust_pid': os.getpid(),
+        'pengu_was_active_before_lust': was_active,
+        'lust_activated_pengu': lust_activated,
         'activated_at': datetime.now().astimezone().isoformat(),
     }
     temporary = _SESSION_FILE.with_suffix(f'{_SESSION_FILE.suffix}.tmp')
@@ -707,16 +707,16 @@ def _clear_session() -> None:
 
 
 def _session_requires_deactivation(session: dict[str, object]) -> bool:
-    return bool(session.get('rose_activated_pengu')) and not bool(
-        session.get('pengu_was_active_before_rose')
+    return bool(session.get('lust_activated_pengu')) and not bool(
+        session.get('pengu_was_active_before_lust')
     )
 
 
 def recover_stale_session(*, adopt_active: bool = False) -> bool:
-    """Recover a previous Rose session.
+    """Recover a previous Lust session.
 
     During startup, an active Pengu session may still belong to the League
-    process left behind by a crashed Rose instance. If that process is still
+    process left behind by a crashed Lust instance. If that process is still
     running, keep the activation in place so the next startup does not try to
     deactivate and immediately reactivate against a loaded core.dll.
     """
@@ -775,7 +775,7 @@ def _registered_pengu_core() -> Optional[Path]:
         return None
     try:
         import winreg
-        # The 64-bit view, where Pengu registers it, whatever Rose's own bitness
+        # The 64-bit view, where Pengu registers it, whatever Lust's own bitness
         with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, _IFEO_KEY, 0,
                             winreg.KEY_READ | winreg.KEY_WOW64_64KEY) as key:
             debugger, _ = winreg.QueryValueEx(key, "Debugger")
@@ -791,14 +791,14 @@ def _registered_pengu_core() -> Optional[Path]:
 
 
 def _is_bundled_copy(core: Path) -> bool:
-    """The core.dll bundled with this Rose: it ran that copy when it couldn't
+    """The core.dll bundled with this Lust: it ran that copy when it couldn't
     update the runtime one (older versions did whenever the client was open)."""
     bundled = _get_bundled_pengu_dir()
     return bundled is not None and core.parent.resolve() == bundled.resolve()
 
 
 def _hook_of_another_loader() -> Optional[Path]:
-    """The core.dll the registered hook runs when it isn't ours (another Rose,
+    """The core.dll the registered hook runs when it isn't ours (another Lust,
     a standalone Pengu), or None."""
     core = _registered_pengu_core()
     if core is None or core.parent.resolve() == PENGU_DIR.resolve() or _is_bundled_copy(core):
@@ -822,24 +822,24 @@ def _remove_hook(core: Path) -> bool:
     return True
 
 
-def _external_pengu_with_rose_plugins() -> Optional[Path]:
+def _external_pengu_with_lust_plugins() -> Optional[Path]:
     """Keep an already configured standalone Pengu installation in place."""
     core = _hook_of_another_loader()
     if core is None:
         return None
     external = core.parent
     if ((external / 'Pengu Loader.exe').is_file()
-            and (external / 'plugins' / 'ROSE-SkinMonitor' / 'index.js').is_file()
-            and (external / 'plugins' / 'ROSE-UI' / 'index.js').is_file()):
+            and (external / 'plugins' / 'LUST-SkinMonitor' / 'index.js').is_file()
+            and (external / 'plugins' / 'LUST-UI' / 'index.js').is_file()):
         return external
     return None
 
 
 def ensure_active_for_client() -> None:
-    """The client just started: enable Rose's loader if none is active any more
-    (a standalone Pengu disabled while Rose runs). Runs on that event, no polling."""
+    """The client just started: enable Lust's loader if none is active any more
+    (a standalone Pengu disabled while Lust runs). Runs on that event, no polling."""
     with _operation_lock:
-        if _external_pengu_with_rose_plugins() is not None:
+        if _external_pengu_with_lust_plugins() is not None:
             return
         core = _registered_pengu_core()
         if core is not None and core.parent.resolve() == PENGU_DIR.resolve():
@@ -849,15 +849,15 @@ def ensure_active_for_client() -> None:
         # Both editions share the loader window's mutex: don't close a window
         # the user has open, try again at the next client start
         if _process_running((PENGU_EXE.name,)):
-            log.info('No active Pengu Loader, but its window is open; Rose enables its loader at the next client start.')
+            log.info('No active Pengu Loader, but its window is open; Lust enables its loader at the next client start.')
             return
         from config import get_config_option
-        log.info('No active Pengu Loader; enabling the loader bundled with Rose.')
+        log.info('No active Pengu Loader; enabling the loader bundled with Lust.')
         activate_on_start(get_config_option('General', 'clientPath'))
 
 
 def retry_deferred_restart() -> None:
-    """The client reached a safe phase: restart it if Rose's loader still waits
+    """The client reached a safe phase: restart it if Lust's loader still waits
     for that (the client wasn't ready yet, or a champ select was on)."""
     if not _restart_pending:
         return
@@ -879,20 +879,20 @@ def retry_deferred_restart() -> None:
 def activate_on_start(league_path: Optional[str] = None) -> bool:
     global _restart_pending
     with _operation_lock:
-        external = _external_pengu_with_rose_plugins()
+        external = _external_pengu_with_lust_plugins()
         if external is not None:
-            log.info('Using existing external Pengu Loader with Rose plugins: %s', external)
-            # This activation belongs to the user, so Rose must not remove it
+            log.info('Using existing external Pengu Loader with Lust plugins: %s', external)
+            # This activation belongs to the user, so Lust must not remove it
             # on exit or replace its registry entry with the bundled loader.
-            return _write_session(was_active=True, rose_activated=False)
+            return _write_session(was_active=True, lust_activated=False)
         if not _is_available():
             log.error('Pengu Loader executable is unavailable: %s', PENGU_EXE)
             return False
 
-        stale_rose_owned = False
+        stale_lust_owned = False
         if _SESSION_FILE.exists() or _ACTIVE_FLAG.exists():
             session = _read_session()
-            stale_rose_owned = (
+            stale_lust_owned = (
                 _session_requires_deactivation(session)
                 if session is not None
                 else _ACTIVE_FLAG.exists()
@@ -902,7 +902,7 @@ def activate_on_start(league_path: Optional[str] = None) -> bool:
 
         initial = get_status()
         if initial is PenguStatus.UNKNOWN:
-            log.error('Cannot start Rose Pengu integration because initial status is unknown.')
+            log.error('Cannot start Lust Pengu integration because initial status is unknown.')
             return False
         if league_path and not set_league_path(league_path):
             log.warning(
@@ -910,8 +910,8 @@ def activate_on_start(league_path: Optional[str] = None) -> bool:
                 PENGU_EXE, league_path,
             )
 
-        # A running client loads Rose's plugins only when it starts, so it restarts
-        # whatever state an earlier Rose left the loader in
+        # A running client loads Lust's plugins only when it starts, so it restarts
+        # whatever state an earlier Lust left the loader in
         restart_needed = _process_running(('LeagueClientUx.exe',))
         activated_now = False
         if initial is PenguStatus.INACTIVE:
@@ -919,16 +919,16 @@ def activate_on_start(league_path: Optional[str] = None) -> bool:
             if not activate():
                 return False
             activated_now = True
-        elif stale_rose_owned:
-            log.info('Adopted the active Pengu session from the previous Rose process (restart League: %s).',
+        elif stale_lust_owned:
+            log.info('Adopted the active Pengu session from the previous Lust process (restart League: %s).',
                      restart_needed)
         else:
             # --status only reports this loader's own core.dll as active, so an
-            # earlier Rose left it on: it's Rose's, and goes when Rose quits
-            log.info("Rose's Pengu Loader was already active; adopting it (restart League: %s).", restart_needed)
+            # earlier Lust left it on: it's Lust's, and goes when Lust quits
+            log.info("Lust's Pengu Loader was already active; adopting it (restart League: %s).", restart_needed)
         _ensure_loader_config()
 
-        if not _write_session(was_active=False, rose_activated=True):
+        if not _write_session(was_active=False, lust_activated=True):
             if activated_now:
                 log.error('Could not persist session state; reverting activation.')
                 deactivate()
@@ -939,11 +939,11 @@ def activate_on_start(league_path: Optional[str] = None) -> bool:
             _restart_pending = (frozenset() if restart_client()
                                 else _process_ids(('LeagueClientUx.exe',)))
             if _restart_pending:
-                log.info('Rose Loader enabled; client restart deferred until the client is ready.')
+                log.info('Lust Loader enabled; client restart deferred until the client is ready.')
         return True
 
 
-def restore_after_rose() -> bool:
+def restore_after_lust() -> bool:
     with _operation_lock:
         session = _read_session()
         legacy = _ACTIVE_FLAG.exists()
@@ -979,4 +979,4 @@ def restore_after_rose() -> bool:
 
 
 def deactivate_on_exit() -> bool:
-    return restore_after_rose()
+    return restore_after_lust()

@@ -1,2 +1,2 @@
-# Rose - Modular Skin Injector
+# Lust - Modular Skin Injector
 # Main package initialization

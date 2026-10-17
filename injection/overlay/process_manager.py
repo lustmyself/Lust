@@ -43,16 +43,16 @@ class ProcessManager:
         self.kill_all_runoverlay_processes()
         self.kill_all_modtools_processes()
     
-    def _mark_stopped_by_rose(self):
-        """Tag the current patcher before Rose stops it: its exit code (1 or 15)
+    def _mark_stopped_by_lust(self):
+        """Tag the current patcher before Lust stops it: its exit code (1 or 15)
         is then not reported as an injection failure"""
         proc = self.current_overlay_process
         if proc is not None:
-            proc.stopped_by_rose = True
+            proc.stopped_by_lust = True
     
     def stop_overlay_process(self):
         """Stop the current overlay process"""
-        self._mark_stopped_by_rose()
+        self._mark_stopped_by_lust()
         if self.current_overlay_process and self.current_overlay_process.poll() is None:
             try:
                 log.info("[INJECT] Stopping current overlay process")
@@ -71,7 +71,7 @@ class ProcessManager:
     
     def kill_all_runoverlay_processes(self):
         """Kill all runoverlay processes (for ChampSelect cleanup)"""
-        self._mark_stopped_by_rose()
+        self._mark_stopped_by_lust()
         killed_count = 0
         
         try:
@@ -147,7 +147,7 @@ class ProcessManager:
     
     def kill_all_modtools_processes(self):
         """Kill all mod-tools.exe processes (for application shutdown)"""
-        self._mark_stopped_by_rose()
+        self._mark_stopped_by_lust()
         killed_count = 0
         
         try:

@@ -60,7 +60,7 @@ class BridgeWatchdogTests(unittest.TestCase):
             time.sleep(1.5)
 
     def test_names_the_message_type_but_never_its_content(self):
-        message = json.dumps({'type': 'party-add-peer', 'token': 'ROSE:secret'})
+        message = json.dumps({'type': 'party-add-peer', 'token': 'LUST:secret'})
         self.assertEqual(WebSocketServer._message_type(message), 'party-add-peer')
         self.assertEqual(WebSocketServer._message_type('not json'), 'non-JSON')
         self.assertIsNone(WebSocketServer._message_type(None))

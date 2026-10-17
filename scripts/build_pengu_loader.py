@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the vendored Pengu Loader source and refresh Rose's runtime loader."""
+"""Build the vendored Pengu Loader source and refresh Lust's runtime loader."""
 
 from __future__ import annotations
 
@@ -119,7 +119,7 @@ def build_loader() -> int:
                 copied.append(destination.name)
     except PermissionError as exc:
         print(f"[ERROR] Could not update the runtime loader: {exc}")
-        print("        Close Rose/Pengu Loader and run the build again.")
+        print("        Close Lust/Pengu Loader and run the build again.")
         return 1
 
     if "Pengu Loader.exe" not in copied:

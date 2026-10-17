@@ -10,7 +10,7 @@ from injection.game.game_monitor import GameMonitor, resume_orphaned_game
 
 
 class SuspendedGameTests(unittest.TestCase):
-    """A stand-in game process, suspended the way Rose suspends League"""
+    """A stand-in game process, suspended the way Lust suspends League"""
 
     def setUp(self):
         child = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'])
@@ -38,7 +38,7 @@ class SuspendedGameTests(unittest.TestCase):
         except psutil.Error:
             pass
 
-    def test_startup_resumes_a_game_a_dead_rose_left_suspended(self):
+    def test_startup_resumes_a_game_a_dead_lust_left_suspended(self):
         self.assertEqual(resume_orphaned_game(), 1)
         self.assertNotEqual(self.game.status(), psutil.STATUS_STOPPED)
 

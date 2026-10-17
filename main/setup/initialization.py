@@ -56,7 +56,7 @@ def setup_logging_and_cleanup(args: argparse.Namespace) -> None:
         pass  # Already shown in setup_logging()
     else:
         # Detailed startup for verbose/debug
-        log_section(log, "Rose Starting", "", {
+        log_section(log, "Lust Starting", "", {
             "Verbose Mode": "Enabled" if args.verbose else "Disabled",
             "Download Skins": "Enabled" if args.download_skins else "Disabled"
         })

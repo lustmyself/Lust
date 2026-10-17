@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Create Windows installer for Rose using Inno Setup
+Create Windows installer for Lust using Inno Setup
 """
 
 import sys
@@ -20,7 +20,7 @@ except ImportError:
 MIN_PYTHON = (3, 11)
 if sys.version_info < MIN_PYTHON:
     sys.stderr.write(
-        f"Rose build scripts require Python {MIN_PYTHON[0]}.{MIN_PYTHON[1]} or newer.\n"
+        f"Lust build scripts require Python {MIN_PYTHON[0]}.{MIN_PYTHON[1]} or newer.\n"
         "Please re-run using an updated interpreter.\n"
     )
     sys.exit(1)
@@ -43,7 +43,7 @@ def create_installer():
     """Create Windows installer using Inno Setup"""
     
     print("=" * 60)
-    print("Creating Rose Windows Installer")
+    print("Creating Lust Windows Installer")
     print("=" * 60)
     
     # Check if Inno Setup is installed
@@ -71,8 +71,8 @@ def create_installer():
     print(f"Found Inno Setup: {iscc_path}")
     
     # Check if dist directory exists
-    if not (ROOT / "dist/Rose").exists():
-        print("\nError: dist/Rose directory not found!")
+    if not (ROOT / "dist/Lust").exists():
+        print("\nError: dist/Lust directory not found!")
         print("Please run 'python scripts/build_pyinstaller.py' first to create the executable.")
         return False
     
@@ -115,7 +115,7 @@ def create_installer():
         return False
     
     # Copy icon file to dist directory if it doesn't exist
-    icon_dst = ROOT / "dist/Rose/icon.ico"
+    icon_dst = ROOT / "dist/Lust/icon.ico"
     if ico_icon.exists() and not icon_dst.exists():
         shutil.copy2(ico_icon, icon_dst)
         print(f"Copied {ico_icon} to {icon_dst}")
@@ -137,8 +137,8 @@ def create_installer():
     print("\n[3/3] Installer created successfully!")
     
     # Check if installer was created
-    # Named Rose_Setup_<version>.exe: the one just compiled is the newest
-    installer_files = sorted(installer_dir.glob("Rose_Setup*.exe"), key=lambda p: p.stat().st_mtime)
+    # Named Lust_Setup_<version>.exe: the one just compiled is the newest
+    installer_files = sorted(installer_dir.glob("Lust_Setup*.exe"), key=lambda p: p.stat().st_mtime)
     if installer_files:
         installer_file = installer_files[-1]
         size_mb = installer_file.stat().st_size / (1024 * 1024)

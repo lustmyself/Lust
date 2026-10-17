@@ -8,7 +8,7 @@ from threads.websocket.websocket_connection import WebSocketConnection
 
 
 class RetryLoggingTests(unittest.TestCase):
-    """With the client closed Rose retried every 15s and logged a WARNING each
+    """With the client closed Lust retried every 15s and logged a WARNING each
     time, thousands per day (#261)"""
 
     def setUp(self):

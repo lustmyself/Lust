@@ -5,6 +5,7 @@ Thread initialization and management
 """
 
 from threads import PhaseThread, WSEventThread, LCUMonitorThread
+from threads.core.lobby_reveal_thread import LobbyRevealThread
 from pengu import PenguSkinMonitorThread
 from analytics import AnalyticsThread
 from utils.threading.thread_manager import ThreadManager
@@ -66,6 +67,10 @@ def initialize_threads(lcu, state, args, injection_manager, skin_scraper, app_st
                                       reconnect_callback=on_lcu_reconnected)
     thread_manager.register("LCU Monitor", t_lcu_monitor)
     
+    # Champ select teammate names + op.gg (LUST-LobbyReveal plugin)
+    t_reveal = LobbyRevealThread(lcu, state)
+    thread_manager.register("Lobby Reveal", t_reveal, stop_method=t_reveal.stop)
+
     # Initialize analytics thread
     t_analytics = AnalyticsThread(state)
     thread_manager.register("Analytics", t_analytics, stop_method=t_analytics.stop)

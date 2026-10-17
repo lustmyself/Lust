@@ -41,8 +41,8 @@
             <StackPanel Grid.Column="0" VerticalAlignment="Center">
                 <Button Click="HomePageButtonClick" Background="Transparent" BorderBrush="#6888" Focusable="False" HorizontalAlignment="Stretch" Margin="20,5">
                     <StackPanel Orientation="Horizontal">
-                        <Image Source="/Resources/icon_rose.png" Width="16" Height="16" />
-                        <TextBlock Text="Support Rose Team" Margin="8,0,0,0" />
+                        <Image Source="/Resources/icon_lust.png" Width="16" Height="16" />
+                        <TextBlock Text="Support Lust Team" Margin="8,0,0,0" />
                     </StackPanel>
                 </Button>
                 <Grid Margin="20,5">

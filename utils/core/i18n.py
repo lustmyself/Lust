@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 Interface language
-Picks the language of Rose's menus: the one chosen in Settings, else the
-League client's, else English. The texts live in the ROSE-I18n plugin
-(locales/<language>.json, keyed by their English text); Rose serves the
+Picks the language of Lust's menus: the one chosen in Settings, else the
+League client's, else English. The texts live in the LUST-I18n plugin
+(locales/<language>.json, keyed by their English text); Lust serves the
 chosen language's texts to the plugins at /i18n.
 """
 
@@ -61,7 +61,7 @@ _LOCALE_LANGUAGES = {
 
 
 class Text(str):
-    """An English text shown in Rose's menus that has values in it: it reads as the
+    """An English text shown in Lust's menus that has values in it: it reads as the
     final English string, and carries its template and values so the plugins can
     translate the template ("Connected to {name}") and fill it in again."""
 
@@ -80,7 +80,7 @@ def text_fields(prefix: str, text) -> Dict[str, object]:
 
 
 def language_for_locale(locale: Optional[str]) -> str:
-    """The language Rose uses for a client locale (fr_FR -> fr), English if none fits."""
+    """The language Lust uses for a client locale (fr_FR -> fr), English if none fits."""
     if not locale:
         return ENGLISH
     locale = locale.replace("-", "_")
@@ -99,7 +99,7 @@ def resolve_language(setting: Optional[str], client_locale: Optional[str]) -> st
 
 def locales_dir() -> Path:
     from utils.integration.pengu_loader import PENGU_DIR
-    return Path(PENGU_DIR) / "plugins" / "ROSE-I18n" / "locales"
+    return Path(PENGU_DIR) / "plugins" / "LUST-I18n" / "locales"
 
 
 def load_strings(language: str, directory: Optional[Path] = None) -> Dict[str, str]:
@@ -119,7 +119,7 @@ def load_strings(language: str, directory: Optional[Path] = None) -> Dict[str, s
 
 
 def current_language(shared_state=None) -> str:
-    """The language Rose's menus use right now."""
+    """The language Lust's menus use right now."""
     from config import get_config_option
     setting = get_config_option("General", "language")
     client_locale = getattr(shared_state, "current_locale", None) if shared_state else None

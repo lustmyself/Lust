@@ -12,7 +12,7 @@ folder layout mod-tools builds overlays from:
 
 Files are named by their path hash, the key the game and mod-tools use inside
 a WAD, so no path stored in a package ever becomes a file name. Only the base
-layer is unpacked: other layers are optional content Rose cannot toggle.
+layer is unpacked: other layers are optional content Lust cannot toggle.
 """
 
 from __future__ import annotations
@@ -61,7 +61,7 @@ _HEX_NAME = re.compile(r"[0-9a-fA-F]{16}")
 
 
 class ModpkgError(ValueError):
-    """The file is not a .modpkg package Rose can read"""
+    """The file is not a .modpkg package Lust can read"""
 
 
 class _Record(NamedTuple):
@@ -251,11 +251,11 @@ def extract_modpkg(source: Union[str, Path], dest_dir: Union[str, Path]) -> None
     dest_dir = Path(dest_dir)
     with ModPackage.open(source) as package:
         if not package.wad_file_count:
-            raise ModpkgError("The .modpkg has no game files Rose can inject")
+            raise ModpkgError("The .modpkg has no game files Lust can inject")
         if package.optional_layers:
             log.info(
                 f"[MODPKG] {source.name}: skipping optional layers "
-                f"{', '.join(package.optional_layers)} (Rose injects the base layer)"
+                f"{', '.join(package.optional_layers)} (Lust injects the base layer)"
             )
         if package.unplaced_file_count:
             log.warning(f"[MODPKG] {source.name}: skipping {package.unplaced_file_count} files that target no game WAD")

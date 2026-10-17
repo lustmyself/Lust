@@ -65,7 +65,7 @@ class PhaseThread(threading.Thread):
             
             ph = self.lcu.phase if self.lcu.ok else None
 
-            # A client restart Rose's loader deferred (the client wasn't ready,
+            # A client restart Lust's loader deferred (the client wasn't ready,
             # or a champ select was on) happens once the client is readable in
             # a safe phase: home ("None"), lobby or end of game
             if ph != self._last_raw_phase:

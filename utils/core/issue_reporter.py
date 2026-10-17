@@ -6,7 +6,7 @@ Issue Reporter
 Writes a small, human-friendly diagnostics file that summarizes important
 errors and "non-error failure reasons" (e.g., timeouts, settings mismatches).
 
-File: %LOCALAPPDATA%\\Rose\\rose_diagnostics.txt
+File: %LOCALAPPDATA%\\Lust\\lust_diagnostics.txt
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ log = get_logger()
 _LOCK = threading.Lock()
 _LAST: Dict[str, float] = {}  # naive dedupe: key -> last timestamp
 
-# Keep rose_diagnostics.txt focused on actionable tuning problems and critical
+# Keep lust_diagnostics.txt focused on actionable tuning problems and critical
 # resource failures that commonly confuse users. Everything else should go to
 # the normal logs.
 _ALLOWED_CODES = {
@@ -34,7 +34,7 @@ _ALLOWED_CODES = {
     'LTK_PATCHER_MISSING',    # User-provided LTK patcher files are missing
     'LTK_PATCHER_EOL',        # LTK patcher DLL no longer supports the current game build
     'LTK_PATCHER_FAILED',     # LTK patcher host/DLL reported an error
-    'PENGU_ACTIVATION_FAILED',  # Pengu Loader could not be activated: Rose is missing from the client
+    'PENGU_ACTIVATION_FAILED',  # Pengu Loader could not be activated: Lust is missing from the client
 }
 
 
@@ -42,7 +42,7 @@ _ALLOWED_CODES = {
 def _issues_path():
     base_dir = get_user_data_dir()
     base_dir.mkdir(parents=True, exist_ok=True)
-    return base_dir / "rose_diagnostics.txt"
+    return base_dir / "lust_diagnostics.txt"
 
 
 def report_issue(
@@ -102,7 +102,7 @@ def report_issue(
 
 
 def read_issues_tail(*, max_lines: int = 60) -> list[str]:
-    """Read the last N lines from rose_diagnostics.txt (safe, never raises)."""
+    """Read the last N lines from lust_diagnostics.txt (safe, never raises)."""
     try:
         p = _issues_path()
         if not p.exists():
@@ -147,7 +147,7 @@ def remove_issues(should_remove: Callable[[str, str], bool]) -> bool:
 
 
 def clear_issues() -> bool:
-    """Clear rose_diagnostics.txt (safe, never raises). Returns True if cleared."""
+    """Clear lust_diagnostics.txt (safe, never raises). Returns True if cleared."""
     try:
         with _LOCK:
             p = _issues_path()

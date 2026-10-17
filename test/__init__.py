@@ -1,1 +1,1 @@
-"""Rose test package."""
+"""Lust test package."""

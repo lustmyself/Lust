@@ -21,7 +21,7 @@ class HTTPHandler:
 
     Security Note:
         - Browser requests with an Origin header are only allowed from loopback origins.
-        - File-serving routes resolve paths under explicit Rose-owned directories.
+        - File-serving routes resolve paths under explicit Lust-owned directories.
     """
 
     def __init__(self, port: int, shared_state=None):
@@ -115,7 +115,7 @@ class HTTPHandler:
                     str(self.port).encode('utf-8')
                 )
             
-            # The language of Rose's menus and its texts (ROSE-I18n)
+            # The language of Lust's menus and its texts (LUST-I18n)
             if path_clean == "/i18n":
                 import json
                 from utils.core.i18n import i18n_payload
@@ -133,7 +133,7 @@ class HTTPHandler:
             elif path_clean.startswith("/asset/"):
                 return self._handle_asset_request(path_clean, cors_headers)
 
-            # Handle mod asset requests (for files under %LOCALAPPDATA%\\Rose\\mods)
+            # Handle mod asset requests (for files under %LOCALAPPDATA%\\Lust\\mods)
             elif path_clean.startswith("/mod-asset/"):
                 return self._handle_mod_asset_request(path_clean, cors_headers)
 

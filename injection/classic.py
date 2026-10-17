@@ -4,8 +4,8 @@
 Rift Classic (game mode JADE)
 
 Classic games spawn separate Jade_<Champion> characters, so regular skin mods
-(<champion>/skins/skin0.bin) are never loaded there. Rose injects the Classic
-skins stored in LeagueSkins' classic/ folder instead (%LOCALAPPDATA%/Rose/classic),
+(<champion>/skins/skin0.bin) are never loaded there. Lust injects the Classic
+skins stored in LeagueSkins' classic/ folder instead (%LOCALAPPDATA%/Lust/classic),
 which target Jade_<Champion>'s default skin.
 
 The client reports Classic champions and skins with offset IDs (60103 and

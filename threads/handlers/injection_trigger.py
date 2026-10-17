@@ -686,7 +686,7 @@ class InjectionTrigger:
                     or self.state.hovered_champ_id
                 )
                 # Keep an owned target as the real client-selected skin. The
-                # downloaded Rose carrier is only needed for unowned skins;
+                # downloaded Lust carrier is only needed for unowned skins;
                 # using it for an owned skin can move the overlay onto the
                 # carrier's skin0 paths and prevent a mod targeting the actual
                 # owned skin (for example Spirit Blossom Sett) from applying.

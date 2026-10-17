@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build Rose's stand-in cslol-dll.dll (see native/cslol_stub/cslol_stub.c)."""
+"""Build Lust's stand-in cslol-dll.dll (see native/cslol_stub/cslol_stub.c)."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "native" / "cslol_stub" / "cslol_stub.c"
 OUTPUT = ROOT / "injection" / "tools" / "cslol-dll.dll"
-# Second copy under a name older updaters do not skip; Rose restores cslol-dll.dll from it
+# Second copy under a name older updaters do not skip; Lust restores cslol-dll.dll from it
 OUTPUT_COPY = OUTPUT.with_suffix(".stub")
 
 

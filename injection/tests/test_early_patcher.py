@@ -56,7 +56,7 @@ class EarlyPatcherTests(unittest.TestCase):
 
     def test_a_patcher_stopped_after_the_last_game_is_replaced(self):
         self.overlay.start_patcher_early()
-        self.running = False  # Rose stopped it at the end of the game
+        self.running = False  # Lust stopped it at the end of the game
         self.overlay.start_patcher_early()
         self.assertEqual(self.start.call_count, 2)
         self.abort.assert_called_once()

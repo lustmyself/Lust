@@ -476,7 +476,7 @@ class RelayReconnectTests(unittest.TestCase):
         self.assertEqual(self.opens, 1)
         self.assertTrue(self.relay.stopped)
 
-    def test_a_relay_asking_for_a_newer_rose_stops_at_once(self):
+    def test_a_relay_asking_for_a_newer_lust_stops_at_once(self):
         async def open_(timeout):
             self.opens += 1
             self.relay._update_required = True
@@ -488,7 +488,7 @@ class RelayReconnectTests(unittest.TestCase):
 
     def test_the_update_refusal_says_so(self):
         error = SimpleNamespace(status_code=426)
-        self.assertIn("update Rose", self.module._describe_error(error))
+        self.assertIn("update Lust", self.module._describe_error(error))
 
     def test_resume_reconnects_a_stopped_room(self):
         self.relay._stopped = True

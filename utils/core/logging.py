@@ -307,7 +307,7 @@ def setup_logging(log_mode: str = 'customer', *, write_logs: bool = True):
             timestamp = datetime.now().strftime(LOG_TIMESTAMP_FORMAT)
             
             max_bytes = int(LOG_MAX_FILE_SIZE_MB_DEFAULT * 1024 * 1024)
-            log_file = logs_dir / f"rose_{timestamp}.log"
+            log_file = logs_dir / f"lust_{timestamp}.log"
             def _factory_plain(p: Path):
                 return logging.FileHandler(p, encoding='utf-8')
             file_handler = SizeRotatingCompositeHandler(log_file, _factory_plain, max_bytes)
@@ -375,16 +375,16 @@ def setup_logging(log_mode: str = 'customer', *, write_logs: bool = True):
             if _CURRENT_LOG_MODE == 'customer':
                 # Clean startup for customer mode
                 if log_file:
-                    logger.info(f"Rose Started (Log: {log_file.name})")
+                    logger.info(f"Lust Started (Log: {log_file.name})")
                 else:
-                    logger.info("Rose Started (logs disabled)")
+                    logger.info("Lust Started (logs disabled)")
             else:
                 # Detailed startup for verbose/debug modes
                 logger.info("=" * LOG_SEPARATOR_WIDTH)
                 if log_file:
-                    logger.info(f"Rose - Starting... (Log file: {log_file.name})")
+                    logger.info(f"Lust - Starting... (Log file: {log_file.name})")
                 else:
-                    logger.info("Rose - Starting... (logs disabled)")
+                    logger.info("Lust - Starting... (logs disabled)")
                 logger.info("=" * LOG_SEPARATOR_WIDTH)
                 
                 # Log mode information

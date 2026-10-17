@@ -1,4 +1,4 @@
-"""Launcher auto-update logic for Rose.
+"""Launcher auto-update logic for Lust.
 
 Downloads the latest release ZIP from GitHub, stages it under the
 user data directory, and replaces the current installation when running

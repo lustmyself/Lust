@@ -7,7 +7,7 @@ Orchestrator for party mode skin sharing via WebSocket relay.
 Everyone keeps their own room open and also joins the rooms of the friends
 whose token they paste. Members advertise the rooms they're in, so everyone
 linked to a party ends up in all of its rooms: any member's token works,
-friends can be added one by one, and older Rose versions (one room each)
+friends can be added one by one, and older Lust versions (one room each)
 still see everybody.
 """
 
@@ -62,7 +62,7 @@ def _removed(member: dict, summoner_id: Optional[int]) -> bool:
 
 
 def _state_time(member: dict) -> int:
-    """When a member's state was sent: 0 for older Rose versions, -1 without state."""
+    """When a member's state was sent: 0 for older Lust versions, -1 without state."""
     skin = member.get("skin")
     if not isinstance(skin, dict):
         return -1
@@ -213,7 +213,7 @@ class PartyManager:
             token = PartyToken.decode(token_str)
         except ValueError as e:
             log.info(f"[PARTY] Invalid token: {e}")
-            return False, "That's not a valid party token. Copy the whole token (it starts with ROSE:)."
+            return False, "That's not a valid party token. Copy the whole token (it starts with LUST:)."
 
         if token.summoner_id == self.party_state.my_summoner_id:
             return False, "That's your own token - send it to your friends instead"
@@ -278,7 +278,7 @@ class PartyManager:
 
     def get_state_dict(self) -> dict:
         if self.party_state.enabled:
-            # Fresh timestamp: Rose 1.3.1 and older reject tokens older than an hour
+            # Fresh timestamp: Lust 1.3.1 and older reject tokens older than an hour
             self.party_state.my_token = self._fresh_token()
         return self.party_state.to_dict()
 
@@ -606,7 +606,7 @@ class PartyManager:
                 skin_state["is_custom"] = True
                 skin_state["custom_mod_content_hash"] = content_hash
                 if legacy_hash:
-                    # Older Rose versions match archive mods by whole-file hash
+                    # Older Lust versions match archive mods by whole-file hash
                     skin_state["custom_mod_hash"] = legacy_hash
 
         return skin_state

@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a reproducible problem with Rose
+description: Report a reproducible problem with Lust
 title: "[BUG] "
 labels:
   - bug
@@ -7,14 +7,14 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for helping improve Rose. Please search existing issues before reporting a new one.
+        Thanks for helping improve Lust. Please search existing issues before reporting a new one.
 
-        For installation help or general questions, use the Rose Discord linked on the issue chooser instead.
+        For installation help or general questions, use the Lust Discord linked on the issue chooser instead.
 
   - type: input
-    id: rose-version
+    id: lust-version
     attributes:
-      label: Rose version
+      label: Lust version
       description: You can find this in the tray menu or the installed app.
       placeholder: "1.4.7"
     validations:
@@ -89,9 +89,9 @@ body:
     id: steps
     attributes:
       label: Steps to reproduce
-      description: Tell us exactly what you did, from starting Rose to seeing the problem.
+      description: Tell us exactly what you did, from starting Lust to seeing the problem.
       placeholder: |
-        1. Start Rose...
+        1. Start Lust...
         2. Open...
         3. Select...
         4. See the error...
@@ -119,7 +119,7 @@ body:
     attributes:
       label: Troubleshooting details and logs
       description: |
-        Paste the message shown in Rose's Troubleshooting panel and attach the latest file from Open Logs Folder.
+        Paste the message shown in Lust's Troubleshooting panel and attach the latest file from Open Logs Folder.
         Remove party tokens, account identifiers, and personal paths before posting.
       placeholder: Drag and drop the latest log file here, or paste the relevant lines.
 
@@ -136,7 +136,7 @@ body:
       options:
         - label: I searched the existing issues and did not find a duplicate.
           required: true
-        - label: I reproduced the problem on the latest available Rose version.
+        - label: I reproduced the problem on the latest available Lust version.
           required: true
         - label: I removed party tokens, account identifiers, and other private information from logs and screenshots.
           required: true

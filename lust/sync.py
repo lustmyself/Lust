@@ -113,6 +113,15 @@ def patch_core_dll(tree):
         if label not in data:
             print(f"[sync] note: core.dll label {label!r} not found")
         data = data.replace(label, label.replace(b"Rose", b"Lust"))
+    # UTF-16 strings: %LOCALAPPDATA%\Rose\config.ini (where core.dll finds the
+    # plugins folder; with Rose's path it loads no plugins at all), its log
+    # folder and the version info
+    config_path = "\\Rose\\config.ini".encode("utf-16-le")
+    if config_path not in data:
+        raise SystemExit("[sync] core.dll no longer reads %LOCALAPPDATA%\\Rose\\config.ini; "
+                         "check where it finds the plugins folder before releasing")
+    for old in ("Rose", "ROSE"):
+        data = data.replace(old.encode("utf-16-le"), swap(old).encode("utf-16-le"))
     dll.write_bytes(data)
 
 

@@ -1,0 +1,4 @@
+.style-profile-emblem-content > img {
+	visibility: hidden;
+	width: unset !important;
+}

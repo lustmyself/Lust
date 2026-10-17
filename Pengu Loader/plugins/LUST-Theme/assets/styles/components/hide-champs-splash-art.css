@@ -1,0 +1,27 @@
+.champion-select {
+	background: transparent !important;
+}
+
+.champion-select .champion-splash-background > .champ-select-bg {
+	opacity:0 !important;
+}
+
+.champ-select-bg-darken {
+	opacity:0.2 !important;
+}
+
+.background-vignette-container {
+    display: none !important;
+}
+
+.lol-uikit-background-switcher-image.none.transition {
+	display: none !important;
+}
+
+.position-assignment {
+	display: none !important;
+}
+
+.ring-splash-dashed, .ring-splash-outer, .ring-splash-inner, .ring-inner-mask, .expanded-ring-container, .dashed-ring-circle {
+    display: none !important;
+}

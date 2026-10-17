@@ -1,0 +1,14 @@
+.lol-loading-screen-container .lol-loading-screen-lol-icon {
+	background: var(--LustStatic) !important;
+	background-repeat: no-repeat;
+	background-size: contain;
+	width: 240px !important;
+	height: 240px !important;
+	margin-top: 40px !important;
+}
+
+div[id^=index_loading_div]:before {
+	background-image: var(--LustStatic) !important;
+	width: 240px !important;
+	height: 240px !important;
+}

@@ -1,0 +1,11 @@
+.top > .icon-image.has-icon {
+	content: var(--Avatar) !important;
+}
+
+summoner-icon {
+	content: var(--Avatar) !important;
+}
+
+.tft-cards-first-row-middle .icon-wrapper .icon-image {
+	background-image: var(--Avatar) !important;
+}

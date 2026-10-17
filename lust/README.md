@@ -25,6 +25,20 @@ python lust/sync.py refs/rose/1.4.9
 git status   # should show only the changes you meant to make
 ```
 
+## Client theme (LUST-Theme)
+
+`overlay/Pengu Loader/plugins/LUST-Theme` is the MIT-licensed
+[Elaina theme](https://github.com/Elaina69/Elaina-theme) renamed to Lust, built
+by `theme/build_theme.py` from the release zip and the matching
+`elaina-theme-data` npm package. The script swaps the remote data module
+(tracking, cloud backup) for the stub in `theme/data`, replaces the Elaina
+artwork with Lust's (`theme/art` holds the default wallpaper) and fails if any
+"Elaina" is left. To move to a new Elaina release:
+
+```
+python lust/theme/build_theme.py ElainaV4.zip elaina-theme-data-X.Y.Z.tgz
+```
+
 ## When an automatic update fails
 
 The workflow opens an issue and releases nothing. Usually Rose changed code

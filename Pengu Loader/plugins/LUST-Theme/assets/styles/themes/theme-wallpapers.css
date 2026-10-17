@@ -1,0 +1,28 @@
+#lust-bg {
+	width:100%;
+	height: 100%;
+	position: absolute;
+    pointer-events: none;
+	transition: opacity 0.5s ease-in-out;
+	opacity: 1;
+	filter: brightness(0.8);
+	border-top: 2px solid #000000;
+}
+
+#lust-bg:has(+ #rcp-fe-viewport-root .parties-background) {
+	filter: brightness(0.4) !important;
+}
+
+#lust-static-bg {
+	width:100%;
+	position: absolute;
+    pointer-events: none;
+	transition: opacity 0.5s ease-in-out;
+	opacity: 1;
+	filter: brightness(0.8);
+	border-top: 2px solid #000000;
+}
+
+#lust-home {
+	display: none !important;
+}

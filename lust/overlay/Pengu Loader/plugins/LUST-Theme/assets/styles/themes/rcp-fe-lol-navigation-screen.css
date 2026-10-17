@@ -1,0 +1,71 @@
+div[data-screen-name="rcp-fe-lol-navigation-screen"] {
+    border-top: 1.8px solid #785a28 !important;
+}
+
+.rcp-fe-lol-navigation.main-nav-bar {
+	height: 76px !important;
+}
+
+.navigation-root-component.ember-view {
+	height: 77px !important;	
+}
+
+#rcp-fe-lol-navigation-app, .postgame-header-section {
+    background: linear-gradient(rgb(0 0 0), rgb(0 0 0 / 24%))!important;	
+}
+
+/* LoR advertise */
+.deep-links-promo {
+	display: none !important;
+}
+
+.hide-top-navbar {
+	opacity: 1 !important;
+    height: 100%;
+    min-width: 40px;
+    cursor: pointer;
+    pointer-events: auto;
+    position: relative;
+    --disabled-color: #f0e6d280;
+    justify-content: center;
+    display: flex;
+	transition: transform 0.5s ease 0s;
+    transform: translateX(0px);
+}
+
+.hide-top-navbar-icon {
+	width: 36px;
+    height: 36px;
+    margin-right: 0px;
+    position: relative;
+    top: 22px;
+    display: block;
+}
+
+.right-nav-menu {
+	transition: opacity 0.5s ease, transform 0.5s ease 0s;
+    transform: translateX(0px);
+	opacity: 1;
+}
+
+.main-navigation-menu-item {
+	transition: opacity 0.5s ease, transform 0.5s ease 0s;
+    transform: translateX(0px);
+	opacity: 1;
+}
+
+.right-nav-vertical-rule {
+	transition: opacity 0.5s ease, transform 0.5s ease 0s;
+    transform: translateX(0px);
+	opacity: 1;
+}
+
+.wallet-and-badges {
+	transition: opacity 0.5s ease, transform 0.5s ease 0s;
+    transform: translateX(0px);
+	opacity: 1;
+}
+
+.rcp-fe-lol-navigation-app .navbar_backdrop {
+    backdrop-filter: blur(0px) !important;
+}

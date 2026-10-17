@@ -290,6 +290,44 @@
     cursor: pointer;
 }
 
+#add-bg {
+    position: relative !important;
+    width: 21px !important;
+    height: 21px !important;
+    margin-left: 7px;
+    margin-top: 11px;
+    border: 2px solid #8c8263 !important;
+    border-radius: 50% !important;
+    background-color: black !important;
+    color: #cdbe91;
+    font: bold 17px/21px sans-serif;
+    text-align: center;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+#add-bg:hover {
+    color: #f0e6d2;
+    border-color: #c8aa6e !important;
+}
+
+#add-bg-name {
+    width: 190px;
+    height: 23px;
+    margin-left: 7px;
+    margin-top: 10px;
+    padding: 0 6px;
+    background: #010a13e6;
+    border: 1px solid #785a28;
+    color: #f0e6d2;
+    font-size: 12px;
+    pointer-events: auto;
+}
+
+#add-bg-name[hidden] {
+    display: none;
+}
+
 #pause-bg:hover {
 	filter: brightness(1.3) hue-rotate(263deg) saturate(0.4) !important;
 }

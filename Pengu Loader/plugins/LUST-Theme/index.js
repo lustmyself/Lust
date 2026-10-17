@@ -1635,7 +1635,7 @@ let navbarContentList = [];
 let haveNewContent = 0;
 (await import(`//plugins/${getThemeName()}/config/cdnServer.js`)).default;
 const defaultData = {
-  "Wallpaper-list": ["lust-wallpaper.webm", "lust-wallpaper.jpg"],
+  "Wallpaper-list": ["lust-wallpaper.webm", "lust-dark.jpg", "lust-wallpaper.jpg"],
   "Audio-list": ["lust-silence.wav"],
   "wallpaper-index": 0,
   "audio-index": 0,
@@ -1651,6 +1651,11 @@ function initHomepageData() {
   LustData.set("Font-folder", `${datapath$7}assets/fonts/`);
   LustData.set("Plugin-folder-name", getThemeName());
   setDefaultData(defaultData, false);
+  const wallpapers = LustData.get("Wallpaper-list") || [];
+  for (const name of defaultData["Wallpaper-list"]) {
+    if (!wallpapers.includes(name)) wallpapers.push(name);
+  }
+  LustData.set("Wallpaper-list", wallpapers);
 }
 async function updateSummonerIdentity() {
   const summonerID = await utils.getSummonerID();
@@ -2061,6 +2066,65 @@ class MainController {
       });
     }
     pauseBg.append(pauseBgIcon);
+    const addBg = this.createElementWithId("div", "add-bg");
+    addBg.textContent = "+";
+    addBg.title = "Add wallpaper";
+    const addBgName = this.createElementWithId("input", "add-bg-name");
+    addBgName.type = "text";
+    addBgName.placeholder = "Paste the file, type its name";
+    addBgName.hidden = true;
+    wallpaperControls.append(addBg, addBgName);
+    addBg.addEventListener("click", () => {
+      window.openPluginsFolder(`${LustData.get("Plugin-folder-name")}/assets/backgrounds/wallpapers`);
+      addBgName.hidden = false;
+      addBgName.focus();
+    });
+    addBgName.addEventListener("keydown", async (event) => {
+      event.stopPropagation();
+      if (event.key === "Escape") {
+        addBgName.hidden = true;
+        return;
+      }
+      if (event.key !== "Enter")
+        return;
+      const name = addBgName.value.trim();
+      const fail = (message) => {
+        addBgName.value = "";
+        addBgName.placeholder = message;
+      };
+      if (!fileRegex.Wallpaper.test(name.toLowerCase()) || /[\\/:*?"<>|]/.test(name))
+        return fail("Not a video or image file name");
+      const controller = new AbortController();
+      const res = await fetch(`//plugins/${getThemeName()}/assets/backgrounds/wallpapers/${encodeURIComponent(name)}`, { signal: controller.signal }).catch(() => null);
+      controller.abort();
+      if (!res || !res.ok)
+        return fail(`${name} is not in the folder`);
+      const list = LustData.get("Wallpaper-list");
+      if (!list.includes(name)) {
+        list.push(name);
+        LustData.set("Wallpaper-list", list);
+        const option = document.createElement("lol-uikit-dropdown-option");
+        option.setAttribute("slot", "lol-uikit-dropdown-option");
+        option.innerText = name;
+        option.onclick = async () => {
+          document.getElementById("lust-bg").classList.add("webm-hidden");
+          document.getElementById("lust-static-bg").classList.add("webm-hidden");
+          LustData.set("wallpaper-index", LustData.get("Wallpaper-list").indexOf(name));
+          await wallpaperController.changeBG(name);
+        };
+        bgDropdown.appendChild(option);
+      }
+      bgDropdown.querySelectorAll("lol-uikit-dropdown-option").forEach((option) => {
+        option.toggleAttribute("selected", option.innerText === name);
+      });
+      document.getElementById("lust-bg").classList.add("webm-hidden");
+      document.getElementById("lust-static-bg").classList.add("webm-hidden");
+      LustData.set("wallpaper-index", list.indexOf(name));
+      await wallpaperController.changeBG(name);
+      addBgName.value = "";
+      addBgName.placeholder = "Paste the file, type its name";
+      addBgName.hidden = true;
+    });
     progressBar.append(progress);
     container.append(musicControlsMain, progressBar);
     const showContainer = document.querySelector(".rcp-fe-lol-home");
@@ -2676,7 +2740,7 @@ class HomePage {
     wallpaperAndAudio.addAudioElement();
     utils.mutationObserverAddCallback(addHomePage.pageListenner, ["screen-root"]);
     hideNavbarButton.addHideButton();
-    if (LustData.get("enable-hide-top-navbar-friendlist-button")) {
+    if (false) {
       hideTopNavbarButton.addHideButton();
     }
   };
@@ -3225,39 +3289,6 @@ async function customAssetsSection() {
       ),
       br(),
       UI.createCheckBox(
-        `${await getString("theme-settings.custom-rp-icon")}`,
-        "cusrpi",
-        "cusrpibox",
-        () => {
-          restartAfterChange("cusrpi", "Custom-RP-Icon");
-        },
-        true,
-        "Custom-RP-Icon"
-      ),
-      br(),
-      UI.createCheckBox(
-        `${await getString("theme-settings.custom-be-icon")}`,
-        "cusbei",
-        "cusbeibox",
-        () => {
-          restartAfterChange("cusbei", "Custom-BE-Icon");
-        },
-        true,
-        "Custom-BE-Icon"
-      ),
-      br(),
-      UI.createCheckBox(
-        `${await getString("theme-settings.custom-rank-icon")}`,
-        "cusranki",
-        "cusrankibox",
-        () => {
-          restartAfterChange("cusranki", "Custom-Rank-Icon");
-        },
-        true,
-        "Custom-Rank-Icon"
-      ),
-      br(),
-      UI.createCheckBox(
         `${await getString("theme-settings.custom-emblem")}`,
         "cusemi",
         "cusemibox",
@@ -3266,17 +3297,6 @@ async function customAssetsSection() {
         },
         true,
         "Custom-Emblem"
-      ),
-      br(),
-      UI.createCheckBox(
-        `${await getString("theme-settings.custom-clash-banner")}`,
-        "cusclassb",
-        "cusclassbbox",
-        () => {
-          restartAfterChange("cusclassb", "Custom-Clash-banner");
-        },
-        true,
-        "Custom-Clash-banner"
       ),
       br(),
       UI.createCheckBox(
@@ -3547,22 +3567,22 @@ class AddCss {
         },
         {
           key: "Custom-RP-Icon",
-          css: "riotpoint.css",
+          css: "null.css",
           altCss: "null.css"
         },
         {
           key: "Custom-Clash-banner",
-          css: "clashbanner.css",
+          css: "null.css",
           altCss: "null.css"
         },
         {
           key: "Custom-BE-Icon",
-          css: "blueessence.css",
+          css: "null.css",
           altCss: "null.css"
         },
         {
           key: "Custom-Rank-Icon",
-          css: "rank.css",
+          css: "null.css",
           altCss: "null.css"
         },
         {
@@ -3794,33 +3814,6 @@ async function profileSection() {
         UI.createSearchBox("BE")
       ])
     ]),
-    br(),
-    UI.createCheckBox(
-      `${await getString("theme-settings.custom-summoner-lv")}`,
-      "cussumlv",
-      "cussumlvbox",
-      () => {
-        restartAfterChange("cussumlv", "custom-summoner-lv");
-      },
-      true,
-      "custom-summoner-lv"
-    ),
-    br(),
-    UI.createSearchBox("custom-summoner-lv-number"),
-    br(),
-    UI.createCheckBox(
-      `${await getString("theme-settings.custom-rank-name")}`,
-      "cusrankname",
-      "cusranknamebox",
-      () => {
-        restartAfterChange("cusrankname", "custom-rank-name");
-      },
-      true,
-      "custom-rank-name"
-    ),
-    br(),
-    UI.createSearchBox("Rank-line1"),
-    UI.createSearchBox("Rank-line2"),
     br(),
     ...await customFontSection(),
     UI.createCheckBox(
@@ -7888,7 +7881,7 @@ class ApplyUI {
         }, 1e4);
       }
     }
-    if (LustData.get("custom-rank-name"))
+    if (false)
       customProfile.CustomProfileRankName();
     if (LustData.get("Runes-BG")) {
       const customRunesBackground = new CustomRunesBackground();
@@ -11267,7 +11260,7 @@ class LustTheme {
         customBeRp.RP();
       if (LustData$1.get("custom-be"))
         customBeRp.BE();
-      if (LustData$1.get("custom-summoner-lv"))
+      if (false)
         customSummonerLv.main();
       window.refreshLists();
     }, 1e3);

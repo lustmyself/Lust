@@ -77,15 +77,259 @@ ABOUT_US = '''async function aboutustab(panel) {
 
 ''' % REPO_URL
 
+ADD_WALLPAPER_JS = '''    const addBg = this.createElementWithId("div", "add-bg");
+    addBg.textContent = "+";
+    addBg.title = "Add wallpaper";
+    const addBgName = this.createElementWithId("input", "add-bg-name");
+    addBgName.type = "text";
+    addBgName.placeholder = "Paste the file, type its name";
+    addBgName.hidden = true;
+    wallpaperControls.append(addBg, addBgName);
+    addBg.addEventListener("click", () => {
+      window.openPluginsFolder(`${ElainaData.get("Plugin-folder-name")}/assets/backgrounds/wallpapers`);
+      addBgName.hidden = false;
+      addBgName.focus();
+    });
+    addBgName.addEventListener("keydown", async (event) => {
+      event.stopPropagation();
+      if (event.key === "Escape") {
+        addBgName.hidden = true;
+        return;
+      }
+      if (event.key !== "Enter")
+        return;
+      const name = addBgName.value.trim();
+      const fail = (message) => {
+        addBgName.value = "";
+        addBgName.placeholder = message;
+      };
+      if (!fileRegex.Wallpaper.test(name.toLowerCase()) || /[\\\\/:*?"<>|]/.test(name))
+        return fail("Not a video or image file name");
+      const controller = new AbortController();
+      const res = await fetch(`//plugins/${getThemeName()}/assets/backgrounds/wallpapers/${encodeURIComponent(name)}`, { signal: controller.signal }).catch(() => null);
+      controller.abort();
+      if (!res || !res.ok)
+        return fail(`${name} is not in the folder`);
+      const list = ElainaData.get("Wallpaper-list");
+      if (!list.includes(name)) {
+        list.push(name);
+        ElainaData.set("Wallpaper-list", list);
+        const option = document.createElement("lol-uikit-dropdown-option");
+        option.setAttribute("slot", "lol-uikit-dropdown-option");
+        option.innerText = name;
+        option.onclick = async () => {
+          document.getElementById("elaina-bg").classList.add("webm-hidden");
+          document.getElementById("elaina-static-bg").classList.add("webm-hidden");
+          ElainaData.set("wallpaper-index", ElainaData.get("Wallpaper-list").indexOf(name));
+          await wallpaperController.changeBG(name);
+        };
+        bgDropdown.appendChild(option);
+      }
+      bgDropdown.querySelectorAll("lol-uikit-dropdown-option").forEach((option) => {
+        option.toggleAttribute("selected", option.innerText === name);
+      });
+      document.getElementById("elaina-bg").classList.add("webm-hidden");
+      document.getElementById("elaina-static-bg").classList.add("webm-hidden");
+      ElainaData.set("wallpaper-index", list.indexOf(name));
+      await wallpaperController.changeBG(name);
+      addBgName.value = "";
+      addBgName.placeholder = "Paste the file, type its name";
+      addBgName.hidden = true;
+    });
+'''
+
+ADD_WALLPAPER_CSS = '''#add-bg {
+    position: relative !important;
+    width: 21px !important;
+    height: 21px !important;
+    margin-left: 7px;
+    margin-top: 11px;
+    border: 2px solid #8c8263 !important;
+    border-radius: 50% !important;
+    background-color: black !important;
+    color: #cdbe91;
+    font: bold 17px/21px sans-serif;
+    text-align: center;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+#add-bg:hover {
+    color: #f0e6d2;
+    border-color: #c8aa6e !important;
+}
+
+#add-bg-name {
+    width: 190px;
+    height: 23px;
+    margin-left: 7px;
+    margin-top: 10px;
+    padding: 0 6px;
+    background: #010a13e6;
+    border: 1px solid #785a28;
+    color: #f0e6d2;
+    font-size: 12px;
+    pointer-events: auto;
+}
+
+#add-bg-name[hidden] {
+    display: none;
+}
+
+'''
+
 # (file, old, new): exact replacements applied before renaming. Each must match.
 PATCHES = [
     # Default wallpaper/audio are Lust's own files.
     ("index.js",
      '"Wallpaper-list": ["elaina1.webm", "elaina2.jpg"],',
-     '"Wallpaper-list": ["lust-wallpaper.webm", "lust-wallpaper.jpg"],'),
+     '"Wallpaper-list": ["lust-wallpaper.webm", "lust-dark.jpg", "lust-wallpaper.jpg"],'),
     ("index.js",
      '"Audio-list": ["Laur - その花は世界を紡ぐ.flac", "Laur - Mellifluous.flac"],',
      '"Audio-list": ["lust-silence.wav"],'),
+    # Fill the window with wallpapers of any aspect ratio instead of letterboxing.
+    ("assets/styles/themes/theme-wallpapers.css",
+     "#elaina-bg {\n\twidth:100%;\n\theight: 100%;\n",
+     "#elaina-bg {\n\twidth:100%;\n\theight: 100%;\n\tobject-fit: cover;\n"),
+    ("assets/styles/themes/theme-wallpapers.css",
+     "#elaina-static-bg {\n\twidth:100%;\n",
+     "#elaina-static-bg {\n\twidth:100%;\n\theight: 100%;\n\tobject-fit: cover;\n"),
+    # No button that hides the top-right nav icons.
+    ("index.js",
+     'if (ElainaData.get("enable-hide-top-navbar-friendlist-button")) {\n      hideTopNavbarButton.addHideButton();',
+     'if (false) {\n      hideTopNavbarButton.addHideButton();'),
+    ("config/datastoreDefault.js",
+     '"enable-hide-top-navbar-friendlist-button" : true,',
+     '"enable-hide-top-navbar-friendlist-button" : false,'),
+    # RP and Blue Essence keep League's own icons, whatever was saved before.
+    ("index.js",
+     'key: "Custom-RP-Icon",\n          css: "riotpoint.css",',
+     'key: "Custom-RP-Icon",\n          css: "null.css",'),
+    ("index.js",
+     'key: "Custom-BE-Icon",\n          css: "blueessence.css",',
+     'key: "Custom-BE-Icon",\n          css: "null.css",'),
+    ("index.js",
+     '''      UI.createCheckBox(
+        `${await getString("theme-settings.custom-rp-icon")}`,
+        "cusrpi",
+        "cusrpibox",
+        () => {
+          restartAfterChange("cusrpi", "Custom-RP-Icon");
+        },
+        true,
+        "Custom-RP-Icon"
+      ),
+      br(),
+      UI.createCheckBox(
+        `${await getString("theme-settings.custom-be-icon")}`,
+        "cusbei",
+        "cusbeibox",
+        () => {
+          restartAfterChange("cusbei", "Custom-BE-Icon");
+        },
+        true,
+        "Custom-BE-Icon"
+      ),
+      br(),
+''', ""),
+    # The profile shows the real rank emblem, rank name and banner.
+    ("index.js",
+     'key: "Custom-Clash-banner",\n          css: "clashbanner.css",',
+     'key: "Custom-Clash-banner",\n          css: "null.css",'),
+    ("index.js",
+     'key: "Custom-Rank-Icon",\n          css: "rank.css",',
+     'key: "Custom-Rank-Icon",\n          css: "null.css",'),
+    ("index.js",
+     '''      UI.createCheckBox(
+        `${await getString("theme-settings.custom-rank-icon")}`,
+        "cusranki",
+        "cusrankibox",
+        () => {
+          restartAfterChange("cusranki", "Custom-Rank-Icon");
+        },
+        true,
+        "Custom-Rank-Icon"
+      ),
+      br(),
+''', ""),
+    ("index.js",
+     '''      UI.createCheckBox(
+        `${await getString("theme-settings.custom-clash-banner")}`,
+        "cusclassb",
+        "cusclassbbox",
+        () => {
+          restartAfterChange("cusclassb", "Custom-Clash-banner");
+        },
+        true,
+        "Custom-Clash-banner"
+      ),
+      br(),
+''', ""),
+    ("index.js",
+     '    if (ElainaData.get("custom-rank-name"))\n      customProfile.CustomProfileRankName();',
+     '    if (false)\n      customProfile.CustomProfileRankName();'),
+    ("index.js",
+     '''    UI.createCheckBox(
+      `${await getString("theme-settings.custom-rank-name")}`,
+      "cusrankname",
+      "cusranknamebox",
+      () => {
+        restartAfterChange("cusrankname", "custom-rank-name");
+      },
+      true,
+      "custom-rank-name"
+    ),
+    br(),
+    UI.createSearchBox("Rank-line1"),
+    UI.createSearchBox("Rank-line2"),
+    br(),
+''', ""),
+    ("config/datastoreDefault.js", '"custom-rank-name"              : true,',
+     '"custom-rank-name"              : false,'),
+    ("config/datastoreDefault.js", '"Custom-Rank-Icon"              : true,',
+     '"Custom-Rank-Icon"              : false,'),
+    ("config/datastoreDefault.js", '"Custom-Clash-banner"\t\t\t: true,',
+     '"Custom-Clash-banner"\t\t\t: false,'),
+    ("config/datastoreDefault.js", '"Custom-RP-Icon"                : true,',
+     '"Custom-RP-Icon"                : false,'),
+    ("config/datastoreDefault.js", '"Custom-BE-Icon"                : true,',
+     '"Custom-BE-Icon"                : false,'),
+    # Saved wallpaper lists still get Lust's default wallpapers.
+    ("index.js",
+     '  setDefaultData(defaultData, false);\n}',
+     '  setDefaultData(defaultData, false);\n'
+     '  const wallpapers = ElainaData.get("Wallpaper-list") || [];\n'
+     '  for (const name of defaultData["Wallpaper-list"]) {\n'
+     '    if (!wallpapers.includes(name)) wallpapers.push(name);\n'
+     '  }\n'
+     '  ElainaData.set("Wallpaper-list", wallpapers);\n}'),
+    # The real summoner level shows instead of a custom one.
+    ("index.js",
+     '      if (ElainaData$1.get("custom-summoner-lv"))\n        customSummonerLv.main();',
+     '      if (false)\n        customSummonerLv.main();'),
+    ("index.js",
+     '''    UI.createCheckBox(
+      `${await getString("theme-settings.custom-summoner-lv")}`,
+      "cussumlv",
+      "cussumlvbox",
+      () => {
+        restartAfterChange("cussumlv", "custom-summoner-lv");
+      },
+      true,
+      "custom-summoner-lv"
+    ),
+    br(),
+    UI.createSearchBox("custom-summoner-lv-number"),
+    br(),
+''', ""),
+    ("config/datastoreDefault.js", '"custom-summoner-lv"            : true,',
+     '"custom-summoner-lv"            : false,'),
+    # "+" next to the wallpaper pause button: opens the wallpapers folder, then
+    # takes the pasted file's name (Pengu 1.1.6 can't list folders) and adds it.
+    ("index.js", "    pauseBg.append(pauseBgIcon);\n    progressBar.append(progress);\n",
+     "    pauseBg.append(pauseBgIcon);\n" + ADD_WALLPAPER_JS + "    progressBar.append(progress);\n"),
+    ("assets/styles/themes/theme-background-controllers.css", "#pause-bg:hover {",
+     ADD_WALLPAPER_CSS + "#pause-bg:hover {"),
     # Cloud backup went to Elaina's server: hide that part of the backup tab.
     ("index.js",
      "const cloud = await cloudBackupSection();",
@@ -250,7 +494,8 @@ def make_art(root):
     icon = root / "assets" / "icon"
     bgs = root / "assets" / "backgrounds"
 
-    shutil.copy2(HERE / "art" / "lust-wallpaper.webm", bgs / "wallpapers" / "lust-wallpaper.webm")
+    for name in ("lust-wallpaper.webm", "lust-dark.jpg"):
+        shutil.copy2(HERE / "art" / name, bgs / "wallpapers" / name)
     with_logo(gradient((1920, 1080)), word, 0.32).convert("RGB").save(
         bgs / "wallpapers" / "lust-wallpaper.jpg", quality=90)
     write_silence(bgs / "audio" / "lust-silence.wav")

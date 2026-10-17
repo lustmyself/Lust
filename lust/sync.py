@@ -123,7 +123,37 @@ def patch_core_dll(tree):
     for old in ("Rose", "ROSE"):
         data = data.replace(old.encode("utf-16-le"), swap(old).encode("utf-16-le"))
     data = patch_welcome_popup(data)
+    data = patch_loading_screen(data)
     dll.write_bytes(data)
+
+
+# The client's loading screen: a round image (League's rose profile icon) over "LUST"
+LOADING_CSS = (
+    b'div[id^=index_loading_div]:before{content:"";'
+    b'background-image:url(/lol-game-data/assets/v1/profile-icons/7.jpg);'
+    b'background-repeat:no-repeat;background-size:cover;width:144px;height:144px;border-radius:50%}'
+    b'div[id^=index_loading_div]:after{margin-top:32px;content:"Lust";color:#e2e1e1;'
+    b'font-family:Inter,sans-serif;font-size:1rem;text-transform:uppercase}'
+)
+# iG Kai'Sa's tile from the client's own game data. The longer URL fits by
+# dropping no-repeat (cover already fills the circle) and the Inter font
+# (the text falls back to the client's font); spaces pad the rest.
+KAISA_LOADING_CSS = (
+    b'div[id^=index_loading_div]:before{content:"";'
+    b'background-image:url(/lol-game-data/assets/ASSETS/Characters/Kaisa/Skins/Skin16/Images/kaisa_splash_tile_16.jpg);'
+    b'background-size:cover;width:144px;height:144px;border-radius:50%}'
+    b'div[id^=index_loading_div]:after{margin-top:32px;content:"Lust";color:#e2e1e1;'
+    b'font-size:1rem;text-transform:uppercase}'
+)
+
+
+def patch_loading_screen(data):
+    if data.count(LOADING_CSS) != 1:
+        raise SystemExit("[sync] the client loading screen CSS changed in core.dll")
+    padding = len(LOADING_CSS) - len(KAISA_LOADING_CSS)
+    if padding < 0:
+        raise SystemExit("[sync] Kai'Sa loading screen CSS is longer than the original")
+    return data.replace(LOADING_CSS, KAISA_LOADING_CSS + b" " * padding)
 
 
 POPUP_ICON = ROOT / "lust" / "assets" / "popup_icon.jpg"

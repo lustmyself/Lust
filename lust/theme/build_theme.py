@@ -185,6 +185,103 @@ ADD_WALLPAPER_CSS = '''#add-bg {
 
 '''
 
+LUST_PANEL_JS = '''function Settings(context) {
+  ElainaData.set("settingsChangenumber", 0);
+  mountLustPanelTabs();
+}
+
+// Lust: theme and plugin settings live in the Lust panel (the LUST item in the
+// top navigation) instead of a group in the client settings window.
+const LUST_PANEL_TABS = [
+  { id: "lust", label: "LUST" },
+  { id: "theme", label: "THEME", render: themeSettings, className: "theme_settings" },
+  { id: "plugins", label: "PLUGINS", render: pluginsSettings, className: "plugins_settings" }
+];
+const LUST_PANEL_CSS = `
+  .lust-panel-tabs { display: flex; width: 100%; margin: 4px 0 12px; border-bottom: 1px solid #785a2866; }
+  .lust-panel-tab { flex: 1; padding: 6px 0; text-align: center; cursor: pointer; color: #a09b8c;
+    font: 700 12px "Beaufort for LOL", serif; letter-spacing: 1px; border-bottom: 2px solid transparent; }
+  .lust-panel-tab:hover { color: #f0e6d2; }
+  .lust-panel-tab.active { color: #f0e6d2; border-bottom-color: #c8aa6e; }
+  [data-lust-tab]:not([data-lust-tab="lust"]) > :not(.lust-keep) { display: none !important; }
+  .lust-panel-view { display: none !important; width: 100%; height: 60vh; }
+  [data-lust-tab="theme"] > .lust-panel-view[data-tab="theme"],
+  [data-lust-tab="plugins"] > .lust-panel-view[data-tab="plugins"] { display: block !important; }
+  #lust-settings-panel[data-lust-tab="theme"] #lust-settings-flyout,
+  #lust-settings-panel[data-lust-tab="plugins"] #lust-settings-flyout { min-width: 560px !important; max-width: 560px !important; }
+  .lust-panel-reload { display: block; width: 220px; margin: 14px auto 6px; }
+`;
+function addLustPanelTabs(panel) {
+  const links = panel.querySelector(".settings-links");
+  const form = links?.parentElement;
+  if (!form || form.querySelector(".lust-panel-tabs"))
+    return !!form;
+  links.querySelectorAll("a").forEach((link) => {
+    if (/discord\\.com|ko-fi\\.com/.test(link.href))
+      link.remove();
+  });
+  form.firstElementChild?.classList.add("lust-keep");
+  const tabBar = document.createElement("div");
+  tabBar.className = "lust-panel-tabs lust-keep";
+  form.firstElementChild ? form.firstElementChild.after(tabBar) : form.prepend(tabBar);
+  let anchor = tabBar;
+  const select = async (tab) => {
+    form.dataset.lustTab = tab.id;
+    panel.dataset.lustTab = tab.id;
+    tabBar.querySelectorAll(".lust-panel-tab").forEach((button) => {
+      button.classList.toggle("active", button.dataset.tab === tab.id);
+    });
+    const view = form.querySelector(`.lust-panel-view[data-tab="${tab.id}"]`);
+    if (view && !view.dataset.rendered) {
+      view.dataset.rendered = "true";
+      await tab.render(view);
+      const reload = document.createElement("lol-uikit-flat-button");
+      reload.className = "lust-panel-reload";
+      reload.textContent = "Reload client to apply";
+      reload.addEventListener("click", () => window.restartClient());
+      view.appendChild(reload);
+    }
+  };
+  LUST_PANEL_TABS.forEach((tab) => {
+    const button = document.createElement("div");
+    button.className = "lust-panel-tab";
+    button.dataset.tab = tab.id;
+    button.textContent = tab.label;
+    button.addEventListener("click", () => select(tab));
+    tabBar.appendChild(button);
+    if (tab.render) {
+      const view = document.createElement("lol-uikit-scrollable");
+      view.className = `${tab.className} lust-panel-view lust-keep`;
+      view.dataset.tab = tab.id;
+      anchor.after(view);
+      anchor = view;
+    }
+  });
+  select(LUST_PANEL_TABS[0]);
+  return true;
+}
+function mountLustPanelTabs() {
+  const style = document.createElement("style");
+  style.textContent = LUST_PANEL_CSS;
+  document.head.appendChild(style);
+  new MutationObserver(() => {
+    const panel = document.getElementById("lust-settings-panel");
+    if (!panel || panel.dataset.lustTabsPending)
+      return;
+    panel.dataset.lustTabsPending = "true";
+    let tries = 0;
+    const attempt = () => {
+      if (!document.body.contains(panel))
+        return;
+      if (!addLustPanelTabs(panel) && ++tries < 40)
+        setTimeout(attempt, 100);
+    };
+    attempt();
+  }).observe(document.body, { childList: true });
+}
+'''
+
+
 def checkbox(locale, element_id, key):
     """A settings checkbox exactly as the theme builds it, for removing it."""
     return f'''      UI.createCheckBox(
@@ -202,6 +299,27 @@ def checkbox(locale, element_id, key):
 
 # (file, old, new): exact replacements applied before renaming. Each must match.
 PATCHES = [
+    # Settings move from the client settings window into the Lust panel.
+    ("index.js",
+     'function Settings(context) {\n  ElainaData.set("settingsChangenumber", 0);\n  settingsUtils(context, structure);\n}\n',
+     LUST_PANEL_JS),
+    # The gear opens the client settings directly, not the theme's own menu first.
+    ("index.js",
+     '    if (ElainaData.get("Old-League-Loader-Settings")) {\n      while (!manager())',
+     '    if (false) {\n      while (!manager())'),
+    ("index.js",
+     '''    UI.createCheckBox(
+      `${await getString("plugins-settings.old-ll-settings")}`,
+      "oldll",
+      "oldllbox",
+      () => {
+        restartAfterChange("oldll", "Old-League-Loader-Settings");
+      },
+      true,
+      "Old-League-Loader-Settings"
+    ),
+    br(),
+''', ""),
     # Honor, trophy, emblem, ticker and hover card show the client's own art.
     ("index.js",
      'key: "Custom-Emblem",\n          css: "emblem.css",',

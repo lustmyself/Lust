@@ -248,6 +248,40 @@ EDITS = [
      "    'threads.core.lcu_monitor_thread',\n    'threads.core.lobby_reveal_thread',\n"),
 ]
 
+# LTK patcher from an LTK Manager install (injection/tools/ltk_manager.py in the overlay)
+EDITS += [
+    ('main/__init__.py',
+     '    """Return (title, status_title, status_body, steps) for an LTK patcher problem."""\n    source = "Get both files from LTK Manager."\n',
+     '    """Return (title, status_title, status_body, steps) for an LTK patcher problem."""\n    # Lust copies the patcher from an LTK Manager install by itself (injection/tools/ltk_manager.py)\n    install = (\n        "1. Install LTK Manager from github.com/LeagueToolkit/ltk-manager/releases\\n"\n        "2. Restart Lust: it copies both files from LTK Manager by itself.\\n"\n        "(Or put both files in Lust\'s tools folder yourself.)"\n    )\n'),
+    ('main/__init__.py',
+     '            f"The ltk_patcher_dll.dll in Lust\'s tools folder does not support game builds released after {detail}, and League has updated since.",\n            f"1. Update LTK Manager, then get both files from it.\\n"\n            "2. Open Lust\'s tools folder.\\n"\n            "3. Replace both files, then restart Lust.",\n',
+     '            f"The ltk_patcher_dll.dll in Lust\'s tools folder does not support game builds released after {detail}, and League has updated since.",\n            "1. Update LTK Manager.\\n"\n            "2. Restart Lust: it copies the new files by itself.",\n'),
+    ('main/__init__.py',
+     '            "The ltk_patcher_dll.dll in Lust\'s tools folder is not a recognized LTK patcher DLL.",\n            f"1. {source}\\n"\n            "2. Open Lust\'s tools folder.\\n"\n            "3. Replace both files, then restart Lust.",\n',
+     '            "The ltk_patcher_dll.dll in Lust\'s tools folder is not a recognized LTK patcher DLL.",\n            install,\n'),
+    ('main/__init__.py',
+     '        "One Lust component is missing",\n        f"Lust needs {detail or \'the LTK patcher\'} in its tools folder before it can start.",\n        f"1. {source}\\n"\n        "2. Open Lust\'s tools folder.\\n"\n        "3. Place both files there, then restart Lust.",\n',
+     '        "One Lust component is missing",\n        f"Lust needs {detail or \'the LTK patcher\'} from LTK Manager before it can start.",\n        install,\n'),
+    ('main/__init__.py',
+     '    )\n    footer = "Please do not request or share this file in Discord. Lust cannot distribute it because of licensing restrictions."\n',
+     '    )\n    footer = (\'Get LTK Manager only from its <a href="https://github.com/LeagueToolkit/ltk-manager/releases/latest">\'\n              "official GitHub page</a>: look-alike copies elsewhere can be malware.")\n'),
+    ('main/__init__.py',
+     '        f"{status_title}\\n\\n{status_body}\\n\\nHow to fix it:\\n{steps}\\n\\n"\n        "Please do not request or share this file in Discord.\\n"\n        "Discord: https://discord.gg/roseskins\\n\\n"\n',
+     '        f"{status_title}\\n\\n{status_body}\\n\\nHow to fix it:\\n{steps}\\n\\n"\n        "Get LTK Manager only from its official GitHub page:\\n"\n        "https://github.com/LeagueToolkit/ltk-manager/releases/latest\\n\\n"\n'),
+    ('main/__init__.py',
+     '    _sync_cslol_stub(tools_dir)\n    status = check_ltk_patcher(tools_dir)\n',
+     '    _sync_cslol_stub(tools_dir)\n    try:\n        from injection.tools.ltk_manager import import_from_ltk_manager\n        import_from_ltk_manager(tools_dir)\n    except Exception as e:\n        log.warning(f"[LTK] Could not look for an LTK Manager install: {e}")\n    status = check_ltk_patcher(tools_dir)\n'),
+    ('README.md',
+     '- **League of Legends** installed\n- **LTK patcher** - You must provide it yourself (see below)\n',
+     '- **League of Legends** installed\n- **LTK Manager** installed, for its LTK patcher (see below)\n'),
+    ('README.md',
+     '\nDue to DMCA restrictions, Lust cannot distribute the LTK patcher. Get its two files, `ltk_patcher_host.exe` and `ltk_patcher_dll.dll`, from an LTK Manager install.\n',
+     '\nLust injects with the LTK patcher (`ltk_patcher_host.exe` and `ltk_patcher_dll.dll`) that ships with [LTK Manager](https://github.com/LeagueToolkit/ltk-manager/releases/latest). Install LTK Manager and Lust copies both files from it by itself on startup, and again whenever LTK Manager has a newer patcher. Only download LTK Manager from its official GitHub page.\n'),
+    ('README.md',
+     '\nOn first launch, Lust asks for these files and opens its tools folder, where they go. The patcher stops working with game builds released after its end-of-life date: Lust then tells you to update LTK Manager and replace both files.\n',
+     '\nThe patcher stops working with game builds released after its end-of-life date: update LTK Manager and restart Lust.\n'),
+]
+
 
 def apply_edits(tree):
     failures = []

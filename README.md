@@ -86,13 +86,13 @@ Lust includes a suite of JavaScript plugins that extend the League Client UI:
 
 - **Windows 10/11**
 - **League of Legends** installed
-- **LTK patcher** - You must provide it yourself (see below)
+- **LTK Manager** installed, for its LTK patcher (see below)
 
 ### LTK Patcher Requirement
 
-Due to DMCA restrictions, Lust cannot distribute the LTK patcher. Get its two files, `ltk_patcher_host.exe` and `ltk_patcher_dll.dll`, from an LTK Manager install.
+Lust injects with the LTK patcher (`ltk_patcher_host.exe` and `ltk_patcher_dll.dll`) that ships with [LTK Manager](https://github.com/LeagueToolkit/ltk-manager/releases/latest). Install LTK Manager and Lust copies both files from it by itself on startup, and again whenever LTK Manager has a newer patcher. Only download LTK Manager from its official GitHub page.
 
-On first launch, Lust asks for these files and opens its tools folder, where they go. The patcher stops working with game builds released after its end-of-life date: Lust then tells you to update LTK Manager and replace both files.
+The patcher stops working with game builds released after its end-of-life date: update LTK Manager and restart Lust.
 
 ## Installation
 

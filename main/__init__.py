@@ -44,32 +44,32 @@ def _get_tools_dir() -> Path:
 
 def _dll_dialog_text(reason: str, detail: str = ""):
     """Return (title, status_title, status_body, steps) for an LTK patcher problem."""
-    source = "Get both files from LTK Manager."
+    # Lust copies the patcher from an LTK Manager install by itself (injection/tools/ltk_manager.py)
+    install = (
+        "1. Install LTK Manager from github.com/LeagueToolkit/ltk-manager/releases\n"
+        "2. Restart Lust: it copies both files from LTK Manager by itself.\n"
+        "(Or put both files in Lust's tools folder yourself.)"
+    )
     if reason == "expired":
         return (
             "Lust - Patcher Outdated",
             "The LTK patcher has reached its end of life",
             f"The ltk_patcher_dll.dll in Lust's tools folder does not support game builds released after {detail}, and League has updated since.",
-            f"1. Update LTK Manager, then get both files from it.\n"
-            "2. Open Lust's tools folder.\n"
-            "3. Replace both files, then restart Lust.",
+            "1. Update LTK Manager.\n"
+            "2. Restart Lust: it copies the new files by itself.",
         )
     if reason == "invalid":
         return (
             "Lust - Broken Patcher",
             "One Lust component needs replacing",
             "The ltk_patcher_dll.dll in Lust's tools folder is not a recognized LTK patcher DLL.",
-            f"1. {source}\n"
-            "2. Open Lust's tools folder.\n"
-            "3. Replace both files, then restart Lust.",
+            install,
         )
     return (
         "Lust - Missing Patcher",
         "One Lust component is missing",
-        f"Lust needs {detail or 'the LTK patcher'} in its tools folder before it can start.",
-        f"1. {source}\n"
-        "2. Open Lust's tools folder.\n"
-        "3. Place both files there, then restart Lust.",
+        f"Lust needs {detail or 'the LTK patcher'} from LTK Manager before it can start.",
+        install,
     )
 
 
@@ -130,7 +130,8 @@ def _show_native_dll_dialog(tools_dir, reason="missing", detail=""):
     content = (
         f"{status_body}\n\nHow to fix it:\n{steps}"
     )
-    footer = "Please do not request or share this file in Discord. Lust cannot distribute it because of licensing restrictions."
+    footer = ('Get LTK Manager only from its <a href="https://github.com/LeagueToolkit/ltk-manager/releases/latest">'
+              "official GitHub page</a>: look-alike copies elsewhere can be malware.")
     assets_dirs = []
     if hasattr(sys, "_MEIPASS"):
         assets_dirs.append(Path(sys._MEIPASS) / "assets")
@@ -271,8 +272,8 @@ def _show_dll_dialog(tools_dir, reason="missing", detail="") -> bool:
     title, status_title, status_body, steps = _dll_dialog_text(reason, detail)
     message = (
         f"{status_title}\n\n{status_body}\n\nHow to fix it:\n{steps}\n\n"
-        "Please do not request or share this file in Discord.\n"
-        "Discord: https://discord.gg/roseskins\n\n"
+        "Get LTK Manager only from its official GitHub page:\n"
+        "https://github.com/LeagueToolkit/ltk-manager/releases/latest\n\n"
         "Press OK to open the tools folder, or Cancel to close Lust."
     )
     response = ctypes.windll.user32.MessageBoxW(
@@ -318,6 +319,11 @@ def _check_dll_present() -> bool:
 
     tools_dir = _get_tools_dir()
     _sync_cslol_stub(tools_dir)
+    try:
+        from injection.tools.ltk_manager import import_from_ltk_manager
+        import_from_ltk_manager(tools_dir)
+    except Exception as e:
+        log.warning(f"[LTK] Could not look for an LTK Manager install: {e}")
     status = check_ltk_patcher(tools_dir)
     if status.missing:
         return _show_dll_dialog(tools_dir, reason="missing", detail=" and ".join(status.missing))

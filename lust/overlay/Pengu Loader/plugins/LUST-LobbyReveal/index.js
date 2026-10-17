@@ -180,6 +180,20 @@
     return panel;
   }
 
+  // Sit just above the Custom Mods button so the chat buttons in the corner stay clickable.
+  function placePanel() {
+    if (!panel || panel.hidden) return;
+    const button = document.querySelector(".lust-custom-wheel-button");
+    const rect = button && button.getBoundingClientRect();
+    if (!rect || !rect.height) {
+      panel.style.right = "";
+      panel.style.bottom = "";
+      return;
+    }
+    panel.style.right = `${Math.max(0, Math.round(window.innerWidth - rect.right))}px`;
+    panel.style.bottom = `${Math.round(window.innerHeight - rect.top + 8)}px`;
+  }
+
   function copyText(text, node) {
     const done = () => {
       const previous = node.textContent;
@@ -251,6 +265,7 @@
     }
     root.appendChild(body);
     root.hidden = false;
+    placePanel();
   }
 
   function handlePhaseChange(data) {
@@ -278,6 +293,8 @@
     bridge.subscribe("lobby-reveal", render);
     bridge.subscribe("phase-change", handlePhaseChange);
     bridge.onDisconnect(() => render(null));
+    // The Custom Mods button can appear or move after the panel does.
+    setInterval(placePanel, 500);
     log("info", "Lobby reveal ready");
   }
 

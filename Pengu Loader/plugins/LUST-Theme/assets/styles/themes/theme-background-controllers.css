@@ -328,6 +328,13 @@
     display: none;
 }
 
+#bg-size-hint {
+    margin-top: 4px;
+    color: #a09b8c;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+}
+
 #pause-bg:hover {
 	filter: brightness(1.3) hue-rotate(263deg) saturate(0.4) !important;
 }

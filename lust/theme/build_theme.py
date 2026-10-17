@@ -176,10 +176,62 @@ ADD_WALLPAPER_CSS = '''#add-bg {
     display: none;
 }
 
+#bg-size-hint {
+    margin-top: 4px;
+    color: #a09b8c;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+}
+
 '''
+
+def checkbox(locale, element_id, key):
+    """A settings checkbox exactly as the theme builds it, for removing it."""
+    return f'''      UI.createCheckBox(
+        `${{await getString("theme-settings.{locale}")}}`,
+        "{element_id}",
+        "{element_id}box",
+        () => {{
+          restartAfterChange("{element_id}", "{key}");
+        }},
+        true,
+        "{key}"
+      ),
+'''
+
 
 # (file, old, new): exact replacements applied before renaming. Each must match.
 PATCHES = [
+    # Honor, trophy, emblem, ticker and hover card show the client's own art.
+    ("index.js",
+     'key: "Custom-Emblem",\n          css: "emblem.css",',
+     'key: "Custom-Emblem",\n          css: "null.css",'),
+    ("index.js",
+     'key: "Custom-Ticker",\n          css: "ticker.css",',
+     'key: "Custom-Ticker",\n          css: "null.css",'),
+    ("index.js",
+     'key: "Custom-Trophy",\n          css: "trophy.css",',
+     'key: "Custom-Trophy",\n          css: "null.css",'),
+    ("index.js",
+     "    const customTickerIcon = new CustomTickerIcon();\n    customTickerIcon.main();\n", ""),
+    ("index.js",
+     '    if (ElainaData.get("Custom-Hover-card-backdrop")) {\n      const customHoverCardBackdrop',
+     '    if (false) {\n      const customHoverCardBackdrop'),
+    ("index.js",
+     '    if (ElainaData.get("Custom-Emblem")) {\n      const customEmblemIcon',
+     '    if (false) {\n      const customEmblemIcon'),
+    ("index.js", checkbox("custom-emblem", "cusemi", "Custom-Emblem") + "      br(),\n", ""),
+    ("index.js", checkbox("custom-trophy", "custrophy", "Custom-Trophy") + "      br(),\n", ""),
+    ("index.js", checkbox("custom-ticker", "custick", "Custom-Ticker") + "      br()\n", ""),
+    ("index.js", checkbox("custom-hover-card-backdrop", "cushvbdrop", "Custom-Hover-card-backdrop"), ""),
+    ("config/datastoreDefault.js", '"Custom-Hover-card-backdrop"\t: true,',
+     '"Custom-Hover-card-backdrop"\t: false,'),
+    ("config/datastoreDefault.js", '"Custom-Emblem"                 : true,',
+     '"Custom-Emblem"                 : false,'),
+    ("config/datastoreDefault.js", '"Custom-Trophy"                 : true,',
+     '"Custom-Trophy"                 : false,'),
+    ("config/datastoreDefault.js", '"Custom-Ticker"                 : true,',
+     '"Custom-Ticker"                 : false,'),
     # Default wallpaper/audio are Lust's own files.
     ("index.js",
      '"Wallpaper-list": ["elaina1.webm", "elaina2.jpg"],',
@@ -284,6 +336,63 @@ PATCHES = [
     UI.createSearchBox("Rank-line2"),
     br(),
 ''', ""),
+    # Real summoner icon, border and regalia banner.
+    ("index.js",
+     'key: "Custom-Avatar",\n          css: "avatar.css",',
+     'key: "Custom-Avatar",\n          css: "null.css",'),
+    ("index.js",
+     '    if (ElainaData.get("Custom-Avatar")) {\n      customAvatar.main();',
+     '    if (false) {\n      customAvatar.main();'),
+    ("index.js",
+     '    if (ElainaData.get("Custom-Border")) {\n      const customBorder',
+     '    if (false) {\n      const customBorder'),
+    ("index.js",
+     '    if (ElainaData.get("Custom-Regalia-Banner")) {\n      const customBanner',
+     '    if (false) {\n      const customBanner'),
+    ("index.js",
+     '''      UI.createCheckBox(
+        `${await getString("theme-settings.custom-avatar")}`,
+        "cusav",
+        "cusavbox",
+        () => {
+          restartAfterChange("cusav", "Custom-Avatar");
+        },
+        true,
+        "Custom-Avatar"
+      ),
+      br(),
+      UI.createCheckBox(
+        `${await getString("theme-settings.custom-border")}`,
+        "cusbor",
+        "cusborbox",
+        () => {
+          restartAfterChange("cusbor", "Custom-Border");
+        },
+        true,
+        "Custom-Border"
+      ),
+      br(),
+      UI.createCheckBox(
+        `${await getString("theme-settings.custom-regalia-banner")}`,
+        "cusregabnr",
+        "cusregabnrbox",
+        () => {
+          restartAfterChange("cusregabnr", "Custom-Regalia-Banner");
+        },
+        true,
+        "Custom-Regalia-Banner"
+      ),
+      br(),
+      UI.createRow("Custom-banner-row", [
+        createBannerDropdown()
+      ]),
+''', ""),
+    ("config/datastoreDefault.js", '"Custom-Avatar"                 : true,',
+     '"Custom-Avatar"                 : false,'),
+    ("config/datastoreDefault.js", '"Custom-Border"\t                : true,',
+     '"Custom-Border"\t                : false,'),
+    ("config/datastoreDefault.js", '"Custom-Regalia-Banner"         : true,',
+     '"Custom-Regalia-Banner"         : false,'),
     ("config/datastoreDefault.js", '"custom-rank-name"              : true,',
      '"custom-rank-name"              : false,'),
     ("config/datastoreDefault.js", '"Custom-Rank-Icon"              : true,',
@@ -328,6 +437,11 @@ PATCHES = [
     # takes the pasted file's name (Pengu 1.1.6 can't list folders) and adds it.
     ("index.js", "    pauseBg.append(pauseBgIcon);\n    progressBar.append(progress);\n",
      "    pauseBg.append(pauseBgIcon);\n" + ADD_WALLPAPER_JS + "    progressBar.append(progress);\n"),
+    ("index.js", "      newBgChange.append(bgDropdown);\n",
+     "      const sizeHint = document.createElement(\"div\");\n"
+     "      sizeHint.id = \"bg-size-hint\";\n"
+     "      sizeHint.textContent = \"16:9 Size Preferred\";\n"
+     "      newBgChange.append(bgDropdown, sizeHint);\n"),
     ("assets/styles/themes/theme-background-controllers.css", "#pause-bg:hover {",
      ADD_WALLPAPER_CSS + "#pause-bg:hover {"),
     # Cloud backup went to Elaina's server: hide that part of the backup tab.

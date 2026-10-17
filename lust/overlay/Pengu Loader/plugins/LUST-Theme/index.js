@@ -2045,7 +2045,10 @@ class MainController {
     } else {
       const newBgChange = document.createElement("div");
       newBgChange.id = "newbgchange";
-      newBgChange.append(bgDropdown);
+      const sizeHint = document.createElement("div");
+      sizeHint.id = "bg-size-hint";
+      sizeHint.textContent = "16:9 Size Preferred";
+      newBgChange.append(bgDropdown, sizeHint);
       wallpaperControls.append(newBgChange, pauseBg);
       LustData.get("Wallpaper-list").forEach((opt, id) => {
         const el = document.createElement("lol-uikit-dropdown-option");
@@ -3241,74 +3244,6 @@ async function customAssetsSection() {
         "Custom-Loading-Icon"
       ),
       br(),
-      UI.createCheckBox(
-        `${await getString("theme-settings.custom-avatar")}`,
-        "cusav",
-        "cusavbox",
-        () => {
-          restartAfterChange("cusav", "Custom-Avatar");
-        },
-        true,
-        "Custom-Avatar"
-      ),
-      br(),
-      UI.createCheckBox(
-        `${await getString("theme-settings.custom-border")}`,
-        "cusbor",
-        "cusborbox",
-        () => {
-          restartAfterChange("cusbor", "Custom-Border");
-        },
-        true,
-        "Custom-Border"
-      ),
-      br(),
-      UI.createCheckBox(
-        `${await getString("theme-settings.custom-regalia-banner")}`,
-        "cusregabnr",
-        "cusregabnrbox",
-        () => {
-          restartAfterChange("cusregabnr", "Custom-Regalia-Banner");
-        },
-        true,
-        "Custom-Regalia-Banner"
-      ),
-      br(),
-      UI.createRow("Custom-banner-row", [
-        createBannerDropdown()
-      ]),
-      UI.createCheckBox(
-        `${await getString("theme-settings.custom-hover-card-backdrop")}`,
-        "cushvbdrop",
-        "cushvbdropbox",
-        () => {
-          restartAfterChange("cushvbdrop", "Custom-Hover-card-backdrop");
-        },
-        true,
-        "Custom-Hover-card-backdrop"
-      ),
-      br(),
-      UI.createCheckBox(
-        `${await getString("theme-settings.custom-emblem")}`,
-        "cusemi",
-        "cusemibox",
-        () => {
-          restartAfterChange("cusemi", "Custom-Emblem");
-        },
-        true,
-        "Custom-Emblem"
-      ),
-      br(),
-      UI.createCheckBox(
-        `${await getString("theme-settings.custom-trophy")}`,
-        "custrophy",
-        "custrophybox",
-        () => {
-          restartAfterChange("custrophy", "Custom-Trophy");
-        },
-        true,
-        "Custom-Trophy"
-      ),
       br(),
       UI.createCheckBox(
         `${await getString("theme-settings.custom-gamemode-icon")}`,
@@ -3321,17 +3256,6 @@ async function customAssetsSection() {
         "Custom-Gamemode-Icon"
       ),
       br(),
-      UI.createCheckBox(
-        `${await getString("theme-settings.custom-ticker")}`,
-        "custick",
-        "custickbox",
-        () => {
-          restartAfterChange("custick", "Custom-Ticker");
-        },
-        true,
-        "Custom-Ticker"
-      ),
-      br()
     ]),
     UI.createCheckBox(
       `${await getString("theme-settings.animate-loading")}`,
@@ -3562,7 +3486,7 @@ class AddCss {
       "iconCss": [
         {
           key: "Custom-Avatar",
-          css: "avatar.css",
+          css: "null.css",
           altCss: "null.css"
         },
         {
@@ -3587,17 +3511,17 @@ class AddCss {
         },
         {
           key: "Custom-Emblem",
-          css: "emblem.css",
+          css: "null.css",
           altCss: "null.css"
         },
         {
           key: "Custom-Ticker",
-          css: "ticker.css",
+          css: "null.css",
           altCss: "null.css"
         },
         {
           key: "Custom-Trophy",
-          css: "trophy.css",
+          css: "null.css",
           altCss: "null.css"
         },
         {
@@ -7324,20 +7248,18 @@ class CustomLoadingIcon {
 }
 class CustomIcon {
   main() {
-    const customTickerIcon = new CustomTickerIcon();
-    customTickerIcon.main();
-    if (LustData.get("Custom-Avatar")) {
+    if (false) {
       customAvatar.main();
     }
-    if (LustData.get("Custom-Border")) {
+    if (false) {
       const customBorder = new CustomBorder();
       customBorder.main();
     }
-    if (LustData.get("Custom-Regalia-Banner")) {
+    if (false) {
       const customBanner = new CustomBanner();
       customBanner.main();
     }
-    if (LustData.get("Custom-Hover-card-backdrop")) {
+    if (false) {
       const customHoverCardBackdrop = new CustomHoverCardBackdrop();
       customHoverCardBackdrop.main();
     }
@@ -7349,7 +7271,7 @@ class CustomIcon {
       const customLoadingIcon = new CustomLoadingIcon();
       customLoadingIcon.main();
     }
-    if (LustData.get("Custom-Emblem")) {
+    if (false) {
       const customEmblemIcon = new CustomEmblemIcon();
       customEmblemIcon.main();
     }

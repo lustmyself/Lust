@@ -312,6 +312,20 @@ EDITS += [
      '\nThe patcher stops working with game builds released after its end-of-life date: update LTK Manager and restart Lust.\n'),
 ]
 
+# Lust Offline: League starts through the chat proxy built from lust/offline
+EDITS += [
+    ('main/__init__.py',
+     '    # Initialize core components\n',
+     '    # Open League through Lust Offline so the player can appear offline\n'
+     '    from launcher.lust_offline import start_league_through_lust_offline\n'
+     '    start_league_through_lust_offline()\n'
+     '\n'
+     '    # Initialize core components\n'),
+    ('Lust.spec', "    'launcher.core',\n", "    'launcher.core',\n    'launcher.lust_offline',\n"),
+    ('Lust.spec', "    'injection/tools/mod-tools.exe',\n",
+     "    'injection/tools/mod-tools.exe',\n    'injection/tools/LustOffline.exe',  # built by lust/offline/build_offline.py\n"),
+]
+
 
 def apply_edits(tree):
     failures = []

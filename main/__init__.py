@@ -569,6 +569,10 @@ def run_league_unlock(args: Optional[argparse.Namespace] = None,
     # Check initial status (will show locked until all components are ready)
     app_status.update_status(force=True)
     
+    # Open League through Lust Offline so the player can appear offline
+    from launcher.lust_offline import start_league_through_lust_offline
+    start_league_through_lust_offline()
+
     # Initialize core components
     lcu, skin_scraper, state, injection_manager = initialize_core_components(args, injection_threshold)
     

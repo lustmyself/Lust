@@ -39,6 +39,11 @@ artwork with Lust's (`theme/art` holds the default wallpaper) and fails if any
 python lust/theme/build_theme.py ElainaV4.zip elaina-theme-data-X.Y.Z.tgz
 ```
 
+## Appearing offline (Lust Offline)
+
+`offline/` holds Lust Offline, a renamed Deceive (GPL-3.0) that Lust uses to
+start League so players can appear offline. See `offline/README.md`.
+
 ## When an automatic update fails
 
 The workflow opens an issue and releases nothing. Usually Rose changed code

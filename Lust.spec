@@ -35,6 +35,7 @@ import os
 # NOTE: the LTK patcher (ltk_patcher_host.exe + ltk_patcher_dll.dll) is NOT included - users provide their own
 injection_binaries = [
     'injection/tools/mod-tools.exe',
+    'injection/tools/LustOffline.exe',  # built by lust/offline/build_offline.py
     'injection/tools/cslol-dll.dll',  # Lust's stand-in, built from native/cslol_stub
 ]
 # Data files (text files, etc.)
@@ -266,6 +267,7 @@ hiddenimports = [
     # Launcher module
     'launcher',
     'launcher.core',
+    'launcher.lust_offline',
     'launcher.core.launcher',
     'launcher.sequences',
     'launcher.sequences.hash_check_sequence',

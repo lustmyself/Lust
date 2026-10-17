@@ -303,6 +303,27 @@ PATCHES = [
     ("index.js",
      'function Settings(context) {\n  ElainaData.set("settingsChangenumber", 0);\n  settingsUtils(context, structure);\n}\n',
      LUST_PANEL_JS),
+    # No "Invite all" button or friend-group dropdown in the lobby.
+    ("index.js",
+     '    if (ElainaData$1.get("Enable-Invite-Fr"))\n      inviteAllFriends.main();',
+     '    if (false)\n      inviteAllFriends.main();'),
+    ("index.js",
+     '''    br(),
+    UI.createCheckBox(
+      `${await getString("plugins-settings.enable-invite-fr")}`,
+      "invfr",
+      "invfrbox",
+      () => {
+        restartAfterChange("invfr", "Enable-Invite-Fr");
+      },
+      true,
+      "Enable-Invite-Fr"
+    )
+  ]);''', "  ]);"),
+    ("config/datastoreDefault.js", '"Enable-Invite-Fr"              : true,',
+     '"Enable-Invite-Fr"              : false,'),
+    # Appearing offline is Lust Offline's job (the chat proxy), not the status dot.
+    ("index.js", "    const offlineMode = new OfflineMode();\n    offlineMode.main();\n", ""),
     # The gear opens the client settings directly, not the theme's own menu first.
     ("index.js",
      '    if (ElainaData.get("Old-League-Loader-Settings")) {\n      while (!manager())',

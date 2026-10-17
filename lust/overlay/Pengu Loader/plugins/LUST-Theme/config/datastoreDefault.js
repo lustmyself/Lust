@@ -135,7 +135,7 @@ export default {
 	"auto_accept_button"            : true,
 	"auto_accept_delay"             : 0,
 	"dodge-button"                  : true,
-	"Enable-Invite-Fr"              : true,
+	"Enable-Invite-Fr"              : false,
 	"Auto-Find-Queue"               : false,
 	"Gamemode"                      : 450,
 	"Create-Delay"                  : 15000,

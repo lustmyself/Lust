@@ -4024,17 +4024,6 @@ async function coreSection() {
       true,
       "auto_accept_button"
     ),
-    br(),
-    UI.createCheckBox(
-      `${await getString("plugins-settings.enable-invite-fr")}`,
-      "invfr",
-      "invfrbox",
-      () => {
-        restartAfterChange("invfr", "Enable-Invite-Fr");
-      },
-      true,
-      "Enable-Invite-Fr"
-    )
   ]);
 }
 
@@ -11247,15 +11236,13 @@ class LustTheme {
     const forceJungleLane = new ForceJungLane();
     forceJungleLane.main();
     const inviteAllFriends = new InviteAllFriends();
-    if (LustData$1.get("Enable-Invite-Fr"))
+    if (false)
       inviteAllFriends.main();
     const lootHelper = new LootHelper();
     if (LustData$1.get("loot-helper"))
       lootHelper.main();
     const nameSpoofer = new NameSpoofer();
     nameSpoofer.main();
-    const offlineMode = new OfflineMode();
-    offlineMode.main();
     window.setInterval(() => {
       if (LustData$1.get("custom-rp"))
         customBeRp.RP();

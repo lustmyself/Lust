@@ -1,0 +1,201 @@
+name: Follow Rose releases
+
+# Every few hours: if Rose has a release Lust doesn't, rebuild Lust from it
+# (lust/sync.py), test, build the installer and publish a Lust release.
+# Lust's auto-update then delivers it to users.
+
+on:
+  schedule:
+    - cron: "17 */3 * * *"
+  workflow_dispatch:
+    inputs:
+      rose_tag:
+        description: "Rose tag to build (empty = latest release)"
+        required: false
+        default: ""
+      dry_run:
+        description: "Build and test only: no push, no release"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rose-sync
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  PYTHONUTF8: "1"
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  ROSE_REPO: Alban1911/Rose
+
+jobs:
+  sync:
+    name: Sync, build and release
+    runs-on: windows-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Find the Rose release to follow
+        id: rose
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_TAG: ${{ inputs.rose_tag }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          tag="$INPUT_TAG"
+          if [ -z "$tag" ]; then
+            tag=$(gh release view --repo "$ROSE_REPO" --json tagName --jq .tagName)
+          fi
+          if [[ ! "$tag" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Unexpected Rose tag '$tag'"
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          if [ "$DRY_RUN" != "true" ] && gh release view "v$tag" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "Lust v$tag is already released; nothing to do"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Following Rose $tag"
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        if: steps.rose.outputs.skip == 'false'
+        with:
+          python-version: "3.12"
+
+      - name: Rebuild the Lust tree from Rose
+        if: steps.rose.outputs.skip == 'false'
+        shell: bash
+        env:
+          TAG: ${{ steps.rose.outputs.tag }}
+        run: |
+          git fetch --no-tags "https://github.com/$ROSE_REPO.git" "refs/tags/$TAG:refs/rose/$TAG"
+          python lust/sync.py "refs/rose/$TAG"
+          version=$(grep -oP '^APP_VERSION = "\K[^"]+' config.py)
+          if [ "$version" != "$TAG" ]; then
+            echo "::error::Rose $TAG reports APP_VERSION $version"
+            exit 1
+          fi
+
+      - name: Install dependencies
+        if: steps.rose.outputs.skip == 'false'
+        run: python -m pip install -r requirements.txt
+
+      - name: Party relay config
+        if: steps.rose.outputs.skip == 'false'
+        shell: bash
+        env:
+          LUST_RELAY_URL: ${{ secrets.LUST_RELAY_URL }}
+        run: |
+          # Empty without the LUST_RELAY_URL secret: party mode stays off
+          python -c "import os; open('party/network/relay_config.py', 'w').write('RELAY_URL = ' + repr(os.environ.get('LUST_RELAY_URL', '')) + chr(10))"
+
+      - name: Plugins (JS syntax)
+        if: steps.rose.outputs.skip == 'false'
+        shell: bash
+        run: git ls-files -z 'Pengu Loader/plugins/*.js' | xargs -0 -n1 node --check
+
+      - name: Unit tests
+        if: steps.rose.outputs.skip == 'false'
+        shell: pwsh
+        run: |
+          $suites = @('test') + (Get-ChildItem -Directory | ForEach-Object { Join-Path $_.Name 'tests' } | Where-Object { Test-Path $_ })
+          $failed = @()
+          foreach ($suite in $suites) {
+            python -m unittest discover -s $suite -t .
+            if ($LASTEXITCODE -ne 0) { $failed += $suite }
+          }
+          if ($failed) { Write-Host "::error::Failing suites: $($failed -join ', ')"; exit 1 }
+
+      - name: Install Inno Setup
+        if: steps.rose.outputs.skip == 'false'
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) {
+            choco install innosetup -y --no-progress
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+
+      - name: Build Lust.exe, installer and update package
+        if: steps.rose.outputs.skip == 'false'
+        shell: bash
+        env:
+          TAG: ${{ steps.rose.outputs.tag }}
+        run: |
+          python scripts/build_all.py
+          python scripts/create_update_package.py
+          test -f "installer/Lust_Setup_$TAG.exe"
+          test -f "installer/update_package_$TAG.zip"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: steps.rose.outputs.skip == 'false'
+        with:
+          name: lust-${{ steps.rose.outputs.tag }}
+          path: installer/
+          retention-days: 14
+
+      - name: Commit the synced source
+        if: steps.rose.outputs.skip == 'false' && inputs.dry_run != true
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.rose.outputs.tag }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Source already matches Rose $TAG"
+          else
+            git commit -q -m "Sync with Rose $TAG"
+            git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:main
+          fi
+
+      - name: Publish the Lust release
+        if: steps.rose.outputs.skip == 'false' && inputs.dry_run != true
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.rose.outputs.tag }}
+        run: |
+          notes="Lust $TAG, built automatically from [Rose $TAG](https://github.com/$ROSE_REPO/releases/tag/$TAG).
+
+          **Install:** download \`Lust_Setup_$TAG.exe\` below. Existing installs update themselves."
+          gh release create "v$TAG" \
+            "installer/Lust_Setup_$TAG.exe" \
+            "installer/update_package_$TAG.zip" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$(git rev-parse HEAD)" \
+            --title "Lust $TAG" \
+            --notes "$notes"
+
+      - name: Report the failure as an issue
+        if: failure() && inputs.dry_run != true
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.rose.outputs.tag }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Automatic update to Rose ${TAG:-?} failed"
+          if [ -n "$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "$title in:title" --json number --jq '.[0].number')" ]; then
+            echo "An issue is already open for this"
+            exit 0
+          fi
+          gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body "Nothing was released; users stay on the previous Lust version.
+
+          Run log: $RUN_URL
+
+          Most likely Rose changed code that lust/sync.py edits. Fix lust/sync.py (or lust/overlay), push, then re-run this workflow."

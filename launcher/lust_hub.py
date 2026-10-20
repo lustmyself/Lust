@@ -163,6 +163,17 @@ def _news():
     return {"version": data.get("version", ""), "items": data.get(LANG) or data.get("en") or []}
 
 
+def _rose_status():
+    from launcher import lust_rose
+    return lust_rose.status()
+
+
+def _rose_uninstall() -> str:
+    from launcher import lust_rose
+    _cache.pop("rose", None)
+    return lust_rose.uninstall()
+
+
 def _spotify_status():
     from launcher import lust_spotify
     return lust_spotify.status()
@@ -210,6 +221,7 @@ def snapshot() -> dict:
         autostart=bool(_cached("autostart", 30, _autostart)),
         news=_cached("news", 300, _news) or {"version": "", "items": []},
         spotify=_cached("spotify", 5, _spotify_status) or {},
+        rose=_cached("rose", 20, _rose_status) or {},
     )
     state["detail"] = _translate(state["detail"])
     state["status"] = _translate(state["status"])
@@ -328,6 +340,7 @@ ACTIONS: dict[str, Callable[[dict], str]] = {
     "prompt": lambda body: _answer_prompt(bool(body.get("accept"))),
     "spotify_apply": lambda body: _spotify_apply(str(body.get("theme") or "")),
     "spotify_auto": lambda body: _spotify_auto(),
+    "rose_uninstall": lambda body: _rose_uninstall(),
 }
 
 

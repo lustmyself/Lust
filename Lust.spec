@@ -278,6 +278,7 @@ hiddenimports = [
     'launcher.lust_hub_server',
     'launcher.lust_hub_shell',
     'launcher.lust_hub_web',
+    'launcher.lust_rose',
     'webview',
     'webview.platforms.edgechromium',
     'webview.platforms.winforms',

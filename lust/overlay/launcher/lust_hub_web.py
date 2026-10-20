@@ -112,6 +112,10 @@ PAGE = r"""<!doctype html>
   .seg button.on { background: var(--accent); color: #15111f; }
   .seg button:disabled { opacity: .4; cursor: default; }
 
+  .rose { margin-top: 12px; display: flex; align-items: center; gap: 12px; border-color: #7f1d1d; background: #2c1719; }
+  .rose .ico { background: #3a1d26; color: var(--red); }
+  .rose .t span { display: block; max-width: 560px; }
+  .btn.danger { background: #c42b4a; color: #fff; }
   .prompt { margin-top: 12px; display: flex; align-items: center; gap: 12px; border-color: var(--accent); background: #2a2340; }
   .btn { border: 0; font: inherit; font-weight: 600; padding: 9px 18px; border-radius: 99px; cursor: pointer; background: #2c2840; color: var(--text); }
   .btn:hover { filter: brightness(1.15); }
@@ -175,6 +179,11 @@ PAGE = r"""<!doctype html>
       <div class="bar busy" id="h-bar"><i></i></div>
     </div>
     <div class="hint">Oyun ayarlarınızı LoL istemcisindeki LUST sekmesine tıklayarak ayarlayabilirsiniz.</div>
+    <div class="card rose" id="rose" hidden>
+      <div class="ico">__close__</div>
+      <div class="t"><b>Rose da kurulu</b><span>İkisi aynı anda çalışınca LoL'de Rose'un gül simgesi çıkar ve çakışırlar. Lust, Rose'un yaptığı her şeyi zaten yapıyor.</span></div>
+      <button class="btn danger" style="margin-left:auto" data-act="rose_uninstall">Rose'u kaldır</button>
+    </div>
     <div class="card prompt" id="prompt" hidden>
       <div class="t"><b id="q-title"></b><span id="q-body"></span></div>
       <button class="btn primary" style="margin-left:auto" data-act="prompt" data-body='{"accept":true}'>Kur</button>
@@ -289,6 +298,7 @@ function render(s) {
   $("h-bar").classList.toggle("busy", busy);
   $("h-bar").firstElementChild.style.width = busy ? "" : `${s.progress}%`;
 
+  $("rose").hidden = !(s.rose && s.rose.installed);
   $("prompt").hidden = !s.prompt;
   if (s.prompt) {
     $("q-title").textContent = `Lust ${s.prompt.version} kurulmaya hazır`;

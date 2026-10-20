@@ -2,8 +2,8 @@
 ; This creates a proper Windows installer that registers the app
 
 #define MyAppName "Lust"
-#define MyAppVersion "1.4.9.19"
-#define MyAppVersionInfo "1.4.9.19"
+#define MyAppVersion "1.4.9.20"
+#define MyAppVersionInfo "1.4.9.20"
 #define MyAppPublisher "Lust Team"
 #define MyAppURL "https://github.com/lustmyself/Lust"
 #define MyAppExeName "Lust.exe"
@@ -14,7 +14,8 @@
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
 ; Do not use the same AppId value in installers for other applications.
-AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}}
+AppId={{18B5D16F-154B-43C8-A6DF-21CB903DE869}}
+UsePreviousAppDir=no
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppVerName={#MyAppName} {#MyAppVersion}

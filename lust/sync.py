@@ -610,7 +610,7 @@ EDITS += [
     ('requirements.txt', 'requests==2.31.0\n', 'requests==2.31.0\npywebview==6.2.1\n'),
     ('Lust.spec', "    'launcher.core',\n",
      "    'launcher.core',\n    'launcher.lust_hub_server',\n    'launcher.lust_hub_shell',\n"
-     "    'launcher.lust_hub_web',\n    'webview',\n    'webview.platforms.edgechromium',\n"
+     "    'launcher.lust_hub_web',\n    'launcher.lust_rose',\n    'webview',\n    'webview.platforms.edgechromium',\n"
      "    'webview.platforms.winforms',\n    'clr',\n    'clr_loader',\n"),
     ('Lust.spec', "# Include the source-built Pengu Loader runtime used for Lust activation/deactivation\n",
      "# pywebview's WebView2 DLLs for the desktop hub window\n"
@@ -621,6 +621,15 @@ EDITS += [
      "except Exception as e:\n"
      "    print(f\"[WARNING] Could not collect pywebview data files: {e}\")\n\n"
      "# Include the source-built Pengu Loader runtime used for Lust activation/deactivation\n"),
+]
+
+
+# Lust's installer had Rose's AppId: Inno Setup took Lust for a Rose upgrade on a PC with
+# Rose, reusing Rose's folder and uninstall entry. Lust has its own id, and never takes over
+# a previous folder by itself.
+EDITS += [
+    ('installer.iss', 'AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}}\n',
+     'AppId={{18B5D16F-154B-43C8-A6DF-21CB903DE869}}\nUsePreviousAppDir=no\n'),
 ]
 
 

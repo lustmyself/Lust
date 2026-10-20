@@ -60,6 +60,12 @@
     "Open lookup automatically": "Aramayı otomatik aç",
     "Waits for all five names, up to the delay": "Beş ismin hepsini bekler, en fazla seçilen süre kadar",
     "{seconds} sec": "{seconds} sn",
+    "Dodge": "Dodge",
+    "Click again to dodge": "Dodge için tekrar tıkla",
+    "Dodging...": "Dodge atılıyor...",
+    "Couldn't dodge": "Dodge atılamadı",
+    "Leave champ select without restarting the client (the usual dodge penalty applies)":
+      "Client'ı yeniden başlatmadan şampiyon seçiminden çık (normal dodge cezası uygulanır)",
   };
 
   function tr(text, vars) {
@@ -245,6 +251,31 @@
       box-shadow: 0 0 8px rgba(10, 200, 185, 0.6);
     }
 
+    #${PANEL_ID} .lust-reveal-dodge {
+      margin-top: 8px;
+      padding: 5px 0;
+      text-align: center;
+      font-family: "Spiegel", "Arial", sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #a09b8c;
+      border: 1px solid #3c3c41;
+      cursor: pointer;
+    }
+
+    #${PANEL_ID} .lust-reveal-dodge:hover {
+      color: #f0e6d2;
+      border-color: #785a28;
+    }
+
+    #${PANEL_ID} .lust-reveal-dodge.armed {
+      color: #fff;
+      background: #5c1a1f;
+      border-color: #e84057;
+    }
+
     #${PANEL_ID} .lust-reveal-also {
       margin-top: 6px;
       text-align: center;
@@ -390,6 +421,48 @@
   // puuids whose details row is open, for the "Show details" click action
   const expanded = new Set();
   let autoOpen = { done: false, timer: null };
+  // Dodge needs a second click within this long; the box redraws meanwhile, so it's kept here
+  const DODGE_CONFIRM_MS = 3000;
+  let dodgeArmedUntil = 0;
+  let dodgeState = "";
+
+  // The client's own champ select quit (as reveal does it): the usual dodge penalty applies.
+  function dodgeButton() {
+    const button = el("div", "lust-reveal-dodge");
+    const armed = Date.now() < dodgeArmedUntil;
+    button.classList.toggle("armed", armed);
+    button.textContent = dodgeState || tr(armed ? "Click again to dodge" : "Dodge");
+    button.title = tr("Leave champ select without restarting the client (the usual dodge penalty applies)");
+    button.addEventListener("click", async () => {
+      if (dodgeState) return;
+      if (Date.now() >= dodgeArmedUntil) {
+        dodgeArmedUntil = Date.now() + DODGE_CONFIRM_MS;
+        queueRender();
+        setTimeout(queueRender, DODGE_CONFIRM_MS + 50);
+        return;
+      }
+      dodgeArmedUntil = 0;
+      dodgeState = tr("Dodging...");
+      queueRender();
+      try {
+        const response = await fetch(
+          '/lol-login/v1/session/invoke?destination=lcdsServiceProxy&method=call&args=["","teambuilder-draft","quitV2",""]',
+          { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" }
+        );
+        if (!response.ok) throw new Error(String(response.status));
+        dodgeState = "";
+      } catch (err) {
+        log("warn", "Dodge failed:", err.message);
+        dodgeState = tr("Couldn't dodge");
+        setTimeout(() => {
+          dodgeState = "";
+          queueRender();
+        }, 2500);
+      }
+      queueRender();
+    });
+    return button;
+  }
 
   function loadSettings() {
     try {
@@ -734,6 +807,7 @@
       also.appendChild(link);
     }
     if (also.childElementCount) body.appendChild(also);
+    body.appendChild(dodgeButton());
     root.appendChild(body);
     root.hidden = false;
     placePanel();

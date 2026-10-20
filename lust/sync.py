@@ -543,6 +543,56 @@ EDITS += [
 ]
 
 
+# A mod that crashes the game (made for an older League version) made the client reconnect
+# forever: each new game process was hooked and crashed again. Two exits within
+# QUICK_EXIT_S of the DLL attaching stop the injection, so the next reconnect starts clean.
+OVERLAY_PY = 'injection/overlay/overlay_manager.py'
+EDITS += [
+    (OVERLAY_PY,
+     'KILLED_EXIT_CODE = 0x40010004\n',
+     'KILLED_EXIT_CODE = 0x40010004\n'
+     '# Lust: the game closing this soon after the DLL attached, twice in a row, is a mod crashing it\n'
+     'QUICK_EXIT_S = 20.0\n'
+     'QUICK_EXITS_TO_STOP = 2\n'),
+    (OVERLAY_PY,
+     '                        if parts[2] == "failed":\n'
+     '                            session["error"] = message or "injection failed"\n',
+     '                        if parts[2] == "failed":\n'
+     '                            session["error"] = message or "injection failed"\n'
+     '                        elif parts[2] == "injected":\n'
+     '                            session["injected_at"] = time.monotonic()\n'
+     '                        elif parts[2] == "exited" and session.get("injected_at"):\n'
+     '                            quick = time.monotonic() - session.pop("injected_at") < QUICK_EXIT_S\n'
+     '                            session["quick_exits"] = session.get("quick_exits", 0) + 1 if quick else 0\n'
+     '                            if session["quick_exits"] >= QUICK_EXITS_TO_STOP and not session.get("crash_loop"):\n'
+     '                                session["crash_loop"] = True\n'
+     '                                session["error"] = "the game closed right after loading the mods, every time"\n'
+     '                                log.error("[INJECT] The game closed right after loading the mods "\n'
+     '                                          f"{session[\'quick_exits\']} times in a row; stopping the injection")\n'
+     '                                try:\n'
+     '                                    from pengu.communication.lust_custom_skins import game_keeps_crashing\n'
+     '                                    game_keeps_crashing()\n'
+     '                                except Exception as e:\n'
+     '                                    log.debug(f"[INJECT] Crash report failed: {e}")\n'),
+    (OVERLAY_PY,
+     '            while proc.poll() is None:\n'
+     '                if session["state"] == "failed":\n'
+     '                    break\n',
+     '            while proc.poll() is None:\n'
+     '                if session["state"] == "failed" or session.get("crash_loop"):\n'
+     '                    break\n'),
+    (OVERLAY_PY,
+     '            if session["error"]:\n'
+     '                log.error(f"[INJECT] LTK patcher failed: {session[\'error\']}")\n',
+     '            if session.get("crash_loop"):\n'
+     '                # Reported by game_keeps_crashing, in the player\'s words\n'
+     '                self._log_runoverlay_tail(runoverlay_log)\n'
+     '                return 1\n'
+     '            if session["error"]:\n'
+     '                log.error(f"[INJECT] LTK patcher failed: {session[\'error\']}")\n'),
+]
+
+
 def apply_edits(tree):
     failures = []
     for rel, old, new in EDITS:

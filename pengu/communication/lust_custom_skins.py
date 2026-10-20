@@ -30,6 +30,7 @@ MAX_FILE_BYTES = 1024 * 1024 * 1024
 BAD_NAME = re.compile(r'[\\/:*?"<>|]|^\.|\.\.')
 WAD_RE = re.compile(r"(?:^|/)([A-Za-z0-9_]+)\.wad(?:\.client)?(?:/|$)", re.IGNORECASE)
 _lock = threading.RLock()
+_playing: Optional[str] = None  # the custom skin of the injection in progress
 
 
 def folder() -> Path:
@@ -218,6 +219,8 @@ def custom_mod_for(champion_id, skin_id) -> Optional[dict]:
             continue
         safe = re.sub(r"[^A-Za-z0-9_.-]+", "_", path.stem)[:60] or "skin"
         log.info(f"[CustomSkins] {name} plays on champion {champion_id}'s default skin")
+        global _playing
+        _playing = name
         return {
             "skin_id": skin_id,
             "storage_skin_id": skin_id,
@@ -230,3 +233,41 @@ def custom_mod_for(champion_id, skin_id) -> Optional[dict]:
             "relative_path": None,  # not one of the mod wheel's: nothing saved as its history
         }
     return None
+
+
+def game_keeps_crashing() -> None:
+    """The game closed right after loading its mods, again and again: tell the player, and
+    switch off the custom skin in play (made for an older game version, most of the time)."""
+    global _playing
+    name, _playing = _playing, None
+    title = ""
+    if name:
+        with _lock:
+            state = _load()
+            entry = state.get(name)
+            if isinstance(entry, dict) and entry.get("enabled"):
+                entry["enabled"] = False
+                title = entry.get("title") or Path(name).stem
+                _save(state)
+                log.warning(f"[CustomSkins] {name} crashed the game; switched off")
+    tr_text = (f"Oyun \"{title}\" yüzünden açılmıyordu; bu özel skin kapatıldı. Oyun artık modsuz açılacak. "
+               "Skin büyük ihtimalle eski bir oyun sürümü için yapılmış." if title else
+               "Oyun modlar yüklenince kapanıyordu; enjeksiyon durduruldu, oyun modsuz açılacak.")
+    try:
+        from launcher import lust_hub
+        lust_hub.toast(tr_text)
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        from utils.core.issue_reporter import report_issue
+        report_issue(
+            "LUST_MOD_CRASH",
+            "error",
+            f"The game closed right after loading {('the custom skin ' + title) if title else 'its mods'}, "
+            "so Lust stopped injecting and the game starts without mods.",
+            hint=("That custom skin was switched off. It was most likely made for an older League version: "
+                  "get an updated version of it." if title else
+                  "One of the selected mods breaks the game, most likely one made for an older League version."),
+        )
+    except Exception:  # noqa: BLE001
+        pass

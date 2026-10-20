@@ -1,12 +1,14 @@
 {
-  "version": "1.4.9.7",
+  "version": "1.4.9.8",
   "en": [
+    "A mod that crashes the game no longer makes the client reconnect forever: Lust stops it, switches the custom skin off and the game starts without mods",
     "Custom skins: a new tab in the Lust hub. Press + and paste your skin files, or drop them on the tab",
     "Switch each custom skin on or off; one that is on plays when you go in with that champion's default skin",
     "The Custom mods button in champ select is gone",
     "The desktop hub is in Turkish and shows where your game settings are"
   ],
   "tr": [
+    "Oyunu çökerten bir mod artık client'ı sonsuz reconnect döngüsüne sokmuyor: Lust enjeksiyonu durduruyor, özel skini kapatıyor ve oyun modsuz açılıyor",
     "Özel skinler: Lust merkezinde yeni sekme. +'ya bas ve skin dosyalarını yapıştır ya da sekmeye sürükle",
     "Her özel skini aç ya da kapat; açık olan, o şampiyonla default skinde oyuna girince oynar",
     "Şampiyon seçimindeki Custom mods butonu kaldırıldı",

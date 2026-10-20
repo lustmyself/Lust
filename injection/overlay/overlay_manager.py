@@ -69,6 +69,9 @@ LATE_JOIN_ERROR = "the game started before the patcher, overlay not applied"
 # Exit code of a process another program terminated (DBG_TERMINATE_PROCESS),
 # most often an antivirus
 KILLED_EXIT_CODE = 0x40010004
+# Lust: the game closing this soon after the DLL attached, twice in a row, is a mod crashing it
+QUICK_EXIT_S = 20.0
+QUICK_EXITS_TO_STOP = 2
 
 
 def ltk_failure_cause(reason: str) -> str:
@@ -482,6 +485,21 @@ class OverlayManager:
                         log.info(f"[INJECT] LTK patcher: {parts[2]} {message}".rstrip())
                         if parts[2] == "failed":
                             session["error"] = message or "injection failed"
+                        elif parts[2] == "injected":
+                            session["injected_at"] = time.monotonic()
+                        elif parts[2] == "exited" and session.get("injected_at"):
+                            quick = time.monotonic() - session.pop("injected_at") < QUICK_EXIT_S
+                            session["quick_exits"] = session.get("quick_exits", 0) + 1 if quick else 0
+                            if session["quick_exits"] >= QUICK_EXITS_TO_STOP and not session.get("crash_loop"):
+                                session["crash_loop"] = True
+                                session["error"] = "the game closed right after loading the mods, every time"
+                                log.error("[INJECT] The game closed right after loading the mods "
+                                          f"{session['quick_exits']} times in a row; stopping the injection")
+                                try:
+                                    from pengu.communication.lust_custom_skins import game_keeps_crashing
+                                    game_keeps_crashing()
+                                except Exception as e:
+                                    log.debug(f"[INJECT] Crash report failed: {e}")
                     elif parts[0] == "error":
                         session["error"] = line
                         log.error(f"[INJECT] LTK patcher error: {line}")
@@ -561,7 +579,7 @@ class OverlayManager:
             # scanning so a reconnect is hooked again, so wait for the game to end
             game_ended = False
             while proc.poll() is None:
-                if session["state"] == "failed":
+                if session["state"] == "failed" or session.get("crash_loop"):
                     break
                 if stop_callback and stop_callback():
                     # The client can close during a match (CN/WeGame), which looks
@@ -588,6 +606,10 @@ class OverlayManager:
             if session["eol"]:
                 self._log_runoverlay_tail(runoverlay_log)
                 self._report_ltk_patcher_eol()
+                return 1
+            if session.get("crash_loop"):
+                # Reported by game_keeps_crashing, in the player's words
+                self._log_runoverlay_tail(runoverlay_log)
                 return 1
             if session["error"]:
                 log.error(f"[INJECT] LTK patcher failed: {session['error']}")

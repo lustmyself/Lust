@@ -77,6 +77,19 @@ class CustomSkinsTests(unittest.TestCase):
         self.assertFalse(skin["auto"])
         self.assertIsNone(skins.custom_mod_for(103, 103000))
 
+    def test_a_skin_that_keeps_crashing_the_game_is_switched_off(self):
+        _fantome(skins.folder() / "a.fantome")
+        skins.handle({"action": "set", "name": "a.fantome", "championId": 103})
+        skins.handle({"action": "set", "name": "a.fantome", "enabled": True})
+        self.assertIsNotNone(skins.custom_mod_for(103, 103000))
+        with patch("utils.core.issue_reporter.report_issue") as report, \
+                patch("launcher.lust_hub.toast") as toast:
+            skins.game_keeps_crashing()
+        self.assertFalse(skins.list_skins()[0]["enabled"])
+        self.assertIn("Arcade Ahri", toast.call_args.args[0])
+        self.assertEqual(report.call_args.args[0], "LUST_MOD_CRASH")
+        self.assertIsNone(skins.custom_mod_for(103, 103000))
+
     def test_removed_file_stops_playing(self):
         _fantome(skins.folder() / "a.fantome")
         skins.handle({"action": "set", "name": "a.fantome", "championId": 103})

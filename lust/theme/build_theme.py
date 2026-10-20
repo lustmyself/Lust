@@ -362,7 +362,8 @@ const LUST_PANEL_CSS = `
     font: 700 12px "Beaufort for LOL", serif; letter-spacing: 1px; border-bottom: 2px solid transparent; }
   .lust-panel-tab:hover { color: #f0e6d2; }
   .lust-panel-tab.active { color: #f0e6d2; border-bottom-color: #c8aa6e; }
-  [data-lust-tab]:not([data-lust-tab="lust"]) > :not(.lust-keep) { display: none !important; }
+  /* Only the settings form: the panel's own children include the click-outside backdrop */
+  .lust-panel-form[data-lust-tab]:not([data-lust-tab="lust"]) > :not(.lust-keep) { display: none !important; }
   .lust-panel-view { display: none !important; width: 100%; height: 60vh; }
   [data-lust-tab="customize"] > .lust-panel-view[data-tab="customize"],
   [data-lust-tab="reveal"] > .lust-panel-view[data-tab="reveal"] { display: block !important; }
@@ -392,6 +393,7 @@ function addLustPanelTabs(panel) {
     if (/discord\\.com|ko-fi\\.com/.test(link.href))
       link.remove();
   });
+  form.classList.add("lust-panel-form");
   form.firstElementChild?.classList.add("lust-keep");
   const tabBar = document.createElement("div");
   tabBar.className = "lust-panel-tabs lust-keep";

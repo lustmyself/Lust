@@ -312,6 +312,28 @@ EDITS += [
      '\nThe patcher stops working with game builds released after its end-of-life date: update LTK Manager and restart Lust.\n'),
 ]
 
+# One click on the LUST label toggled the panel twice (nav item + section listeners),
+# so closing reopened it at once. The nav item's capture listener toggles alone.
+EDITS += [
+    (UI_JS,
+     "            e.stopPropagation();\n"
+     "            e.preventDefault();\n"
+     "\n"
+     "            // Dispatch event to open settings panel\n"
+     '            const event = new CustomEvent("lust-open-settings", {\n'
+     "              detail: { navItem: navItem },\n"
+     "              bubbles: true,\n"
+     "              cancelable: true,\n"
+     "            });\n"
+     "            window.dispatchEvent(event);\n"
+     "            log.info(\n"
+     '              "Dispatched lust-open-settings event from Golden Lust section"\n'
+     "            );\n",
+     "            e.stopPropagation();\n"
+     "            e.preventDefault();\n"
+     "            // The nav item's capture listener already toggled the settings panel\n"),
+]
+
 # Lust.exe carries version info: antivirus heuristics distrust exes without any
 LUST_VERSION_INFO = '''# Lust: version info for Lust.exe (antivirus heuristics distrust exes without any)
 import re as _re

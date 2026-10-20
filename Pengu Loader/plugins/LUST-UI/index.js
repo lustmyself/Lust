@@ -792,17 +792,7 @@
           (e) => {
             e.stopPropagation();
             e.preventDefault();
-
-            // Dispatch event to open settings panel
-            const event = new CustomEvent("lust-open-settings", {
-              detail: { navItem: navItem },
-              bubbles: true,
-              cancelable: true,
-            });
-            window.dispatchEvent(event);
-            log.info(
-              "Dispatched lust-open-settings event from Golden Lust section"
-            );
+            // The nav item's capture listener already toggled the settings panel
 
             // Prevent active class
             section.classList.remove("active");

@@ -181,7 +181,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.rose.outputs.tag }}
         run: |
-          notes="Lust $TAG, built automatically from [Rose $TAG](https://github.com/$ROSE_REPO/releases/tag/$TAG).
+          # Releases are named Lust v1, v2, ... in order. The tag keeps Rose's version
+          # (vX.Y.Z), which the updater compares, so only the title is numbered.
+          number=$(( $(gh release list --repo "$GITHUB_REPOSITORY" --limit 1000 --json tagName --jq length) + 1 ))
+          notes="Lust v$number, built automatically from [Rose $TAG](https://github.com/$ROSE_REPO/releases/tag/$TAG).
 
           **Install:** download \`Lust_Setup_$TAG.exe\` below. Existing installs update themselves."
           gh release create "v$TAG" \
@@ -189,7 +192,7 @@ jobs:
             "installer/update_package_$TAG.zip" \
             --repo "$GITHUB_REPOSITORY" \
             --target "$(git rev-parse HEAD)" \
-            --title "Lust $TAG" \
+            --title "Lust v$number" \
             --notes "$notes"
 
       - name: Report the failure as an issue

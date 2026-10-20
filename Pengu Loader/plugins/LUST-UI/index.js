@@ -216,18 +216,15 @@
       font-weight: 700;
       font-size: 15px;
       letter-spacing: 1.5px;
-      color: #a78bfa;
-      -webkit-text-fill-color: #a78bfa;
-      background: none;
+      color: #c8aa6e;
       transition: color 0.15s, text-shadow 0.15s;
       cursor: pointer;
       user-select: none;
     }
 
     lol-uikit-navigation-item.menu_item_Golden\\ Lust:hover .lust-nav-label {
-      color: #c4b5fd;
-      -webkit-text-fill-color: #c4b5fd;
-      text-shadow: 0 0 6px rgba(167, 139, 250, 0.8);
+      color: #f0e6d2;
+      text-shadow: 0 0 6px rgba(200, 170, 110, 0.8);
     }
 
     /* Prevent active state styling for Golden Lust */

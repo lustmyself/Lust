@@ -1,15 +1,13 @@
 {
-  "version": "1.4.9.4",
+  "version": "1.4.9.5",
   "en": [
     "New Lust hub: click LUST and everything opens in one centered window",
     "Status, appearance, wallpaper, plugins, Lobby Reveal, backup and Lust core each have their own tab",
-    "The LUST label is now purple",
     "Loot helper removed"
   ],
   "tr": [
     "Yeni Lust merkezi: LUST'a tıkla, her şey ortada tek bir pencerede açılsın",
     "Durum, görünüm, duvar kağıdı, eklentiler, Lobby Reveal, yedek ve Lust çekirdeği ayrı sekmelerde",
-    "LUST yazısı artık mor",
     "Ganimet yardımcısı kaldırıldı"
   ]
 }

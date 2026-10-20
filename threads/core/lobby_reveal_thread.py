@@ -15,8 +15,10 @@ from lcu.features.lobby_reveal import (
     RiotClientChat,
     apply_champ_select_session,
     build_opgg_multi_url,
+    build_porofessor_url,
     opgg_region,
     parse_participants,
+    porofessor_region,
 )
 from state import SharedState
 from utils.core.logging import get_logger
@@ -38,6 +40,7 @@ class LobbyRevealThread(threading.Thread):
         self._last_payload: Optional[dict] = None
         self._last_sent_at = 0.0
         self._region = ""
+        self._poro_region = ""
 
     def stop(self) -> None:
         self._stop_event.set()
@@ -52,13 +55,16 @@ class LobbyRevealThread(threading.Thread):
     def _tick(self) -> None:
         if getattr(self.state, "phase", None) != "ChampSelect":
             if self._last_payload is not None and self._last_payload.get("active"):
-                self._send({"active": False, "players": [], "region": "", "multiUrl": ""})
+                self._send({"active": False, "players": [], "region": "", "multiUrl": "", "poroUrl": ""})
             self._region = ""
+            self._poro_region = ""
             return
 
         if not self._region:
             locale = self.lcu.region_locale if self.lcu.ok else None
-            self._region = opgg_region((locale or {}).get("webRegion"))
+            web_region = (locale or {}).get("webRegion")
+            self._region = opgg_region(web_region)
+            self._poro_region = porofessor_region(web_region)
 
         players = parse_participants(self.chat.get_participants())
         if not players:
@@ -70,6 +76,7 @@ class LobbyRevealThread(threading.Thread):
             "region": self._region,
             "players": [p.to_payload(self._region) for p in players],
             "multiUrl": build_opgg_multi_url(players, self._region),
+            "poroUrl": build_porofessor_url(players, self._poro_region),
         }
         now = time.monotonic()
         if payload != self._last_payload:

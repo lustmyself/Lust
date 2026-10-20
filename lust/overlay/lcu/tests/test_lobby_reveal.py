@@ -6,9 +6,11 @@ from lcu.features.lobby_reveal import (
     apply_champ_select_session,
     build_opgg_multi_url,
     build_opgg_profile_url,
+    build_porofessor_url,
     opgg_region,
     parse_participants,
     parse_riotclient_args,
+    porofessor_region,
 )
 from threads.core.lobby_reveal_thread import LobbyRevealThread
 
@@ -82,6 +84,23 @@ class OpggLinkTests(unittest.TestCase):
         )
 
 
+class PorofessorLinkTests(unittest.TestCase):
+    def test_region_slugs(self):
+        self.assertEqual(porofessor_region("EUW"), "euw")
+        self.assertEqual(porofessor_region("LA2"), "las")
+        self.assertEqual(porofessor_region("OC1"), "oce")
+        self.assertEqual(porofessor_region(None), "")
+
+    def test_pregame_url_lists_the_team(self):
+        players = [RevealedPlayer("Player One", "NA1"), RevealedPlayer("Second Player", "0911")]
+        self.assertEqual(
+            build_porofessor_url(players, "na"),
+            "https://porofessor.gg/pregame/na/Player%20One-NA1,Second%20Player-0911",
+        )
+        self.assertEqual(build_porofessor_url([], "na"), "")
+        self.assertEqual(build_porofessor_url(players, ""), "")
+
+
 class LobbyRevealThreadTests(unittest.TestCase):
     def _thread(self, phase):
         lcu = MagicMock(ok=True, region_locale={"webRegion": "EUW"}, session={"myTeam": []})
@@ -100,6 +119,7 @@ class LobbyRevealThreadTests(unittest.TestCase):
         self.assertEqual(payload["players"][0]["riotId"], "One#EUW")
         self.assertEqual(payload["players"][0]["puuid"], "p1")
         self.assertEqual(payload["multiUrl"], "https://www.op.gg/multisearch/euw?summoners=One%23EUW")
+        self.assertEqual(payload["poroUrl"], "https://porofessor.gg/pregame/euw/One-EUW")
 
         thread._tick()  # unchanged team is not re-sent right away
         self.assertEqual(broadcaster.broadcast_lobby_reveal.call_count, 1)

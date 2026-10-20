@@ -22,6 +22,12 @@ UX_PROCESS_NAMES = {"leagueclientux.exe", "leagueclient.exe"}
 
 # webRegion values that op.gg spells differently
 OPGG_REGION_ALIASES = {"SG2": "SG"}
+# Porofessor's region slugs, for platform ids that differ from them
+POROFESSOR_REGIONS = {
+    "NA1": "na", "EUW1": "euw", "EUN1": "eune", "EUNE": "eune", "BR1": "br", "JP1": "jp",
+    "OC1": "oce", "TR1": "tr", "LA1": "lan", "LA2": "las", "ME1": "me", "SG2": "sg",
+    "PH2": "ph", "TH2": "th", "TW2": "tw", "VN2": "vn",
+}
 
 
 @dataclass(frozen=True)
@@ -135,6 +141,21 @@ def build_opgg_multi_url(players: List[RevealedPlayer], region: str) -> str:
         return ""
     summoners = ",".join(p.riot_id for p in players)
     return f"https://www.op.gg/multisearch/{region}?summoners={quote(summoners)}"
+
+
+def porofessor_region(web_region: Optional[str]) -> str:
+    region = (web_region or "").upper()
+    return POROFESSOR_REGIONS.get(region, region.lower())
+
+
+def build_porofessor_url(players: List[RevealedPlayer], region: str) -> str:
+    """Porofessor's pre-game page for the whole team."""
+    if not players or not region:
+        return ""
+    slugs = ",".join(
+        quote(f"{p.game_name}-{p.game_tag}" if p.game_tag else p.game_name, safe="") for p in players
+    )
+    return f"https://porofessor.gg/pregame/{region}/{slugs}"
 
 
 def build_opgg_profile_url(player: RevealedPlayer, region: str) -> str:

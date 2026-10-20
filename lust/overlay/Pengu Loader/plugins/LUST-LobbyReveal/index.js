@@ -169,9 +169,15 @@
       color: #f0e6d2;
     }
 
-    #${PANEL_ID} .lust-reveal-multi {
-      display: block;
+    #${PANEL_ID} .lust-reveal-links {
+      display: flex;
+      gap: 6px;
       margin-top: 10px;
+    }
+
+    #${PANEL_ID} .lust-reveal-multi {
+      flex: 1 1 0;
+      display: block;
       padding: 6px 0;
       text-align: center;
       font-size: 12px;
@@ -517,13 +523,20 @@
       body.appendChild(row);
     }
 
-    if (data.multiUrl) {
-      const multi = el("a", "lust-reveal-multi", "Multi OP.GG");
-      multi.href = data.multiUrl;
-      multi.target = "_blank";
-      multi.rel = "noreferrer";
-      body.appendChild(multi);
+    const links = el("div", "lust-reveal-links");
+    for (const [url, label, title] of [
+      [data.multiUrl, "OP.GG", "Multi-search the team on op.gg"],
+      [data.poroUrl, "Porofessor", "The team's pre-game page on Porofessor"],
+    ]) {
+      if (!url) continue;
+      const link = el("a", "lust-reveal-multi", label);
+      link.href = url;
+      link.target = "_blank";
+      link.rel = "noreferrer";
+      link.title = title;
+      links.appendChild(link);
     }
+    if (links.childElementCount) body.appendChild(links);
     root.appendChild(body);
     root.hidden = false;
     placePanel();

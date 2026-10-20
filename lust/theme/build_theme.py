@@ -191,14 +191,103 @@ LUST_PANEL_JS = '''function Settings(context) {
   applyLustColors();
 }
 
-// Lust: theme and plugin settings live in the Lust panel (the LUST item in the
-// top navigation) instead of a group in the client settings window.
+// Lust: the Lust panel (the LUST item in the top navigation) opens on CUSTOMIZE,
+// the hub for status, colors, theme and plugin settings. LUST keeps Rose's own.
 const LUST_PANEL_TABS = [
-  { id: "lust", label: "LUST" },
-  { id: "theme", label: "THEME", render: themeSettings, className: "theme_settings" },
-  { id: "plugins", label: "PLUGINS", render: pluginsSettings, className: "plugins_settings" },
-  { id: "customize", label: "CUSTOMIZE", render: customizeSettings, className: "customize_settings", reload: false }
+  { id: "customize", label: "CUSTOMIZE", render: customizeSettings, className: "customize_settings" },
+  { id: "lust", label: "LUST" }
 ];
+
+// Lust Offline (lust/offline) takes commands as chat messages to its "Lust Active!" friend.
+const LUST_OFFLINE_ID = "41c322a1-b328-495b-a004-5ccd3e45eae8@eu1.pvp.net";
+const LUST_OFFLINE_STATUSES = [
+  { command: "online", label: "Online" },
+  { command: "offline", label: "Offline" },
+  { command: "mobile", label: "Mobile" }
+];
+async function lustOfflineRunning() {
+  try {
+    const friends = await (await fetch("/lol-chat/v1/friends")).json();
+    return friends.some((friend) => String(friend.pid || friend.id || "").startsWith(LUST_OFFLINE_ID.split("@")[0]));
+  } catch {
+    return false;
+  }
+}
+async function lustOfflineStatus() {
+  try {
+    const messages = await (await fetch(`/lol-chat/v1/conversations/${encodeURIComponent(LUST_OFFLINE_ID)}/messages`)).json();
+    for (const message of [...messages].reverse()) {
+      const match = /appearing (online|offline|mobile)/i.exec(message.body || "");
+      if (match)
+        return match[1].toLowerCase();
+    }
+  } catch {}
+  return "";
+}
+async function sendLustOffline(command) {
+  const url = `/lol-chat/v1/conversations/${encodeURIComponent(LUST_OFFLINE_ID)}/messages`;
+  const post = () => fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ body: command, type: "chat" })
+  });
+  let response = await post();
+  if (!response.ok) {
+    await fetch("/lol-chat/v1/conversations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: LUST_OFFLINE_ID, type: "chat" })
+    }).catch(() => {});
+    response = await post();
+  }
+  return response.ok;
+}
+function lustSection(view, title) {
+  const section = document.createElement("div");
+  section.className = "lust-hub-section";
+  const heading = document.createElement("div");
+  heading.className = "lust-hub-title";
+  heading.textContent = title;
+  // The theme's settings prepend into the box they get, so that box is below the title.
+  const body = document.createElement("div");
+  section.append(heading, body);
+  view.appendChild(section);
+  return body;
+}
+async function statusSection(section) {
+  const row = document.createElement("div");
+  row.className = "lust-status-row";
+  const note = document.createElement("div");
+  note.className = "lust-customize-state";
+  section.append(row, note);
+  if (!await lustOfflineRunning()) {
+    note.textContent = "Lust Offline isn't running: restart League from Lust to appear offline.";
+    return;
+  }
+  let current = await lustOfflineStatus() || localStorage.getItem("lust-offline-status") || "offline";
+  const buttons = LUST_OFFLINE_STATUSES.map(({ command, label }) => {
+    const button = document.createElement("lol-uikit-flat-button");
+    button.textContent = label;
+    button.addEventListener("click", async () => {
+      if (!await sendLustOffline(command)) {
+        note.textContent = "Couldn't reach Lust Offline.";
+        return;
+      }
+      current = command;
+      try {
+        localStorage.setItem("lust-offline-status", command);
+      } catch {}
+      show();
+    });
+    row.appendChild(button);
+    return { command, button };
+  });
+  const show = () => {
+    buttons.forEach(({ command, button }) => button.classList.toggle("lust-status-active", command === current));
+    note.textContent = `Friends see you as ${current}.`;
+  };
+  show();
+}
 
 // Text colors players pick in the CUSTOMIZE tab. Empty means League's own color.
 const LUST_COLORS = [
@@ -224,6 +313,12 @@ function applyLustColors() {
     .join("\\n");
 }
 async function customizeSettings(view) {
+  await statusSection(lustSection(view, "Status"));
+  colorSection(lustSection(view, "Colors"));
+  await themeSettings(lustSection(view, "Theme"));
+  await pluginsSettings(lustSection(view, "Plugins"));
+}
+function colorSection(section) {
   const list = document.createElement("div");
   list.className = "lust-customize";
   LUST_COLORS.forEach((item) => {
@@ -256,7 +351,7 @@ async function customizeSettings(view) {
     row.append(label, picker, state, reset);
     list.appendChild(row);
   });
-  view.appendChild(list);
+  section.appendChild(list);
 }
 const LUST_PANEL_CSS = `
   .lust-panel-tabs { display: flex; width: 100%; margin: 4px 0 12px; border-bottom: 1px solid #785a2866; }
@@ -266,13 +361,15 @@ const LUST_PANEL_CSS = `
   .lust-panel-tab.active { color: #f0e6d2; border-bottom-color: #c8aa6e; }
   [data-lust-tab]:not([data-lust-tab="lust"]) > :not(.lust-keep) { display: none !important; }
   .lust-panel-view { display: none !important; width: 100%; height: 60vh; }
-  [data-lust-tab="theme"] > .lust-panel-view[data-tab="theme"],
-  [data-lust-tab="plugins"] > .lust-panel-view[data-tab="plugins"],
   [data-lust-tab="customize"] > .lust-panel-view[data-tab="customize"] { display: block !important; }
-  .lust-panel-view[data-tab="customize"] { height: auto; }
-  #lust-settings-panel[data-lust-tab="theme"] #lust-settings-flyout,
-  #lust-settings-panel[data-lust-tab="plugins"] #lust-settings-flyout { min-width: 560px !important; max-width: 560px !important; }
+  #lust-settings-panel[data-lust-tab="customize"] #lust-settings-flyout { min-width: 560px !important; max-width: 560px !important; }
   .lust-panel-reload { display: block; width: 220px; margin: 14px auto 6px; }
+  .lust-hub-section { margin-bottom: 18px; }
+  .lust-hub-title { margin: 0 0 8px; padding-bottom: 4px; border-bottom: 1px solid #785a2866; color: #f0e6d2;
+    font: 700 13px "Beaufort for LOL", serif; letter-spacing: 1px; text-transform: uppercase; }
+  .lust-status-row { display: flex; gap: 8px; margin-bottom: 6px; }
+  .lust-status-row lol-uikit-flat-button { flex: 1; }
+  .lust-status-row .lust-status-active { filter: brightness(1.35); outline: 1px solid #c8aa6e; }
   .lust-customize { display: flex; flex-direction: column; gap: 10px; padding: 4px 2px 8px; }
   .lust-customize-row { display: grid; grid-template-columns: 1fr 36px 96px 80px; align-items: center; gap: 8px;
     color: #cdbe91; font: 13px "Beaufort for LOL", serif; }

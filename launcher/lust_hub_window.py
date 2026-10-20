@@ -29,12 +29,13 @@ MUTED = "#7a7568"
 PURPLE = "#a78bfa"
 PURPLE_BG = "#211c33"
 GREEN = "#0acf83"
+YELLOW = "#f2c94c"
 AMBER = "#e8a33a"
 RED = "#e07a7a"
 RED_LINE = "#5a2a2a"
 RED_BG = "#2a1416"
 
-SIZE = (780, 600)
+SIZE = (780, 630)
 FONT = "Segoe UI"
 ICON_FONT = "Segoe MDL2 Assets"  # ships with Windows 10 and 11
 ICONS = {"play": "", "folder": "", "log": "", "power": "",
@@ -56,6 +57,7 @@ TEXT = {
         "mods": "Open mods folder", "log": "Copy log", "autostart": "Start with Windows",
         "on": "On", "off": "Off", "restart": "Restart Lust", "quit": "Close Lust",
         "quit_confirm": "Click again to close Lust",
+        "client_hint": "Set your game settings by clicking the LUST tab in the LoL client.",
         "prompt_title": "Lust {v} is ready to install", "prompt_body": "You have {c}. Install it now?",
         "install": "Install", "later": "Not now", "just_now": "just now", "min_ago": "{n} min ago",
     },
@@ -72,6 +74,7 @@ TEXT = {
         "mods": "Mod klasörünü aç", "log": "Logu kopyala", "autostart": "Windows ile başlat",
         "on": "Açık", "off": "Kapalı", "restart": "Lust'ı yeniden başlat", "quit": "Lust'ı kapat",
         "quit_confirm": "Kapatmak için tekrar tıkla",
+        "client_hint": "Oyun ayarlarınızı LoL istemcisindeki LUST sekmesine tıklayarak ayarlayabilirsiniz.",
         "prompt_title": "Lust {v} kurulmaya hazır", "prompt_body": "Sendeki sürüm {c}. Şimdi kurulsun mu?",
         "install": "Kur", "later": "Şimdi değil", "just_now": "az önce", "min_ago": "{n} dk önce",
     },
@@ -271,6 +274,11 @@ class HubWindow:
         tk.Label(header, text="LUST", bg=BG, fg=PURPLE, font=("Georgia", 17, "bold")).pack(side="left")
         tk.Label(header, text=f"  {APP_VERSION}", bg=BG, fg=MUTED, font=(FONT, 9)).pack(side="left", pady=(6, 0))
         tk.Frame(root, bg=LINE, height=1).pack(fill="x")
+        # Where the game settings are: the client's LUST tab, not this window
+        hint = self.tk.Label(root, bg=BG, fg=YELLOW, font=(FONT, 11, "bold"), anchor="w",
+                             wraplength=int((SIZE[0] - 40) * scale), justify="left")
+        hint.pack(fill="x", padx=20, pady=(12, 0))
+        self.texts.append((hint, "client_hint"))
 
         body = tk.Frame(root, bg=BG)
         body.pack(fill="both", expand=True, padx=20, pady=16)

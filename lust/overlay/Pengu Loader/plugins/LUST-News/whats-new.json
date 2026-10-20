@@ -1,15 +1,15 @@
 {
-  "version": "1.4.9.6",
+  "version": "1.4.9.7",
   "en": [
-    "Lust desktop hub: startup progress, updates and quick actions in one window",
-    "Open it any time with a click on Lust's tray icon",
-    "Open League, pick your status, copy your log, toggle Start with Windows, restart or close Lust from the hub",
-    "The Dodge button in Lobby Reveal is smaller, so it isn't clicked by accident"
+    "Custom skins: a new tab in the Lust hub. Press + and paste your skin files, or drop them on the tab",
+    "Switch each custom skin on or off; one that is on plays when you go in with that champion's default skin",
+    "The Custom mods button in champ select is gone",
+    "The desktop hub is in Turkish and shows where your game settings are"
   ],
   "tr": [
-    "Lust masaüstü merkezi: açılış ilerlemesi, güncellemeler ve hızlı işlemler tek pencerede",
-    "Lust'ın tray ikonuna tıklayarak istediğin zaman aç",
-    "League'i aç, durumunu seç, logunu kopyala, Windows ile başlatmayı aç/kapat, Lust'ı yeniden başlat ya da kapat",
-    "Lobby Reveal'daki Dodge butonu küçüldü, yanlışlıkla tıklanmıyor"
+    "Özel skinler: Lust merkezinde yeni sekme. +'ya bas ve skin dosyalarını yapıştır ya da sekmeye sürükle",
+    "Her özel skini aç ya da kapat; açık olan, o şampiyonla default skinde oyuna girince oynar",
+    "Şampiyon seçimindeki Custom mods butonu kaldırıldı",
+    "Masaüstü merkezi Türkçe ve oyun ayarlarının nerede olduğunu gösteriyor"
   ]
 }

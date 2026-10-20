@@ -287,6 +287,20 @@ class InjectionTrigger:
             lcu_skin_id = self.state.selected_skin_id
             owned_skin_ids = self.state.owned_skin_ids
             
+            # Lust custom skins: the one switched on for this champion plays on its default skin
+            if not selected_custom_mod:
+                try:
+                    from pengu.communication.lust_custom_skins import custom_mod_for
+                    lust_custom_skin = custom_mod_for(
+                        self.state.locked_champ_id or self.state.hovered_champ_id,
+                        effective_skin_id or ui_skin_id,
+                    )
+                    if lust_custom_skin:
+                        self.state.selected_custom_mod = lust_custom_skin
+                        selected_custom_mod = lust_custom_skin
+                except Exception as e:
+                    log.warning(f"[CustomSkins] Could not pick a custom skin: {e}")
+
             # Auto-select previously used custom mods (so users don't need to open the Custom Mods UI)
             # - Skin custom mod: stored per champion in utils.core.historic as a "path:..."
             # - Map/font/announcer/other: stored globally in utils.core.mod_historic (mod_historic.json)

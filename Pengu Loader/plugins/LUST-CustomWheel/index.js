@@ -421,6 +421,8 @@
   }
 
   const CSS_RULES = `
+    /* Lust: custom skins moved to the Lust hub (Custom skins tab) */
+    .lust-custom-wheel-button { display: none !important; }
     .${BUTTON_CLASS} {
       pointer-events: auto;
       -webkit-user-select: none;

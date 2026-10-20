@@ -236,6 +236,10 @@ class MessageHandler:
 
     def _route(self, payload_type: Optional[str], payload: dict) -> None:
         # Route to appropriate handler
+        if payload_type == "lust-custom-skins":
+            from pengu.communication.lust_custom_skins import handle as _handle_custom_skins
+            self._send_response(json.dumps(_handle_custom_skins(payload)))
+            return
         if payload_type == "lust-assets":
             from pengu.communication.lust_assets import handle as _handle_lust_assets
             self._send_response(json.dumps(_handle_lust_assets(payload)))

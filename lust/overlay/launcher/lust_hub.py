@@ -20,7 +20,6 @@ import subprocess
 import sys
 import threading
 import time
-from pathlib import Path
 from typing import Callable, Optional
 
 from config import APP_VERSION
@@ -52,43 +51,7 @@ _prompt_event = threading.Event()
 
 # ---- language ----
 
-def _turkish() -> bool:
-    try:
-        return (ctypes.windll.kernel32.GetUserDefaultUILanguage() & 0x3FF) == 0x1F
-    except (AttributeError, OSError):
-        return False
-
-
-def _league_locale() -> str:
-    """The League client's language (tr_TR...), from the settings it keeps in its folder."""
-    from config import get_config_option
-    folder = Path(get_config_option("General", "clientPath") or r"C:\Riot Games\League of Legends")
-    if folder.suffix.lower() == ".exe":
-        folder = folder.parent
-    try:
-        text = (folder / "Config" / "LeagueClientSettings.yaml").read_text(encoding="utf-8", errors="replace")
-    except OSError:
-        return ""
-    match = re.search(r'^[ \t]+locale:[ \t]*"?([A-Za-z]{2}_[A-Za-z]{2})"?', text, re.MULTILINE)
-    return match.group(1) if match else ""
-
-
-def _language() -> str:
-    """Lust's menu language when set, else League's, else Windows'. The hub has Turkish and English."""
-    try:
-        from config import get_config_option
-        setting = (get_config_option("General", "language") or "auto").lower()
-        if setting != "auto":
-            return "tr" if setting.startswith("tr") else "en"
-        locale = _league_locale()
-        if locale:
-            return "tr" if locale.lower().startswith("tr") else "en"
-    except Exception as exc:  # noqa: BLE001
-        log.debug(f"[Hub] Language lookup failed: {exc}")
-    return "tr" if sys.platform == "win32" and _turkish() else "en"
-
-
-LANG = "en"
+LANG = "tr"
 
 # Launcher and downloader messages, by prefix (the rest of the message is kept)
 TR_MESSAGES = [
@@ -204,8 +167,9 @@ def _version_tuple(version: str):
 
 
 def _refresh_language() -> None:
+    # The desktop hub is in Turkish (its English texts stay for a later language choice)
     global LANG
-    LANG = _cached("language", 15, _language) or LANG
+    LANG = "tr"
 
 
 def snapshot() -> dict:

@@ -507,6 +507,42 @@ EDITS += [
 ]
 
 
+# Custom skins (pengu/communication/lust_custom_skins.py): the Lust hub's Custom skins tab
+# replaces champ select's Custom mods button; a switched-on skin plays on its champion's default skin
+EDITS += [
+    ('pengu/communication/message_handler.py',
+     '        if payload_type == "lust-assets":\n',
+     '        if payload_type == "lust-custom-skins":\n'
+     '            from pengu.communication.lust_custom_skins import handle as _handle_custom_skins\n'
+     '            self._send_response(json.dumps(_handle_custom_skins(payload)))\n'
+     '            return\n'
+     '        if payload_type == "lust-assets":\n'),
+    ('threads/handlers/injection_trigger.py',
+     '            # Auto-select previously used custom mods (so users don\'t need to open the Custom Mods UI)\n',
+     '            # Lust custom skins: the one switched on for this champion plays on its default skin\n'
+     '            if not selected_custom_mod:\n'
+     '                try:\n'
+     '                    from pengu.communication.lust_custom_skins import custom_mod_for\n'
+     '                    lust_custom_skin = custom_mod_for(\n'
+     '                        self.state.locked_champ_id or self.state.hovered_champ_id,\n'
+     '                        effective_skin_id or ui_skin_id,\n'
+     '                    )\n'
+     '                    if lust_custom_skin:\n'
+     '                        self.state.selected_custom_mod = lust_custom_skin\n'
+     '                        selected_custom_mod = lust_custom_skin\n'
+     '                except Exception as e:\n'
+     '                    log.warning(f"[CustomSkins] Could not pick a custom skin: {e}")\n'
+     '\n'
+     '            # Auto-select previously used custom mods (so users don\'t need to open the Custom Mods UI)\n'),
+    ('Pengu Loader/plugins/LUST-CustomWheel/index.js',
+     '  const CSS_RULES = `\n',
+     '  const CSS_RULES = `\n'
+     '    /* Lust: custom skins moved to the Lust hub (Custom skins tab) */\n'
+     '    .lust-custom-wheel-button { display: none !important; }\n'),
+    ('Lust.spec', "    'launcher.core',\n", "    'launcher.core',\n    'pengu.communication.lust_custom_skins',\n"),
+]
+
+
 def apply_edits(tree):
     failures = []
     for rel, old, new in EDITS:

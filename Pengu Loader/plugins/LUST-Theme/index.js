@@ -4850,7 +4850,17 @@ const LUST_TR = {
   "Close": "Kapat",
   "Injection, the League path, custom mods and troubleshooting live in Lust's core settings.":
     "Enjeksiyon, League yolu, özel modlar ve sorun giderme Lust'un çekirdek ayarlarında.",
-  "Open core settings": "Çekirdek ayarlarını aç"
+  "Open core settings": "Çekirdek ayarlarını aç",
+  "Custom skins": "Özel skinler",
+  "Open the custom skins folder": "Özel skin klasörünü aç",
+  "Press + and paste your custom skin files (.zip, .fantome, .modpkg) into the folder that opens, or drop them here. A skin that is on plays when you go into a game with that champion's default skin.":
+    "+'ya bas ve açılan klasöre özel skin dosyalarını (.zip, .fantome, .modpkg) yapıştır ya da buraya sürükle. Açık olan skin, o şampiyonla default skinde oyuna girince oynar.",
+  "No custom skins yet.": "Henüz özel skin yok.",
+  "This file can't be read": "Bu dosya okunamıyor",
+  "Pick the champion": "Şampiyonu seç",
+  "Change the champion": "Şampiyonu değiştir",
+  "On": "Açık",
+  "Off": "Kapalı"
 };
 function lustTr(text, vars) {
   const i18n = window.LustI18n;
@@ -4888,6 +4898,7 @@ const LUST_HUB_TABS = [
   } },
   { id: "wallpaper", label: "Wallpaper", icon: "wallpaper", reload: true, render: (page) =>
     lustThemeSections(page, [assetLibrarySection, wallpaperSection, audioSection]) },
+  { id: "skins", label: "Custom skins", icon: "skins", render: (page) => customSkinsTab(page) },
   { id: "plugins", label: "Plugins", icon: "plugins", reload: true, render: async (page) => {
     await lustThemeSections(page, [coreSection, pluginsProfileSection]);
     const more = document.createElement("details");
@@ -4911,11 +4922,201 @@ const LUST_HUB_ICONS = {
   wallpaper: '<rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.5"/>',
   plugins: '<path d="M9 3h6v4a2 2 0 1 1 0 4v2h4v6h-6v-2a2 2 0 1 0-4 0v2H3v-6h2a2 2 0 1 0 0-4H3V7h6z"/>',
   reveal: '<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.2c3 .3 5.5 2.6 5.5 5.8"/>',
+  skins: '<path d="M12 3l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.3 6.8 19l1-5.8-4.2-4.1 5.8-.8z"/>',
   backup: '<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/>',
   core: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>',
 };
 function lustHubIcon(name) {
   return `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${LUST_HUB_ICONS[name] || ""}</svg>`;
+}
+// Lust: custom skins. + opens Lust's "custom skins" folder (files are copied and pasted in),
+// files dropped on the tab are sent to Lust, and each skin is switched on or off. A
+// switched-on skin plays when its champion goes into a game with the default skin.
+const lustSkinWaiters = new Map();
+let lustSkinRequests = 0;
+let lustSkinsSubscribed = false;
+function lustCustomSkins(action, extra = {}) {
+  const bridge = window.__lustBridge;
+  if (!bridge) return Promise.resolve({ error: lustTr("Lust isn't connected"), skins: null });
+  if (!lustSkinsSubscribed) {
+    lustSkinsSubscribed = true;
+    bridge.subscribe("lust-custom-skins", (reply) => {
+      const waiter = lustSkinWaiters.get(reply && reply.requestId);
+      if (waiter) {
+        lustSkinWaiters.delete(reply.requestId);
+        waiter(reply);
+      }
+    });
+  }
+  const requestId = `${Date.now()}-${++lustSkinRequests}`;
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      lustSkinWaiters.delete(requestId);
+      resolve({ error: lustTr("Lust didn't answer"), skins: null });
+    }, 20000);
+    lustSkinWaiters.set(requestId, (reply) => {
+      clearTimeout(timer);
+      resolve(reply);
+    });
+    bridge.send({ type: "lust-custom-skins", action, requestId, ...extra });
+  });
+}
+let lustChampionList = null;
+async function lustChampions() {
+  if (lustChampionList && lustChampionList.length) return lustChampionList;
+  try {
+    const all = await (await fetch("/lol-game-data/assets/v1/champion-summary.json")).json();
+    lustChampionList = all.filter((champion) => champion.id > 0).sort((a, b) => a.name.localeCompare(b.name));
+  } catch {
+    lustChampionList = [];
+  }
+  return lustChampionList;
+}
+async function customSkinsTab(page) {
+  const section = lustSection(page, lustTr("Custom skins"));
+  const head = document.createElement("div");
+  head.className = "lust-skins-head";
+  const add = document.createElement("div");
+  add.className = "lust-skins-add";
+  add.textContent = "+";
+  add.title = lustTr("Open the custom skins folder");
+  add.addEventListener("click", () => lustCustomSkins("open"));
+  const help = document.createElement("div");
+  help.className = "lust-skins-help";
+  help.textContent = lustTr("Press + and paste your custom skin files (.zip, .fantome, .modpkg) into the folder that opens, or drop them here. A skin that is on plays when you go into a game with that champion's default skin.");
+  head.append(add, help);
+  const hint = document.createElement("div");
+  hint.className = "lust-asset-hint";
+  const list = document.createElement("div");
+  list.className = "lust-skins-list";
+  section.append(head, hint, list);
+  const champions = await lustChampions();
+  const byId = new Map(champions.map((champion) => [champion.id, champion]));
+  const byAlias = new Map(champions.map((champion) => [String(champion.alias).toLowerCase(), champion]));
+  let shownKey = "";
+  const say = (text, error) => {
+    hint.textContent = text || "";
+    hint.classList.toggle("error", Boolean(error && text));
+  };
+  const show = (skins) => {
+    if (!Array.isArray(skins)) return;
+    const key = JSON.stringify(skins);
+    if (key === shownKey) return;
+    shownKey = key;
+    if (!skins.length) {
+      const empty = document.createElement("div");
+      empty.className = "lust-skins-empty";
+      empty.textContent = lustTr("No custom skins yet.");
+      list.replaceChildren(empty);
+      return;
+    }
+    list.replaceChildren(...skins.map((skin) => {
+      const champion = byId.get(skin.championId);
+      const row = document.createElement("div");
+      row.className = "lust-skin-row" + (skin.enabled ? " on" : "");
+      const icon = document.createElement("div");
+      icon.className = "lust-skin-icon";
+      if (champion) {
+        icon.style.backgroundImage = `url(/lol-game-data/assets/v1/champion-icons/${champion.id}.png)`;
+        icon.classList.add("changeable");
+        icon.title = lustTr("Change the champion");
+        icon.addEventListener("click", async () => {
+          const reply = await lustCustomSkins("set", { name: skin.name, championId: 0 });
+          say(reply.error, true);
+          show(reply.skins);
+        });
+      }
+      const text = document.createElement("div");
+      text.className = "lust-skin-text";
+      const title = document.createElement("div");
+      title.className = "lust-skin-title";
+      title.textContent = skin.title;
+      const sub = document.createElement("div");
+      sub.className = "lust-skin-sub";
+      sub.textContent = skin.broken ? lustTr("This file can't be read") : `${champion ? champion.name + " · " : ""}${skin.name}`;
+      text.append(title, sub);
+      row.append(icon, text);
+      if (!champion && !skin.broken) {
+        const pick = document.createElement("select");
+        pick.className = "lust-skin-pick";
+        const none = document.createElement("option");
+        none.value = "";
+        none.textContent = lustTr("Pick the champion");
+        pick.appendChild(none);
+        champions.forEach((option) => {
+          const item = document.createElement("option");
+          item.value = String(option.id);
+          item.textContent = option.name;
+          pick.appendChild(item);
+        });
+        pick.addEventListener("change", async () => {
+          if (!pick.value) return;
+          const reply = await lustCustomSkins("set", { name: skin.name, championId: Number(pick.value) });
+          say(reply.error, true);
+          show(reply.skins);
+        });
+        row.appendChild(pick);
+      }
+      const toggle = document.createElement("div");
+      toggle.className = "lust-skin-toggle" + (skin.enabled ? " on" : "") + (champion ? "" : " off-limits");
+      toggle.title = champion ? lustTr(skin.enabled ? "On" : "Off") : lustTr("Pick the champion");
+      toggle.addEventListener("click", async () => {
+        if (!champion) return;
+        const reply = await lustCustomSkins("set", { name: skin.name, enabled: !skin.enabled });
+        say(reply.error, true);
+        show(reply.skins);
+      });
+      row.appendChild(toggle);
+      return row;
+    }));
+  };
+  let busy = false;
+  const refresh = async () => {
+    if (busy) return;
+    const reply = await lustCustomSkins("list");
+    if (reply.error) {
+      say(reply.error, true);
+      return;
+    }
+    // A skin whose WAD names its champion gets that champion by itself
+    for (const skin of reply.skins || []) {
+      if (skin.championId || skin.broken || skin.auto === false) continue;
+      const match = (skin.wads || []).map((wad) => byAlias.get(wad)).find(Boolean);
+      if (match) {
+        const set = await lustCustomSkins("set", { name: skin.name, championId: match.id });
+        if (Array.isArray(set.skins)) reply.skins = set.skins;
+      }
+    }
+    show(reply.skins);
+  };
+  // Files copied into the folder show up while the tab is open
+  const timer = setInterval(() => {
+    if (!document.body.contains(page)) { clearInterval(timer); return; }
+    if (page.classList.contains("active")) refresh();
+  }, 2500);
+  section.addEventListener("dragover", (event) => {
+    event.preventDefault();
+    section.parentElement.classList.add("dragging");
+  });
+  section.addEventListener("dragleave", () => section.parentElement.classList.remove("dragging"));
+  section.addEventListener("drop", async (event) => {
+    event.preventDefault();
+    section.parentElement.classList.remove("dragging");
+    busy = true;
+    for (const file of [...((event.dataTransfer && event.dataTransfer.files) || [])]) {
+      say(lustTr("Adding {name}...", { name: file.name }));
+      const total = Math.max(1, Math.ceil(file.size / LUST_ASSET_CHUNK));
+      let error = "";
+      for (let index = 0; index < total && !error; index++) {
+        const data = await lustBlobToBase64(file.slice(index * LUST_ASSET_CHUNK, (index + 1) * LUST_ASSET_CHUNK));
+        error = (await lustCustomSkins("chunk", { name: file.name, index, total, data })).error;
+      }
+      say(error, true);
+    }
+    busy = false;
+    refresh();
+  });
+  await refresh();
 }
 // Rose's own settings (injection, game path, mods) keep their panel.
 function coreTab(section) {
@@ -5249,6 +5450,31 @@ const LUST_PANEL_CSS = `
   .lust-asset-remove:hover { color: #e84057; }
   .lust-asset-hint { margin-top: 8px; color: #7e7a70; font-size: 11px; }
   .lust-asset-hint.error { color: #e84057; }
+  .lust-hub-section.dragging { outline: 1px dashed #a78bfa; outline-offset: 6px; }
+  .lust-skins-head { display: flex; align-items: center; gap: 14px; margin: 4px 0 10px; }
+  .lust-skins-add { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;
+    border: 1px solid #a78bfa; border-radius: 50%; color: #a78bfa; font: 300 28px/1 "Spiegel", "Arial", sans-serif;
+    cursor: pointer; transition: background .15s, color .15s; }
+  .lust-skins-add:hover { background: #a78bfa; color: #010a13; }
+  .lust-skins-help { color: #a09b8c; font-size: 12px; line-height: 1.5; }
+  .lust-skins-list { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+  .lust-skins-empty { padding: 18px; border: 1px dashed #785a2866; color: #7e7a70; font-size: 12px; text-align: center; }
+  .lust-skin-row { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border: 1px solid #1e2328; background: #0a0f1a; }
+  .lust-skin-row.on { border-color: #a78bfa80; background: #8b5cf614; }
+  .lust-skin-icon { flex: 0 0 36px; height: 36px; border: 1px solid #785a28; background: #1e2328 center / cover no-repeat; }
+  .lust-skin-icon.changeable { cursor: pointer; }
+  .lust-skin-icon.changeable:hover { border-color: #a78bfa; }
+  .lust-skin-text { flex: 1; min-width: 0; }
+  .lust-skin-title { color: #f0e6d2; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lust-skin-sub { color: #7e7a70; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lust-skin-pick { background: #1e2328; color: #cdbe91; border: 1px solid #785a28; padding: 4px; font-size: 12px; max-width: 150px; }
+  .lust-skin-toggle { position: relative; flex: 0 0 38px; height: 20px; border-radius: 10px; background: #3c3c41; cursor: pointer;
+    transition: background .15s; }
+  .lust-skin-toggle::after { content: ""; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%;
+    background: #a09b8c; transition: left .15s, background .15s; }
+  .lust-skin-toggle.on { background: #a78bfa; }
+  .lust-skin-toggle.on::after { left: 21px; background: #f0e6d2; }
+  .lust-skin-toggle.off-limits { opacity: .4; cursor: default; }
   .lust-customize { display: flex; flex-direction: column; gap: 10px; padding: 4px 2px 8px; }
   .lust-customize-row { display: grid; grid-template-columns: 1fr 36px 96px 80px; align-items: center; gap: 8px;
     color: #cdbe91; font: 13px "Beaufort for LOL", serif; }

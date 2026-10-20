@@ -362,7 +362,7 @@
 }
 
 .next-bg-icon:hover {
-	filter: hue-rotate(0deg) drop-shadow(2px 4px 6px pink) !important;
+	filter: hue-rotate(0deg) drop-shadow(2px 4px 6px #8b5cf6) !important;
 }
 
 #prev-bg {
@@ -381,7 +381,7 @@
 }
 
 .prev-bg-icon:hover {
-	filter: hue-rotate(0deg) drop-shadow(2px 4px 6px pink) !important;
+	filter: hue-rotate(0deg) drop-shadow(2px 4px 6px #8b5cf6) !important;
 }
 
 .webm-hidden {

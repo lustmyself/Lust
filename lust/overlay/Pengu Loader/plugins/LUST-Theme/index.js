@@ -7,7 +7,7 @@
 */
 const CONSOLE_STYLE = {
   prefix: "%c Lust ",
-  css: "color: #ffffff; background-color: #f77fbe"
+  css: "color: #ffffff; background-color: #8b5cf6"
 };
 const createLogger = (type) => {
   return (message, ...args) => {

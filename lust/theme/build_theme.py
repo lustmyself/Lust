@@ -961,6 +961,34 @@ def rename_tree(root):
             path.rename(path.with_name(rename(path.name)))
 
 
+# Elaina's pinks, swapped for League's light gold or Lust's purple everywhere they appear.
+COLOR_SWAPS = [
+    ("#fff1f1", "#f0e6d2"),                                   # nav icons and labels
+    ("rgb(255 236 236)", "rgb(240 230 210)"),                 # level XP ring
+    ("rgb(90 27 62 / 20%)", "rgb(59 29 110 / 20%)"),          # lobby background tint
+    ("rgba(248, 169, 201, 0.726)", "rgba(139, 92, 246, 0.726)"),  # ticker
+    ("6px pink)", "6px #8b5cf6)"),                            # glow on wallpaper and audio controls
+    ("3px pink)", "3px #8b5cf6)"),
+    ("#f77fbe", "#8b5cf6"),                                   # console tag
+]
+
+
+def recolor(root):
+    for path in root.rglob("*"):
+        if path.suffix.lower() not in {".css", ".js"} or not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8")
+        swapped = text
+        for old, new in COLOR_SWAPS:
+            swapped = swapped.replace(old, new)
+        if swapped != text:
+            path.write_text(swapped, encoding="utf-8")
+    left = [old for old, _ in COLOR_SWAPS
+            if any(old in p.read_text(encoding="utf-8") for p in root.rglob("*.css"))]
+    if left:
+        sys.exit(f"[theme] colors left: {left}")
+
+
 # Artwork ---------------------------------------------------------------------
 
 VOID_TOP = (18, 10, 36)
@@ -1094,6 +1122,7 @@ def main():
         install_data(theme, data_pkg, version)
         shutil.copy2(data_pkg / "LICENSE.txt", theme / "LICENSE.txt")
         rename_tree(theme)
+        recolor(theme)
 
         leftovers = [str(p.relative_to(theme)) for p in theme.rglob("*")
                      if p.is_file() and p.suffix.lower() in TEXT_SUFFIXES and p.name != "LICENSE.txt"

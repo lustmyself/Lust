@@ -20,7 +20,7 @@
 }
 
 .parties-background {
-	background: linear-gradient(to bottom, rgb(255 255 255 / 26%) 0%, rgba(0,0,0,0) 50%, rgb(90 27 62 / 20%) 100%) !important;
+	background: linear-gradient(to bottom, rgb(255 255 255 / 26%) 0%, rgba(0,0,0,0) 50%, rgb(59 29 110 / 20%) 100%) !important;
 }
 
 .parties-game-section.use-animation > .parties-game-info-panel-bg-container > video {

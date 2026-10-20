@@ -334,6 +334,36 @@ EDITS += [
      "            // The nav item's capture listener already toggled the settings panel\n"),
 ]
 
+# Once Pengu is active, an earlier "could not be activated" report no longer applies:
+# Troubleshooting kept showing it after Lust had recovered by itself.
+PENGU_PY = 'utils/integration/pengu_loader.py'
+EDITS += [
+    (PENGU_PY, "def activate() -> bool:\n",
+     "def _clear_stale_activation_issue() -> None:\n"
+     '    """Pengu is active now: drop an earlier "could not be activated" report."""\n'
+     "    try:\n"
+     "        from utils.core.issue_reporter import remove_issues\n"
+     '        remove_issues(lambda line, fix: "Pengu Loader could not be activated" in line)\n'
+     "    except Exception as e:\n"
+     "        log.debug('Could not clear the old Pengu activation report: %s', e)\n"
+     "\n\n"
+     "def activate() -> bool:\n"),
+    (PENGU_PY,
+     "            log.error('Pengu activation command succeeded, but status is %s.', status.value)\n"
+     "            return False\n"
+     "        return True\n",
+     "            log.error('Pengu activation command succeeded, but status is %s.', status.value)\n"
+     "            return False\n"
+     "        _clear_stale_activation_issue()\n"
+     "        return True\n"),
+    (PENGU_PY,
+     "                log.info('Lust Loader enabled; client restart deferred until the client is ready.')\n"
+     "        return True\n",
+     "                log.info('Lust Loader enabled; client restart deferred until the client is ready.')\n"
+     "        _clear_stale_activation_issue()\n"
+     "        return True\n"),
+]
+
 # Lust Offline's status lives in Lust's tray menu (its own tray icon is hidden)
 EDITS += [
     ('utils/integration/tray_manager.py',

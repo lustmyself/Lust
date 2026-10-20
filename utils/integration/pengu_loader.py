@@ -535,6 +535,15 @@ def get_status() -> PenguStatus:
     return PenguStatus.UNKNOWN
 
 
+def _clear_stale_activation_issue() -> None:
+    """Pengu is active now: drop an earlier "could not be activated" report."""
+    try:
+        from utils.core.issue_reporter import remove_issues
+        remove_issues(lambda line, fix: "Pengu Loader could not be activated" in line)
+    except Exception as e:
+        log.debug('Could not clear the old Pengu activation report: %s', e)
+
+
 def activate() -> bool:
     with _operation_lock:
         _close_loader_menu()
@@ -546,6 +555,7 @@ def activate() -> bool:
         if status is not PenguStatus.ACTIVE:
             log.error('Pengu activation command succeeded, but status is %s.', status.value)
             return False
+        _clear_stale_activation_issue()
         return True
 
 
@@ -940,6 +950,7 @@ def activate_on_start(league_path: Optional[str] = None) -> bool:
                                 else _process_ids(('LeagueClientUx.exe',)))
             if _restart_pending:
                 log.info('Lust Loader enabled; client restart deferred until the client is ready.')
+        _clear_stale_activation_issue()
         return True
 
 

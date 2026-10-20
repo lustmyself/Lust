@@ -686,6 +686,19 @@ PATCHES = [
      '      if (ElainaData.get("Custom-rank")) {\n        window.setTimeout(async () => {\n'
      '          customProfile.customRank();\n          window.customRank = customProfile.customRank;\n'
      '        }, 1e4);\n      }\n', ""),
+    # Turkish (lust/theme/locales/tr-TR.js), and "Follow client language" follows
+    # the language picked in Lust's panel, which Lust's own menus use too.
+    ("index.js", '    { label: "中文", value: "zh-CN" }\n  ];',
+     '    { label: "中文", value: "zh-CN" },\n    { label: "Türkçe", value: "tr-TR" }\n  ];'),
+    ("index.js",
+     '  if (selectedLang && selectedLang !== "client")\n    return selectedLang;\n  return getClientLocale();',
+     '  if (selectedLang && selectedLang !== "client")\n    return selectedLang;\n'
+     '  const lustLanguage = window.LustI18n && window.LustI18n.language;\n'
+     '  if (lustLanguage) {\n'
+     '    const locales = { tr: "tr-TR", ru: "ru-RU", vi: "vi-VN", zh: "zh-CN" };\n'
+     '    return locales[lustLanguage.slice(0, 2)] || "default";\n'
+     '  }\n'
+     '  return getClientLocale();'),
     # Name colors come from the CUSTOMIZE tab now, League's own until a player picks one.
     ("index.js",
      '    if (ElainaData.get("change-nickname-color"))\n      addCss.customNicknameColor();',
@@ -1414,6 +1427,8 @@ def main():
         apply_patches(theme)
         make_art(theme)
         install_data(theme, data_pkg, version)
+        for locale in (HERE / "locales").glob("*.js"):
+            shutil.copy2(locale, theme / "locales" / locale.name)
         shutil.copy2(data_pkg / "LICENSE.txt", theme / "LICENSE.txt")
         rename_tree(theme)
         recolor(theme)

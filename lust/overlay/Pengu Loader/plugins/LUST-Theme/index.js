@@ -360,6 +360,11 @@ function getThemeLocale() {
   const selectedLang = LustData$1.get("Theme-language", "client");
   if (selectedLang && selectedLang !== "client")
     return selectedLang;
+  const lustLanguage = window.LustI18n && window.LustI18n.language;
+  if (lustLanguage) {
+    const locales = { tr: "tr-TR", ru: "ru-RU", vi: "vi-VN", zh: "zh-CN" };
+    return locales[lustLanguage.slice(0, 2)] || "default";
+  }
   return getClientLocale();
 }
 async function haveLocaleFile(langCode) {
@@ -2767,7 +2772,8 @@ async function infoSection() {
     { label: "English", value: "default" },
     { label: "Tiếng Việt", value: "vi-VN" },
     { label: "Русский", value: "ru-RU" },
-    { label: "中文", value: "zh-CN" }
+    { label: "中文", value: "zh-CN" },
+    { label: "Türkçe", value: "tr-TR" }
   ];
   return [
     UI.createRow("Info", [

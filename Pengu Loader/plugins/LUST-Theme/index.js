@@ -3596,7 +3596,7 @@ class LoadCss {
       addCss.customFont();
     if (LustData.get("Custom-Cursor"))
       addCss.customCursor();
-    if (LustData.get("change-nickname-color"))
+    if (false)
       addCss.customNicknameColor();
   };
 }
@@ -3740,53 +3740,6 @@ async function profileSection() {
     ]),
     br(),
     ...await customFontSection(),
-    UI.createCheckBox(
-      `${await getString("theme-settings.change-nickname-color")}`,
-      "nicknamecolor",
-      "nicknamecolorbox",
-      () => {
-        if (!LustData.get("change-nickname-color")) {
-          document.getElementById("nickname-color-css")?.remove();
-        }
-      },
-      true,
-      "change-nickname-color"
-    ),
-    UI.createRowHideable("change-nickname-color-row", [
-      br(),
-      UI.createRow("nickname-color-with-text", [
-        UI.colorPicker("nickname-color", "nickname-color", () => {
-          let input = document.getElementById("nickname-color");
-          LustData.set("nickname-color", input.value);
-          LustData.set("nickname-color-with-opacity", input.value + LustData.get("nickname-opacity"));
-          let color = document.getElementById("nickname-color-text");
-          color.textContent = LustData.get("nickname-color-with-opacity");
-          if (LustData.get("change-nickname-color")) {
-            document.getElementById("nickname-color-css")?.remove();
-            addCss.customNicknameColor();
-          }
-        }),
-        UI.createLabel(LustData.get("nickname-color-with-opacity"), "nickname-color-text"),
-        UI.createLabel(`${await getString("theme-settings.preview")}: `, "nickname-color-preview-label"),
-        UI.createLabel(
-          document.querySelector(".rcp-fe-lol-social .player-name__force-locale-text-direction")?.textContent || "",
-          "nickname-color-preview"
-        )
-      ]),
-      UI.opacitySlider("change-nickname-opacity", await getString("theme-settings.opacity"), "nickname-opacity", async () => {
-        let origin = document.getElementById("change-nickname-opacity");
-        let title = document.getElementById("change-nickname-opacity-title");
-        LustData.set("nickname-opacity", Math.round(origin.value / 100 * 255).toString(16).padStart(2, "0"));
-        LustData.set("nickname-color-with-opacity", LustData.get("nickname-color") + LustData.get("nickname-opacity"));
-        title.textContent = `${await getString("theme-settings.opacity")}: ${origin.value}%`;
-        let color = document.getElementById("nickname-color-text");
-        color.textContent = LustData.get("nickname-color-with-opacity");
-        if (LustData.get("change-nickname-color")) {
-          document.getElementById("nickname-color-css")?.remove();
-          addCss.customNicknameColor();
-        }
-      })
-    ]),
     UI.createCheckBox(
       `${await getString("theme-settings.hide-theme-usage-time")}`,
       "hideusetime",
@@ -4810,6 +4763,7 @@ window.addEventListener("load", async () => {
 function Settings(context) {
   LustData.set("settingsChangenumber", 0);
   mountLustPanelTabs();
+  applyLustColors();
 }
 
 // Lust: theme and plugin settings live in the Lust panel (the LUST item in the
@@ -4817,8 +4771,68 @@ function Settings(context) {
 const LUST_PANEL_TABS = [
   { id: "lust", label: "LUST" },
   { id: "theme", label: "THEME", render: themeSettings, className: "theme_settings" },
-  { id: "plugins", label: "PLUGINS", render: pluginsSettings, className: "plugins_settings" }
+  { id: "plugins", label: "PLUGINS", render: pluginsSettings, className: "plugins_settings" },
+  { id: "customize", label: "CUSTOMIZE", render: customizeSettings, className: "customize_settings", reload: false }
 ];
+
+// Text colors players pick in the CUSTOMIZE tab. Empty means League's own color.
+const LUST_COLORS = [
+  { key: "lust-color-names", label: "Summoner names",
+    selector: "span.player-name__force-locale-text-direction" },
+  { key: "lust-color-lobby-names", label: "Lobby names",
+    selector: ".parties-player-name, .v2-banner-component .player-name, .player-slot__summoner-name" },
+  { key: "lust-color-lobby-header", label: "Lobby header",
+    selector: ".lobby-header-description, .lobby-header-separator, .lobby-header-details" },
+  { key: "lust-color-queue", label: "Queue (finding match)",
+    selector: ".parties-game-search-header-text, .parties-status-card-header-text, .parties-game-search-elapsed, .parties-game-search-status, .parties-status-card-info" }
+];
+function applyLustColors() {
+  let style = document.getElementById("lust-custom-colors");
+  if (!style) {
+    style = document.createElement("style");
+    style.id = "lust-custom-colors";
+    document.head.appendChild(style);
+  }
+  style.textContent = LUST_COLORS
+    .filter((item) => LustData.get(item.key))
+    .map((item) => `${item.selector} { color: ${utils.sanitizeColor(LustData.get(item.key))} !important; }`)
+    .join("\n");
+}
+async function customizeSettings(view) {
+  const list = document.createElement("div");
+  list.className = "lust-customize";
+  LUST_COLORS.forEach((item) => {
+    const row = document.createElement("div");
+    row.className = "lust-customize-row";
+    const label = document.createElement("span");
+    label.textContent = item.label;
+    const picker = document.createElement("input");
+    picker.type = "color";
+    picker.value = LustData.get(item.key) || "#f0e6d2";
+    const state = document.createElement("span");
+    state.className = "lust-customize-state";
+    const showState = () => {
+      state.textContent = LustData.get(item.key) ? LustData.get(item.key) : "League default";
+    };
+    picker.addEventListener("input", () => {
+      LustData.set(item.key, picker.value);
+      showState();
+      applyLustColors();
+    });
+    const reset = document.createElement("lol-uikit-flat-button");
+    reset.textContent = "Default";
+    reset.addEventListener("click", () => {
+      LustData.set(item.key, "");
+      picker.value = "#f0e6d2";
+      showState();
+      applyLustColors();
+    });
+    showState();
+    row.append(label, picker, state, reset);
+    list.appendChild(row);
+  });
+  view.appendChild(list);
+}
 const LUST_PANEL_CSS = `
   .lust-panel-tabs { display: flex; width: 100%; margin: 4px 0 12px; border-bottom: 1px solid #785a2866; }
   .lust-panel-tab { flex: 1; padding: 6px 0; text-align: center; cursor: pointer; color: #a09b8c;
@@ -4828,10 +4842,18 @@ const LUST_PANEL_CSS = `
   [data-lust-tab]:not([data-lust-tab="lust"]) > :not(.lust-keep) { display: none !important; }
   .lust-panel-view { display: none !important; width: 100%; height: 60vh; }
   [data-lust-tab="theme"] > .lust-panel-view[data-tab="theme"],
-  [data-lust-tab="plugins"] > .lust-panel-view[data-tab="plugins"] { display: block !important; }
+  [data-lust-tab="plugins"] > .lust-panel-view[data-tab="plugins"],
+  [data-lust-tab="customize"] > .lust-panel-view[data-tab="customize"] { display: block !important; }
+  .lust-panel-view[data-tab="customize"] { height: auto; }
   #lust-settings-panel[data-lust-tab="theme"] #lust-settings-flyout,
   #lust-settings-panel[data-lust-tab="plugins"] #lust-settings-flyout { min-width: 560px !important; max-width: 560px !important; }
   .lust-panel-reload { display: block; width: 220px; margin: 14px auto 6px; }
+  .lust-customize { display: flex; flex-direction: column; gap: 10px; padding: 4px 2px 8px; }
+  .lust-customize-row { display: grid; grid-template-columns: 1fr 36px 96px 80px; align-items: center; gap: 8px;
+    color: #cdbe91; font: 13px "Beaufort for LOL", serif; }
+  .lust-customize-row input[type="color"] { width: 36px; height: 24px; padding: 0; border: 1px solid #785a28;
+    background: none; cursor: pointer; }
+  .lust-customize-state { color: #a09b8c; font-size: 11px; }
 `;
 function addLustPanelTabs(panel) {
   const links = panel.querySelector(".settings-links");
@@ -4857,6 +4879,8 @@ function addLustPanelTabs(panel) {
     if (view && !view.dataset.rendered) {
       view.dataset.rendered = "true";
       await tab.render(view);
+      if (tab.reload === false)
+        return;
       const reload = document.createElement("lol-uikit-flat-button");
       reload.className = "lust-panel-reload";
       reload.textContent = "Reload client to apply";

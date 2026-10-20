@@ -98,6 +98,7 @@ class LobbyRevealThreadTests(unittest.TestCase):
         payload = broadcaster.broadcast_lobby_reveal.call_args[0][0]
         self.assertTrue(payload["active"])
         self.assertEqual(payload["players"][0]["riotId"], "One#EUW")
+        self.assertEqual(payload["players"][0]["puuid"], "p1")
         self.assertEqual(payload["multiUrl"], "https://www.op.gg/multisearch/euw?summoners=One%23EUW")
 
         thread._tick()  # unchanged team is not re-sent right away

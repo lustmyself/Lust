@@ -44,6 +44,12 @@ python lust/theme/build_theme.py ElainaV4.zip elaina-theme-data-X.Y.Z.tgz
 `offline/` holds Lust Offline, a renamed Deceive (GPL-3.0) that Lust uses to
 start League so players can appear offline. See `offline/README.md`.
 
+## Lobby Reveal and reveal updates
+
+Lobby Reveal follows [reveal](https://github.com/steele123/reveal) with its own
+code. `.github/workflows/reveal-watch.yml` checks reveal daily and opens an issue
+when it has changes past `reveal_version.txt`; port them, then update that file.
+
 ## When an automatic update fails
 
 The workflow opens an issue and releases nothing. Usually Rose changed code

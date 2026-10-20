@@ -1,0 +1,53 @@
+# Lobby Reveal follows steele123/reveal (Rust) with its own Python/JS code, so its
+# changes can't be merged automatically. Once a day this compares reveal with the
+# commit in lust/reveal_version.txt and opens an issue listing what to port.
+# After porting, set reveal_version.txt to the new commit.
+name: Reveal watch
+
+on:
+  schedule:
+    - cron: "41 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  REVEAL_REPO: steele123/reveal
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Open an issue when reveal has changes to port
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          known=$(tr -d '[:space:]' < lust/reveal_version.txt)
+          latest=$(gh api "repos/$REVEAL_REPO/commits/HEAD" --jq .sha)
+          if [ "$known" = "$latest" ]; then
+            echo "Lobby Reveal is up to date with $REVEAL_REPO ($latest)"
+            exit 0
+          fi
+
+          title="Lobby Reveal: port reveal changes up to ${latest:0:7}"
+          if [ "$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"$title\" in:title" --json number --jq length)" != "0" ]; then
+            echo "Issue already open: $title"
+            exit 0
+          fi
+
+          commits=$(gh api "repos/$REVEAL_REPO/compare/$known...$latest" \
+            --jq '.commits[] | "- [`\(.sha[0:7])`](\(.html_url)) \(.commit.message | split("\n")[0])"')
+          body=$(printf '%s\n\n%s\n\n%s\n\n%s\n' \
+            "[$REVEAL_REPO](https://github.com/$REVEAL_REPO) has changes since the version Lobby Reveal follows:" \
+            "$commits" \
+            "Port what applies to \`lust/overlay/lcu/features/lobby_reveal.py\`, \`lust/overlay/threads/core/lobby_reveal_thread.py\` and \`lust/overlay/Pengu Loader/plugins/LUST-LobbyReveal/index.js\`." \
+            "Then set \`lust/reveal_version.txt\` to \`$latest\` and close this issue.")
+          gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body "$body"

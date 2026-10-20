@@ -48,6 +48,8 @@ class RevealedPlayer:
             "gameName": self.game_name,
             "gameTag": self.game_tag,
             "riotId": self.riot_id,
+            # The plugin looks up rank, recent games and mains with it
+            "puuid": self.puuid,
             "position": self.position,
             "opggUrl": build_opgg_profile_url(self, region) if region else "",
         }

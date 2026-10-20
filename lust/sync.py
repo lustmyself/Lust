@@ -124,6 +124,15 @@ def patch_core_dll(tree):
         data = data.replace(old.encode("utf-16-le"), swap(old).encode("utf-16-le"))
     data = patch_welcome_popup(data)
     data = patch_loading_screen(data)
+    # Same-length ASCII fixes: the command palette's "Lust" entry opened Rose's GitHub
+    # (Lust's repo URL is one byte longer, so its owner; a URL's trailing spaces are
+    # ignored), and the debug path named ROSE-Pengu
+    for old, new in ((b'window.open("https://github.com/Alban1911/Rose","_blank")',
+                      b'window.open("https://github.com/lustmyself    ","_blank")'),
+                     (b"\\ROSE-Pengu\\", b"\\LUST-Pengu\\")):
+        if len(old) != len(new):
+            raise SystemExit("[sync] a core.dll patch changes the file's length")
+        data = data.replace(old, new)
     dll.write_bytes(data)
 
 

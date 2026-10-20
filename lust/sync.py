@@ -669,6 +669,23 @@ EDITS += [
 ]
 
 
+# Silent updates (launcher/lust_autoupdate.py): a package downloaded in the background is
+# installed as it is, without downloading it again
+EDITS += [
+    ("launcher/update/update_sequence.py",
+     "        status_callback(f\"Downloading update {remote_version or ''}\")\n"
+     "        if not self.downloader.download_update(\n",
+     "        from launcher.lust_autoupdate import is_ready\n"
+     "        predownloaded = is_ready(zip_path)\n"
+     "        if predownloaded:\n"
+     "            status_callback(\"Update downloaded in the background\")\n"
+     "        else:\n"
+     "            status_callback(f\"Downloading update {remote_version or ''}\")\n"
+     "        if not predownloaded and not self.downloader.download_update(\n"),
+    ("Lust.spec", "    'launcher.core',\n", "    'launcher.core',\n    'launcher.lust_autoupdate',\n"),
+]
+
+
 def apply_edits(tree):
     failures = []
     for rel, old, new in EDITS:

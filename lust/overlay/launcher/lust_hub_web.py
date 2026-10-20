@@ -131,6 +131,15 @@ PAGE = r"""<!doctype html>
   .round:hover { transform: scale(1.08); }
   .round:disabled { opacity: .4; cursor: default; transform: none; }
 
+  .auto { margin-left: auto; display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 12px;
+    background: #1d1a29; color: var(--sub); font-size: 12px; font-weight: 600; cursor: pointer; }
+  .auto:hover { background: #2a2540; color: var(--text); }
+  .switch { position: relative; width: 34px; height: 18px; border-radius: 9px; background: #3c3850; transition: background .15s; }
+  .switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%;
+    background: #a3a0ad; transition: left .15s, background .15s; }
+  .switch.on { background: var(--accent); }
+  .switch.on::after { left: 18px; background: #fff; }
+  .ver .round { margin-left: 0; }
   .themes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
   .theme { background: var(--card); border-radius: 14px; padding: 7px 7px 10px; cursor: pointer; border: 2px solid transparent;
     transition: transform .15s, border-color .15s; }
@@ -208,6 +217,9 @@ PAGE = r"""<!doctype html>
     <div class="card ver">
       <div class="mark">L</div>
       <div class="t"><b>Lust __VERSION__</b><span id="v-sub"></span><ul id="news"></ul></div>
+      <div class="auto" data-act="auto_update" title="Yeni sürümler arka planda iner, League kapalıyken kurulur">
+        <span>Otomatik güncelle</span><i class="switch" id="auto-upd"></i>
+      </div>
       <button class="round" id="v-btn" title="">__sync__</button>
     </div>
   </section>
@@ -316,7 +328,9 @@ function render(s) {
   $("a-restart").classList.toggle("off", !s.running);
   $("quit-t").textContent = Date.now() - quitArmed < 3000 ? "Tekrar tıkla" : "Lust'ı kapat";
 
-  $("v-sub").textContent = s.update_available ? `Yeni sürüm ${s.latest}` : `Güncel · son kontrol ${ago(s.checked_at)}`;
+  $("v-sub").textContent = s.pending ? `Lust ${s.pending} indirildi · League kapalıyken kurulacak`
+    : s.update_available ? `Yeni sürüm ${s.latest}` : `Güncel · son kontrol ${ago(s.checked_at)}`;
+  $("auto-upd").classList.toggle("on", !!s.auto_update);
   $("v-sub").style.color = s.update_available ? "var(--accent)" : "";
   $("v-btn").innerHTML = s.update_available ? ICON_DOWNLOAD : ICON_SYNC;
   $("v-btn").title = s.update_available ? "Güncelle" : "Şimdi kontrol et";

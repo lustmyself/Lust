@@ -257,8 +257,13 @@ class UpdateSequence:
         zip_name = asset.get("name") or "update.zip"
         zip_path = updates_root / zip_name
         
-        status_callback(f"Downloading update {remote_version or ''}")
-        if not self.downloader.download_update(
+        from launcher.lust_autoupdate import is_ready
+        predownloaded = is_ready(zip_path)
+        if predownloaded:
+            status_callback("Update downloaded in the background")
+        else:
+            status_callback(f"Downloading update {remote_version or ''}")
+        if not predownloaded and not self.downloader.download_update(
             download_url,
             zip_path,
             status_callback,

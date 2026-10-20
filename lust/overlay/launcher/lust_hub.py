@@ -163,6 +163,26 @@ def _news():
     return {"version": data.get("version", ""), "items": data.get(LANG) or data.get("en") or []}
 
 
+def _auto_update_on() -> bool:
+    from launcher import lust_autoupdate
+    return lust_autoupdate.enabled()
+
+
+def _auto_update_pending():
+    from launcher import lust_autoupdate
+    return lust_autoupdate.pending()
+
+
+def _toggle_auto_update() -> str:
+    from launcher import lust_autoupdate
+    on = not lust_autoupdate.enabled()
+    lust_autoupdate.set_enabled(on)
+    _cache.pop("auto_update", None)
+    if on:
+        threading.Thread(target=_check_release, daemon=True).start()
+    return "Otomatik güncelleme açık" if on else "Otomatik güncelleme kapalı: yeni sürümde sorulacak"
+
+
 def _rose_status():
     from launcher import lust_rose
     return lust_rose.status()
@@ -222,6 +242,8 @@ def snapshot() -> dict:
         news=_cached("news", 300, _news) or {"version": "", "items": []},
         spotify=_cached("spotify", 5, _spotify_status) or {},
         rose=_cached("rose", 20, _rose_status) or {},
+        auto_update=_cached("auto_update", 5, _auto_update_on),
+        pending=_auto_update_pending(),
     )
     state["detail"] = _translate(state["detail"])
     state["status"] = _translate(state["status"])
@@ -341,6 +363,7 @@ ACTIONS: dict[str, Callable[[dict], str]] = {
     "spotify_apply": lambda body: _spotify_apply(str(body.get("theme") or "")),
     "spotify_auto": lambda body: _spotify_auto(),
     "rose_uninstall": lambda body: _rose_uninstall(),
+    "auto_update": lambda body: _toggle_auto_update(),
 }
 
 
@@ -353,6 +376,8 @@ def _check_release() -> None:
         release = client.get_latest_release()
         if release:
             _set(latest=client.get_release_version(release).lstrip("vV"), checked_at=int(time.time()))
+            from launcher import lust_autoupdate
+            lust_autoupdate.on_release(client, release, APP_VERSION)
     except Exception as exc:  # noqa: BLE001
         log.debug(f"[Hub] Release check failed: {exc}")
 
@@ -582,6 +607,10 @@ class HubDialog:
         global _prompt_answer
         if take_update_acceptance():
             log.info(f"[Hub] Update to {remote_version} accepted in the hub before restarting")
+            return True
+        from launcher import lust_autoupdate
+        if lust_autoupdate.enabled():
+            log.info(f"[Hub] Auto update is on: installing {remote_version} without asking")
             return True
         _prompt_event.clear()
         _prompt_answer = None

@@ -1,6 +1,7 @@
 {
-  "version": "1.4.9.22",
+  "version": "1.4.9.23",
   "en": [
+    "Silent updates: new versions download in the background and install by themselves while League is closed (switch it off in the desktop hub)",
     "Updates are found even when GitHub's hourly limit is used up",
     "Lust Offline remembers your status as soon as you change it",
     "Spotify themes ask before Spotify restarts",
@@ -9,6 +10,7 @@
     "With Rose installed too, the desktop hub says so and opens Rose's uninstaller in one click"
   ],
   "tr": [
+    "Sessiz güncelleme: yeni sürümler arka planda iner, League kapalıyken kendiliğinden kurulur (masaüstü merkezinden kapatılabilir)",
     "GitHub'ın saatlik sınırı dolsa bile güncellemeler bulunuyor",
     "Lust Offline durumunu değiştirdiğin an hatırlıyor",
     "Spotify teması uygulanırken Spotify'ı yeniden başlatmadan önce soruyor",

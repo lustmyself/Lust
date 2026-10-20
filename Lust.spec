@@ -275,6 +275,7 @@ hiddenimports = [
     # Launcher module
     'launcher',
     'launcher.core',
+    'launcher.lust_autoupdate',
     'launcher.lust_hub_server',
     'launcher.lust_hub_shell',
     'launcher.lust_hub_web',

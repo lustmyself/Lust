@@ -477,6 +477,22 @@ PATCHES = [
     ("index.js",
      'function Settings(context) {\n  ElainaData.set("settingsChangenumber", 0);\n  settingsUtils(context, structure);\n}\n',
      LUST_PANEL_JS),
+    # The play button, Find Match and the queue card keep League's own colors.
+    ("config/filters.js", '"PlayButton"        : "sepia(1) sepia(1) sepia(1)",',
+     '"PlayButton"        : "none",'),
+    ("config/filters.js", '"find-match-button" : "sepia(1) sepia(1) sepia(1)",',
+     '"find-match-button" : "none",'),
+    ("config/filters.js", '"PartiesStatusCard" : "sepia(1) sepia(1)",',
+     '"PartiesStatusCard" : "none",'),
+    ("assets/styles/themes/rcp-fe-lol-parties.css",
+     ".parties-game-search-info {\n\tcolor:#000000!important\n}\n\n"
+     ".parties-game-search-elapsed {\n\tcolor: white!important;\n"
+     "\ttext-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black !important;\n}\n", ""),
+    ("assets/styles/themes/rcp-fe-lol-parties.css",
+     ".parties-status-card-bg-container video {\n"
+     "\tfilter: saturate(0.5) brightness(1) invert(1) hue-rotate(27deg) !important;\n}\n", ""),
+    ("assets/styles/themes/rcp-fe-lol-parties.css",
+     ":host .parties-status-card.open {\n\tfilter: hue-rotate(240deg) !important;\n}\n", ""),
     # Lust updates the theme itself: no Elaina changelog or update popup.
     ("index.js", "    const checkUpdate = new CheckUpdate();\n    checkUpdate.main();\n", ""),
     # No automation that plays for the player: auto find queue and honor skip.

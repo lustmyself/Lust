@@ -29,10 +29,10 @@ export default {
 
     "EventShop"         : "brightness(0.4)",
 
-    "PlayButton"        : "sepia(1) sepia(1) sepia(1)",
+    "PlayButton"        : "none",
 
-    "find-match-button" : "sepia(1) sepia(1) sepia(1)",
+    "find-match-button" : "none",
 
-    "PartiesStatusCard" : "sepia(1) sepia(1)",
+    "PartiesStatusCard" : "none",
     //______________________________________________________________________________//
 }

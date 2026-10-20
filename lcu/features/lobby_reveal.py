@@ -55,9 +55,10 @@ class RevealedPlayer:
     def riot_id(self) -> str:
         return f"{self.game_name}#{self.game_tag}" if self.game_tag else self.game_name
 
-    def to_payload(self, region: str, platform: str = "") -> dict:
+    def to_payload(self, region: str, platform: str = "", poro_region: str = "") -> dict:
         return {
             "uggUrl": build_ugg_profile_url(self, platform) if platform else "",
+            "poroUrl": build_porofessor_url([self], poro_region),
             "gameName": self.game_name,
             "gameTag": self.game_tag,
             "riotId": self.riot_id,

@@ -79,7 +79,7 @@ class LobbyRevealThread(threading.Thread):
         payload = {
             "active": True,
             "region": self._region,
-            "players": [p.to_payload(self._region, self._platform) for p in players],
+            "players": [p.to_payload(self._region, self._platform, self._poro_region) for p in players],
             "multiUrl": build_opgg_multi_url(players, self._region),
             "poroUrl": build_porofessor_url(players, self._poro_region),
             "uggUrl": build_ugg_multi_url(players, self._platform),

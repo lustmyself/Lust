@@ -28,6 +28,7 @@
   const CLICK_ACTIONS = {
     opgg: "Open OP.GG profile",
     ugg: "Open U.GG profile",
+    porofessor: "Open Porofessor",
     details: "Show details",
   };
   const AUTO_OPEN_DELAYS = [0, 3, 6, 10];
@@ -671,7 +672,12 @@
       const role = ROLE_LABELS[player.position];
       if (role) top.appendChild(el("span", "lust-reveal-role", role));
 
-      const profileUrl = settings.click === "ugg" ? player.uggUrl : settings.click === "opgg" ? player.opggUrl : "";
+      const profileSites = {
+        opgg: [player.opggUrl, "op.gg"],
+        ugg: [player.uggUrl, "u.gg"],
+        porofessor: [player.poroUrl, "Porofessor"],
+      };
+      const [profileUrl, siteName] = profileSites[settings.click] || ["", ""];
       const name = el(profileUrl || settings.click === "details" ? "a" : "span", "lust-reveal-name");
       name.appendChild(document.createTextNode(player.gameName || ""));
       if (player.gameTag) name.appendChild(el("span", "lust-reveal-tag", `#${player.gameTag}`));
@@ -679,7 +685,7 @@
         name.href = profileUrl;
         name.target = "_blank";
         name.rel = "noreferrer";
-        name.title = `${player.riotId} on ${settings.click === "ugg" ? "u.gg" : "op.gg"}`;
+        name.title = `${player.riotId} on ${siteName}`;
       } else if (settings.click === "details") {
         name.href = "#";
         name.title = "Show details";

@@ -142,6 +142,7 @@ class LobbyRevealThreadTests(unittest.TestCase):
         self.assertTrue(payload["active"])
         self.assertEqual(payload["players"][0]["riotId"], "One#EUW")
         self.assertEqual(payload["players"][0]["puuid"], "p1")
+        self.assertEqual(payload["players"][0]["poroUrl"], "https://porofessor.gg/pregame/euw/One-EUW")
         self.assertEqual(payload["multiUrl"], "https://www.op.gg/multisearch/euw?summoners=One%23EUW")
         self.assertEqual(payload["poroUrl"], "https://porofessor.gg/pregame/euw/One-EUW")
         self.assertEqual(payload["uggUrl"], "https://u.gg/lol/multisearch?region=euw1&summoners=One-EUW")

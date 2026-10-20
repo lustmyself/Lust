@@ -709,6 +709,10 @@ def run_league_unlock(args: Optional[argparse.Namespace] = None,
 
 def main() -> None:
     """Program entry point that prepares and launches Lust."""
+    # The desktop hub window runs as a second Lust process (pywebview needs a main thread)
+    from launcher.lust_hub_shell import main_if_window
+    if main_if_window():
+        return
     args = setup_arguments()
     # Update before checking the DLL: a Lust that refuses to start still
     # receives the version that fixes its check

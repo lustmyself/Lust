@@ -12,6 +12,7 @@ with Windows, restart Lust and close Lust.
 
 from __future__ import annotations
 
+import atexit
 import ctypes
 import json
 import os
@@ -117,8 +118,8 @@ def toast(text: str) -> None:
 
 
 def window_visible() -> bool:
-    from launcher import lust_hub_window
-    return lust_hub_window.visible()
+    from launcher import lust_hub_server, lust_hub_window
+    return lust_hub_server.page_open() or lust_hub_window.visible()
 
 
 def set_ready(ready: bool) -> None:
@@ -379,10 +380,86 @@ def run_action(name: str, body: Optional[dict] = None) -> str:
 
 # ---- window ----
 
+_shell: Optional[subprocess.Popen] = None
+SHELL_START_S = 12.0
+
+
+def _shell_window() -> int:
+    """The WebView2 window of the running shell process, if it shows one."""
+    if not _shell or _shell.poll() is not None:
+        return 0
+    user32 = ctypes.windll.user32
+    found = []
+    pid = ctypes.c_ulong()
+
+    @ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_void_p, ctypes.c_void_p)
+    def check(hwnd, _):
+        user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+        if pid.value == _shell.pid and user32.IsWindowVisible(hwnd):
+            found.append(hwnd)
+            return False
+        return True
+
+    user32.EnumWindows(check, 0)
+    return found[0] if found else 0
+
+
+def _open_web() -> bool:
+    """The WebView2 window (a second Lust process, see lust_hub_shell). False when it can't show."""
+    global _shell
+    from launcher import lust_hub_server
+    from launcher.lust_hub_shell import ARG
+    if not lust_hub_server.start():
+        return False
+    hwnd = _shell_window()
+    if hwnd:
+        from launcher.lust_hub_window import _in_game
+        if not _in_game():
+            ctypes.windll.user32.ShowWindow(hwnd, 9)  # SW_RESTORE
+            ctypes.windll.user32.SetForegroundWindow(hwnd)
+        return True
+    if getattr(sys, "frozen", False):
+        command = [sys.executable, ARG, lust_hub_server.url()]
+    else:
+        from utils.core.paths import get_app_dir
+        command = [sys.executable, str(get_app_dir() / "main.py"), ARG, lust_hub_server.url()]
+    try:
+        _shell = subprocess.Popen(command, close_fds=True,
+                                  creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    except OSError as exc:
+        log.warning(f"[Hub] Could not start the hub window: {exc}")
+        return False
+    deadline = time.time() + SHELL_START_S
+    while time.time() < deadline:
+        if lust_hub_server.page_open():
+            return True
+        if _shell.poll() is not None:
+            log.warning(f"[Hub] The hub window closed at once (exit {_shell.returncode}); using the basic window")
+            return False
+        time.sleep(0.1)
+    return _shell.poll() is None
+
+
+def _close_shell() -> None:
+    if _shell and _shell.poll() is None:
+        _shell.terminate()
+
+
+atexit.register(_close_shell)
+
+
 def open_window() -> bool:
-    """Show the hub window (raise it when it's already open). False when it can't be shown."""
+    """Show the hub window (raise it when it's already open). False when it can't be shown.
+
+    The WebView2 window first; Lust's basic Tk window when WebView2 can't start.
+    """
     if sys.platform != "win32":
         return False
+    try:
+        if _open_web():
+            return True
+    except Exception as exc:  # noqa: BLE001
+        log.warning(f"[Hub] Hub window failed: {exc}")
     try:
         from launcher import lust_hub_window
         return lust_hub_window.show()

@@ -248,6 +248,9 @@ const LUST_TR = {
   "This file can't be read": "Bu dosya okunamıyor",
   "Pick the champion": "Şampiyonu seç",
   "Change the champion": "Şampiyonu değiştir",
+  "Welcome": "Hoş geldin",
+  "Lust is ready": "Lust hazır",
+  "Your status, look, skins and plugins, all in one place.": "Durumun, görünümün, skinlerin ve eklentilerin tek yerde.",
   "On": "Açık",
   "Off": "Kapalı"
 };
@@ -277,6 +280,7 @@ async function lustThemeSections(page, sections) {
 }
 const LUST_HUB_TABS = [
   { id: "status", label: "Status", icon: "status", render: async (page) => {
+    lustHero(page);
     await newsCard(page);
     await statusSection(lustSection(page, lustTr("Status")));
   } },
@@ -506,6 +510,19 @@ async function customSkinsTab(page) {
     refresh();
   });
   await refresh();
+}
+// The welcome card on top of the Status tab
+function lustHero(page) {
+  const hero = document.createElement("div");
+  hero.className = "lust-hero";
+  const small = document.createElement("small");
+  small.textContent = lustTr("Welcome");
+  const title = document.createElement("b");
+  title.textContent = lustTr("Lust is ready");
+  const sub = document.createElement("span");
+  sub.textContent = lustTr("Your status, look, skins and plugins, all in one place.");
+  hero.append(small, title, sub);
+  page.appendChild(hero);
 }
 // Rose's own settings (injection, game path, mods) keep their panel.
 function coreTab(section) {
@@ -864,6 +881,46 @@ const LUST_PANEL_CSS = `
   .lust-skin-toggle.on { background: #a78bfa; }
   .lust-skin-toggle.on::after { left: 21px; background: #f0e6d2; }
   .lust-skin-toggle.off-limits { opacity: .4; cursor: default; }
+  /* Lust hub, app style: an icon rail whose tiles grow under the mouse, rounded cards */
+  #lust-hub { width: min(920px, 94vw); background: #16141f; border: 1px solid #2e2a3d; border-radius: 20px;
+    overflow: hidden; box-shadow: 0 24px 60px rgba(0, 0, 0, .6); }
+  .lust-hub-side { flex: 0 0 76px; align-items: center; gap: 12px; padding: 18px 0; background: #100e17; border-right: 1px solid #1c1926; }
+  .lust-hub-logo { width: 44px; height: 44px; padding: 0; margin-bottom: 6px; border-radius: 14px; display: grid; place-items: center;
+    background: linear-gradient(135deg, #7c3aed, #db2777); color: #fff; font: 800 20px Georgia, serif; letter-spacing: 0;
+    box-shadow: 0 6px 18px rgba(124, 58, 237, .35); }
+  .lust-hub-tab { position: relative; width: 44px; height: 44px; padding: 0; justify-content: center; border-left: 0; border-radius: 13px;
+    background: #1d1a29; color: #a3a0ad; transition: transform .18s cubic-bezier(.3, 1.6, .5, 1), background .15s, color .15s; }
+  .lust-hub-tab svg { width: 20px; height: 20px; color: inherit; }
+  .lust-hub-tab:hover { transform: scale(1.18); background: #2a2540; color: #f0eef5; }
+  .lust-hub-tab.active { background: linear-gradient(135deg, #7c3aed, #a78bfa); color: #fff; border-left-color: transparent;
+    box-shadow: 0 6px 16px rgba(124, 58, 237, .4); }
+  .lust-hub-tab.active svg { color: #fff; }
+  .lust-hub-tab::after { content: attr(data-label); position: absolute; left: 56px; top: 50%; padding: 5px 10px; border-radius: 8px;
+    background: #2a2540; color: #f0eef5; font-size: 12px; white-space: nowrap; opacity: 0; pointer-events: none; z-index: 5;
+    transform: translate(-6px, -50%); transition: .15s; }
+  .lust-hub-tab:hover::after { opacity: 1; transform: translate(0, -50%); }
+  .lust-hub-main { background: #16141f; padding: 16px 26px 24px; }
+  .lust-hub-main::-webkit-scrollbar-thumb { background: #2e2a3d; border-radius: 8px; }
+  .lust-hub-heading { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; color: #f0eef5; font: 600 17px "Spiegel", "Arial", sans-serif; }
+  .lust-hub-version { margin: 0; padding: 3px 10px; border-radius: 99px; background: #211e2d; border: 1px solid #2e2a3d; color: #a3a0ad; font-size: 11px; font-weight: 400; }
+  .lust-hub-close { top: 16px; right: 18px; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; }
+  .lust-hub-close:hover { background: #c42b4a; color: #fff; }
+  .lust-hero { position: relative; overflow: hidden; margin-bottom: 14px; padding: 18px 20px; border-radius: 18px; color: #fff;
+    background: linear-gradient(120deg, #7c3aed 0%, #a21caf 55%, #db2777 100%); }
+  .lust-hero::after { content: ""; position: absolute; width: 220px; height: 220px; right: -60px; top: -90px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 255, 255, .25), transparent 70%); }
+  .lust-hero small { display: block; opacity: .85; font-size: 12px; }
+  .lust-hero b { display: block; margin: 2px 0 4px; font: 600 22px "Spiegel", "Arial", sans-serif; }
+  .lust-hero span { opacity: .9; font-size: 12px; }
+  .lust-hub-section, #lust-hub .theme-settings-section { margin: 0 0 12px; padding: 14px 16px; border-radius: 14px;
+    background: #211e2d; border: 1px solid transparent; }
+  .lust-hub-title, #lust-hub .theme-settings-section-title { border-bottom: 0; padding-bottom: 0; margin-bottom: 10px;
+    color: #a3a0ad; font: 600 11.5px "Spiegel", "Arial", sans-serif; letter-spacing: .5px; }
+  .lust-news { border-radius: 14px; border-color: #4b3f73; background: #2a2340; }
+  .lust-skin-row { border-radius: 12px; background: #1d1a29; border-color: transparent; transition: transform .15s, background .15s; }
+  .lust-skin-row:hover { transform: translateY(-2px); background: #262236; }
+  .lust-asset-row { border-radius: 12px; border-color: #2e2a3d; }
+  .lust-hub-advanced { border-top: 0; }
   .lust-customize { display: flex; flex-direction: column; gap: 10px; padding: 4px 2px 8px; }
   .lust-customize-row { display: grid; grid-template-columns: 1fr 36px 96px 80px; align-items: center; gap: 8px;
     color: #cdbe91; font: 13px "Beaufort for LOL", serif; }
@@ -890,7 +947,7 @@ function openLustHub() {
   side.className = "lust-hub-side";
   const logo = document.createElement("div");
   logo.className = "lust-hub-logo";
-  logo.textContent = "LUST";
+  logo.textContent = "L";
   side.appendChild(logo);
   const main = document.createElement("div");
   main.className = "lust-hub-main";
@@ -900,8 +957,17 @@ function openLustHub() {
   close.title = lustTr("Close");
   close.addEventListener("click", closeLustHub);
   main.appendChild(close);
+  // The page's title and Lust's version above every tab
+  const heading = document.createElement("div");
+  heading.className = "lust-hub-heading";
+  const headingTitle = document.createElement("span");
+  const version = document.createElement("span");
+  version.className = "lust-hub-version";
+  heading.append(headingTitle, version);
+  main.appendChild(heading);
   const select = async (tab) => {
     lustHubTab = tab.id;
+    headingTitle.textContent = lustTr(tab.label);
     side.querySelectorAll(".lust-hub-tab").forEach((item) => item.classList.toggle("active", item.dataset.tab === tab.id));
     main.querySelectorAll(".lust-hub-page").forEach((page) => page.classList.toggle("active", page.dataset.tab === tab.id));
     main.scrollTop = 0;
@@ -926,7 +992,7 @@ function openLustHub() {
     item.className = "lust-hub-tab";
     item.dataset.tab = tab.id;
     item.innerHTML = lustHubIcon(tab.icon);
-    item.appendChild(document.createTextNode(lustTr(tab.label)));
+    item.dataset.label = lustTr(tab.label);
     item.addEventListener("click", () => select(tab));
     side.appendChild(item);
     const page = document.createElement("div");
@@ -934,12 +1000,9 @@ function openLustHub() {
     page.dataset.tab = tab.id;
     main.appendChild(page);
   });
-  const version = document.createElement("div");
-  version.className = "lust-hub-version";
   fetch("//plugins/LUST-News/whats-new.json").then((r) => r.json()).then((news) => {
     version.textContent = `Lust ${news.version}`;
   }).catch(() => {});
-  side.appendChild(version);
   hub.append(side, main);
   backdrop.appendChild(hub);
   document.body.appendChild(backdrop);

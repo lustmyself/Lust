@@ -596,6 +596,33 @@ EDITS += [
 ]
 
 
+# Desktop hub in WebView2 (launcher/lust_hub_shell.py): Lust.exe --lust-hub-window <url> shows it
+EDITS += [
+    ('main/__init__.py',
+     '    """Program entry point that prepares and launches Lust."""\n    args = setup_arguments()\n',
+     '    """Program entry point that prepares and launches Lust."""\n'
+     '    # The desktop hub window runs as a second Lust process (pywebview needs a main thread)\n'
+     '    from launcher.lust_hub_shell import main_if_window\n'
+     '    if main_if_window():\n'
+     '        return\n'
+     '    args = setup_arguments()\n'),
+    ('requirements.txt', 'requests==2.31.0\n', 'requests==2.31.0\npywebview==6.2.1\n'),
+    ('Lust.spec', "    'launcher.core',\n",
+     "    'launcher.core',\n    'launcher.lust_hub_server',\n    'launcher.lust_hub_shell',\n"
+     "    'launcher.lust_hub_web',\n    'webview',\n    'webview.platforms.edgechromium',\n"
+     "    'webview.platforms.winforms',\n    'clr',\n    'clr_loader',\n"),
+    ('Lust.spec', "# Include the source-built Pengu Loader runtime used for Lust activation/deactivation\n",
+     "# pywebview's WebView2 DLLs for the desktop hub window\n"
+     "try:\n"
+     "    webview_datas = collect_data_files('webview')\n"
+     "    datas += webview_datas\n"
+     "    print(f\"[OK] Collected {len(webview_datas)} pywebview data files\")\n"
+     "except Exception as e:\n"
+     "    print(f\"[WARNING] Could not collect pywebview data files: {e}\")\n\n"
+     "# Include the source-built Pengu Loader runtime used for Lust activation/deactivation\n"),
+]
+
+
 def apply_edits(tree):
     failures = []
     for rel, old, new in EDITS:

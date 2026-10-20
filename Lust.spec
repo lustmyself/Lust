@@ -89,6 +89,14 @@ try:
 except Exception as e:
     print(f"[WARNING] Could not collect Pillow data files: {e}")
 
+# pywebview's WebView2 DLLs for the desktop hub window
+try:
+    webview_datas = collect_data_files('webview')
+    datas += webview_datas
+    print(f"[OK] Collected {len(webview_datas)} pywebview data files")
+except Exception as e:
+    print(f"[WARNING] Could not collect pywebview data files: {e}")
+
 # Include the source-built Pengu Loader runtime used for Lust activation/deactivation
 # Runtime-generated files (logs, per-user state) must be excluded so they don't
 # leak local test data into the shipped installer.
@@ -267,6 +275,14 @@ hiddenimports = [
     # Launcher module
     'launcher',
     'launcher.core',
+    'launcher.lust_hub_server',
+    'launcher.lust_hub_shell',
+    'launcher.lust_hub_web',
+    'webview',
+    'webview.platforms.edgechromium',
+    'webview.platforms.winforms',
+    'clr',
+    'clr_loader',
     'pengu.communication.lust_custom_skins',
     'launcher.lust_hub',
     'launcher.lust_hub_window',

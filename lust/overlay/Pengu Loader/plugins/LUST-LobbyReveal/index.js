@@ -33,6 +33,43 @@
   };
   const AUTO_OPEN_DELAYS = [0, 3, 6, 10];
 
+  // Turkish for this plugin's own texts; other languages go through LUST-I18n
+  const TR = {
+    "Open OP.GG profile": "OP.GG profilini aç",
+    "Open U.GG profile": "U.GG profilini aç",
+    "Open Porofessor": "Porofessor'u aç",
+    "Show details": "Ayrıntıları göster",
+    "Placements": "Yerleştirme",
+    "Unranked": "Derecesiz",
+    "Drag to move · double-click to reset": "Taşımak için sürükle · sıfırlamak için çift tıkla",
+    "Lobby ({count})": "Lobi ({count})",
+    "Show": "Göster",
+    "Hide": "Gizle",
+    "Waiting for teammates...": "Takım arkadaşları bekleniyor...",
+    "COPY": "KOPYALA",
+    "Copy Riot ID": "Riot ID'yi kopyala",
+    "{id} on {site}": "{site} üzerinde {id}",
+    "Multi {site}": "Toplu {site}",
+    "Loading...": "Yükleniyor...",
+    "{name} · Mastery {level} · {points} pts": "{name} · Ustalık {level} · {points} puan",
+    "Lobby Reveal": "Lobby Reveal",
+    "Multi-search": "Toplu arama",
+    "The team button in champ select": "Şampiyon seçimindeki takım butonu",
+    "Clicking a player": "Oyuncuya tıklayınca",
+    "What a teammate's name does": "Takım arkadaşının adına tıklayınca ne olacağı",
+    "Open lookup automatically": "Aramayı otomatik aç",
+    "Waits for all five names, up to the delay": "Beş ismin hepsini bekler, en fazla seçilen süre kadar",
+    "{seconds} sec": "{seconds} sn",
+  };
+
+  function tr(text, vars) {
+    const i18n = window.LustI18n;
+    let out = i18n && i18n.language === "tr" && TR[text] ? TR[text] : i18n ? i18n.t(text) : text;
+    if (vars) out = out.replace(/\{(\w+)\}/g, (match, key) => (key in vars ? String(vars[key]) : match));
+    return out;
+  }
+
+
   const MAINS_PER_PLAYER = 3;
 
   const CSS_RULES = `
@@ -462,7 +499,7 @@
   }
 
   function formatTier(rank) {
-    if (rank.tier === "UNRANKED") return rank.provisional ? "Placements" : "Unranked";
+    if (rank.tier === "UNRANKED") return tr(rank.provisional ? "Placements" : "Unranked");
     const name = rank.tier.charAt(0) + rank.tier.slice(1).toLowerCase();
     return `${name}${rank.division ? ` ${rank.division}` : ""} · ${rank.leaguePoints} LP`;
   }
@@ -480,7 +517,7 @@
       for (const main of entry.mains) {
         const icon = el("img", "lust-reveal-main");
         icon.src = `/lol-game-data/assets/v1/champion-icons/${main.championId}.png`;
-        icon.title = `${main.name} · Mastery ${main.level} · ${main.points.toLocaleString()} pts`;
+        icon.title = tr("{name} · Mastery {level} · {points} pts", { name: main.name, level: main.level, points: main.points.toLocaleString() });
         mains.appendChild(icon);
       }
       line.appendChild(mains);
@@ -539,7 +576,7 @@
   }
 
   function makeDraggable(handle) {
-    handle.title = "Drag to move · double-click to reset";
+    handle.title = tr("Drag to move · double-click to reset");
     handle.addEventListener("dblclick", () => {
       try {
         localStorage.removeItem(POSITION_KEY);
@@ -606,14 +643,14 @@
     root.replaceChildren();
 
     const head = el("div", "lust-reveal-head");
-    head.appendChild(el("span", "", `Lobby (${players.length})`));
+    head.appendChild(el("span", "", tr("Lobby ({count})", { count: players.length })));
     const toggle = el("span", "lust-reveal-toggle", collapsed ? "▴" : "▾");
-    toggle.title = collapsed ? "Show" : "Hide";
+    toggle.title = tr(collapsed ? "Show" : "Hide");
     toggle.addEventListener("click", () => {
       collapsed = !collapsed;
       root.classList.toggle("collapsed", collapsed);
       toggle.textContent = collapsed ? "▴" : "▾";
-      toggle.title = collapsed ? "Show" : "Hide";
+      toggle.title = tr(collapsed ? "Show" : "Hide");
     });
     head.appendChild(toggle);
     makeDraggable(head);
@@ -621,7 +658,7 @@
 
     const body = el("div", "lust-reveal-body");
     if (!players.length) {
-      body.appendChild(el("div", "lust-reveal-empty", "Waiting for teammates..."));
+      body.appendChild(el("div", "lust-reveal-empty", tr("Waiting for teammates...")));
     }
     for (const player of players) {
       const entry = stats.get(player.puuid) || {};
@@ -649,10 +686,10 @@
         name.href = profileUrl;
         name.target = "_blank";
         name.rel = "noreferrer";
-        name.title = `${player.riotId} on ${siteName}`;
+        name.title = tr("{id} on {site}", { id: player.riotId, site: siteName });
       } else if (settings.click === "details") {
         name.href = "#";
-        name.title = "Show details";
+        name.title = tr("Show details");
         name.addEventListener("click", (event) => {
           event.preventDefault();
           if (expanded.has(player.puuid)) expanded.delete(player.puuid);
@@ -662,8 +699,8 @@
       }
       top.appendChild(name);
 
-      const copy = el("span", "lust-reveal-copy", "COPY");
-      copy.title = "Copy Riot ID";
+      const copy = el("span", "lust-reveal-copy", tr("COPY"));
+      copy.title = tr("Copy Riot ID");
       copy.addEventListener("click", () => copyText(player.riotId || "", copy));
       top.appendChild(copy);
       info.appendChild(top);
@@ -680,7 +717,7 @@
     const chosen = PROVIDERS[settings.provider] ? settings.provider : "opgg";
     if (data[PROVIDERS[chosen].field]) {
       const links = el("div", "lust-reveal-links");
-      const main = el("a", "lust-reveal-multi", `Multi ${PROVIDERS[chosen].label}`);
+      const main = el("a", "lust-reveal-multi", tr("Multi {site}", { site: PROVIDERS[chosen].label }));
       main.href = data[PROVIDERS[chosen].field];
       main.target = "_blank";
       main.rel = "noreferrer";
@@ -708,9 +745,9 @@
     const lines = [];
     if (entry.rank) lines.push(formatTier(entry.rank));
     for (const main of entry.mains || []) {
-      lines.push(`${main.name} · Mastery ${main.level} · ${main.points.toLocaleString()} pts`);
+      lines.push(tr("{name} · Mastery {level} · {points} pts", { name: main.name, level: main.level, points: main.points.toLocaleString() }));
     }
-    block.textContent = lines.length ? lines.join("\n") : "Loading...";
+    block.textContent = lines.length ? lines.join("\n") : tr("Loading...");
     block.style.whiteSpace = "pre-line";
     return block;
   }
@@ -776,19 +813,19 @@
     }
     const hub = el("div", "lust-rv-hub");
     const title = el("div", "lust-rv-title");
-    title.append(el("span", "", "Lobby Reveal"));
+    title.append(el("span", "", tr("Lobby Reveal")));
     hub.appendChild(title);
 
     const providerLabels = Object.fromEntries(Object.entries(PROVIDERS).map(([key, p]) => [key, p.label]));
-    hub.appendChild(hubField("Multi-search", "The team button in champ select",
+    hub.appendChild(hubField(tr("Multi-search"), tr("The team button in champ select"),
       selectField(providerLabels, settings.provider, (provider) => saveSettings({ provider }))));
-    hub.appendChild(hubField("Clicking a player", "What a teammate's name does",
-      selectField(CLICK_ACTIONS, settings.click, (click) => saveSettings({ click }))));
+    hub.appendChild(hubField(tr("Clicking a player"), tr("What a teammate's name does"),
+      selectField(Object.fromEntries(Object.entries(CLICK_ACTIONS).map(([key, label]) => [key, tr(label)])), settings.click, (click) => saveSettings({ click }))));
 
     const autoControl = el("div");
     autoControl.style.display = "flex";
     autoControl.style.alignItems = "center";
-    const delays = Object.fromEntries(AUTO_OPEN_DELAYS.map((s) => [s, `${s} sec`]));
+    const delays = Object.fromEntries(AUTO_OPEN_DELAYS.map((s) => [s, tr("{seconds} sec", { seconds: s })]));
     autoControl.appendChild(selectField(delays, settings.autoOpenDelay,
       (delay) => saveSettings({ autoOpenDelay: Number(delay) }), "small"));
     const toggle = el("div", `lust-rv-switch${settings.autoOpen ? " on" : ""}`);
@@ -797,7 +834,7 @@
       toggle.classList.toggle("on", settings.autoOpen);
     });
     autoControl.appendChild(toggle);
-    hub.appendChild(hubField("Open lookup automatically", "Waits for all five names, up to the delay", autoControl));
+    hub.appendChild(hubField(tr("Open lookup automatically"), tr("Waits for all five names, up to the delay"), autoControl));
 
     view.appendChild(hub);
   }
@@ -832,6 +869,7 @@
     bridge.onDisconnect(() => render(null));
     // The Custom Mods button can appear or move after the panel does.
     setInterval(placePanel, 500);
+    if (window.LustI18n) window.LustI18n.onChange(() => queueRender());
     log("info", "Lobby reveal ready");
   }
 

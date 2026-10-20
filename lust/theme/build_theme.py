@@ -79,10 +79,10 @@ ABOUT_US = '''async function aboutustab(panel) {
 
 ADD_WALLPAPER_JS = '''    const addBg = this.createElementWithId("div", "add-bg");
     addBg.textContent = "+";
-    addBg.title = "Add wallpaper";
+    addBg.title = lustTr("Add wallpaper");
     const addBgName = this.createElementWithId("input", "add-bg-name");
     addBgName.type = "text";
-    addBgName.placeholder = "Paste the file, type its name";
+    addBgName.placeholder = lustTr("Paste the file, type its name");
     addBgName.hidden = true;
     wallpaperControls.append(addBg, addBgName);
     addBg.addEventListener("click", () => {
@@ -104,12 +104,12 @@ ADD_WALLPAPER_JS = '''    const addBg = this.createElementWithId("div", "add-bg"
         addBgName.placeholder = message;
       };
       if (!fileRegex.Wallpaper.test(name.toLowerCase()) || /[\\\\/:*?"<>|]/.test(name))
-        return fail("Not a video or image file name");
+        return fail(lustTr("Not a video or image file name"));
       const controller = new AbortController();
       const res = await fetch(`//plugins/${getThemeName()}/assets/backgrounds/wallpapers/${encodeURIComponent(name)}`, { signal: controller.signal }).catch(() => null);
       controller.abort();
       if (!res || !res.ok)
-        return fail(`${name} is not in the folder`);
+        return fail(lustTr("{name} is not in the folder", { name }));
       const list = ElainaData.get("Wallpaper-list");
       if (!list.includes(name)) {
         list.push(name);
@@ -133,7 +133,7 @@ ADD_WALLPAPER_JS = '''    const addBg = this.createElementWithId("div", "add-bg"
       ElainaData.set("wallpaper-index", list.indexOf(name));
       await wallpaperController.changeBG(name);
       addBgName.value = "";
-      addBgName.placeholder = "Paste the file, type its name";
+      addBgName.placeholder = lustTr("Paste the file, type its name");
       addBgName.hidden = true;
     });
 '''
@@ -185,7 +185,44 @@ ADD_WALLPAPER_CSS = '''#add-bg {
 
 '''
 
-LUST_PANEL_JS = '''function Settings(context) {
+LUST_PANEL_JS = '''// Turkish for Lust's own texts in the panel; other languages go through LUST-I18n
+const LUST_TR = {
+  "CUSTOMIZE": "ÖZELLEŞTİR",
+  "Status": "Durum",
+  "Colors": "Renkler",
+  "Theme": "Tema",
+  "Plugins": "Eklentiler",
+  "Online": "Çevrimiçi",
+  "Offline": "Çevrimdışı",
+  "Mobile": "Mobil",
+  "online": "çevrimiçi",
+  "offline": "çevrimdışı",
+  "mobile": "mobil",
+  "Friends see you as {status}.": "Arkadaşların seni {status} görüyor.",
+  "Lust Offline isn't running: close League and open it again to appear offline.":
+    "Lust Offline çalışmıyor: çevrimdışı görünmek için League'i kapatıp yeniden aç.",
+  "Couldn't reach Lust Offline.": "Lust Offline'a ulaşılamadı.",
+  "Summoner names": "Sihirdar adları",
+  "Lobby names": "Lobi adları",
+  "Lobby header": "Lobi başlığı",
+  "Queue (finding match)": "Sıra (maç aranıyor)",
+  "League default": "League varsayılanı",
+  "Default": "Varsayılan",
+  "Reload client to apply": "Uygulamak için istemciyi yenile",
+  "Add wallpaper": "Duvar kağıdı ekle",
+  "Paste the file, type its name": "Dosyayı yapıştır, adını yaz",
+  "Not a video or image file name": "Video ya da resim dosyası adı değil",
+  "{name} is not in the folder": "{name} klasörde yok",
+  "16:9 Size Preferred": "16:9 boyut önerilir"
+};
+function lustTr(text, vars) {
+  const i18n = window.LustI18n;
+  let out = i18n && i18n.language === "tr" && LUST_TR[text] ? LUST_TR[text] : i18n ? i18n.t(text) : text;
+  if (vars) out = out.replace(/\\{(\\w+)\\}/g, (match, key) => (key in vars ? String(vars[key]) : match));
+  return out;
+}
+
+function Settings(context) {
   ElainaData.set("settingsChangenumber", 0);
   mountLustPanelTabs();
   applyLustColors();
@@ -264,16 +301,16 @@ async function statusSection(section) {
   note.className = "lust-customize-state";
   section.append(row, note);
   if (!await lustOfflineRunning()) {
-    note.textContent = "Lust Offline isn't running: restart League from Lust to appear offline.";
+    note.textContent = lustTr("Lust Offline isn't running: close League and open it again to appear offline.");
     return;
   }
   let current = await lustOfflineStatus() || localStorage.getItem("lust-offline-status") || "offline";
   const buttons = LUST_OFFLINE_STATUSES.map(({ command, label }) => {
     const button = document.createElement("lol-uikit-flat-button");
-    button.textContent = label;
+    button.textContent = lustTr(label);
     button.addEventListener("click", async () => {
       if (!await sendLustOffline(command)) {
-        note.textContent = "Couldn't reach Lust Offline.";
+        note.textContent = lustTr("Couldn't reach Lust Offline.");
         return;
       }
       current = command;
@@ -287,7 +324,7 @@ async function statusSection(section) {
   });
   const show = () => {
     buttons.forEach(({ command, button }) => button.classList.toggle("lust-status-active", command === current));
-    note.textContent = `Friends see you as ${current}.`;
+    note.textContent = lustTr("Friends see you as {status}.", { status: lustTr(current) });
   };
   show();
 }
@@ -316,10 +353,10 @@ function applyLustColors() {
     .join("\\n");
 }
 async function customizeSettings(view) {
-  await statusSection(lustSection(view, "Status"));
-  colorSection(lustSection(view, "Colors"));
-  await themeSettings(lustSection(view, "Theme"));
-  await pluginsSettings(lustSection(view, "Plugins"));
+  await statusSection(lustSection(view, lustTr("Status")));
+  colorSection(lustSection(view, lustTr("Colors")));
+  await themeSettings(lustSection(view, lustTr("Theme")));
+  await pluginsSettings(lustSection(view, lustTr("Plugins")));
 }
 function colorSection(section) {
   const list = document.createElement("div");
@@ -328,14 +365,14 @@ function colorSection(section) {
     const row = document.createElement("div");
     row.className = "lust-customize-row";
     const label = document.createElement("span");
-    label.textContent = item.label;
+    label.textContent = lustTr(item.label);
     const picker = document.createElement("input");
     picker.type = "color";
     picker.value = ElainaData.get(item.key) || "#f0e6d2";
     const state = document.createElement("span");
     state.className = "lust-customize-state";
     const showState = () => {
-      state.textContent = ElainaData.get(item.key) ? ElainaData.get(item.key) : "League default";
+      state.textContent = ElainaData.get(item.key) ? ElainaData.get(item.key) : lustTr("League default");
     };
     picker.addEventListener("input", () => {
       ElainaData.set(item.key, picker.value);
@@ -343,7 +380,7 @@ function colorSection(section) {
       applyLustColors();
     });
     const reset = document.createElement("lol-uikit-flat-button");
-    reset.textContent = "Default";
+    reset.textContent = lustTr("Default");
     reset.addEventListener("click", () => {
       ElainaData.set(item.key, "");
       picker.value = "#f0e6d2";
@@ -413,7 +450,7 @@ function addLustPanelTabs(panel) {
         return;
       const reload = document.createElement("lol-uikit-flat-button");
       reload.className = "lust-panel-reload";
-      reload.textContent = "Reload client to apply";
+      reload.textContent = lustTr("Reload client to apply");
       reload.addEventListener("click", () => window.restartClient());
       view.appendChild(reload);
     }
@@ -422,7 +459,7 @@ function addLustPanelTabs(panel) {
     const button = document.createElement("div");
     button.className = "lust-panel-tab";
     button.dataset.tab = tab.id;
-    button.textContent = tab.label;
+    button.textContent = lustTr(tab.label);
     button.addEventListener("click", () => select(tab));
     tabBar.appendChild(button);
     if (tab.render) {
@@ -792,7 +829,7 @@ PATCHES = [
     ("index.js", "      newBgChange.append(bgDropdown);\n",
      "      const sizeHint = document.createElement(\"div\");\n"
      "      sizeHint.id = \"bg-size-hint\";\n"
-     "      sizeHint.textContent = \"16:9 Size Preferred\";\n"
+     "      sizeHint.textContent = lustTr(\"16:9 Size Preferred\");\n"
      "      newBgChange.append(bgDropdown, sizeHint);\n"),
     ("assets/styles/themes/theme-background-controllers.css", "#pause-bg:hover {",
      ADD_WALLPAPER_CSS + "#pause-bg:hover {"),

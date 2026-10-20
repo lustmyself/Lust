@@ -1,6 +1,7 @@
 {
-  "version": "1.4.9.20",
+  "version": "1.4.9.21",
   "en": [
+    "The client uses League's own fonts again (the theme's font is off; turn it on under Appearance if you like it)",
     "Lust installs as its own app, no longer mixed up with Rose on a PC that has both",
     "With Rose installed too, the desktop hub says so and opens Rose's uninstaller in one click",
     "Wallpaper +: copy a picture or video into the folder that opens and it becomes your wallpaper, no file name to type",
@@ -10,6 +11,7 @@
     "Colored tabs: LoL in hextech teal, Spotify in green"
   ],
   "tr": [
+    "Client yine League'in kendi fontlarını kullanıyor (temanın fontu kapalı; istersen Görünüm'den açabilirsin)",
     "Lust artık kendi uygulaması olarak kuruluyor; Rose da kurulu olan bilgisayarlarda karışmıyor",
     "Rose da kuruluysa masaüstü merkezi bunu söylüyor ve tek tıkla Rose'un kaldırıcısını açıyor",
     "Duvar kağıdı +: açılan klasöre resim ya da video kopyala, dosya adı yazmadan duvar kağıdın olsun",

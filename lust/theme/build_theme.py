@@ -1127,6 +1127,17 @@ PATCHES = [
     ]),
 ''', ""),
     ("config/datastoreDefault.js", '"loot-helper"                   : true,', '"loot-helper"                   : false,'),
+    # League's own fonts in the client: the theme's font is off by default, and turned
+    # off once for players who had it on from an earlier default (they can turn it on again)
+    ("config/datastoreDefault.js", '"Custom-Font"                   : true,', '"Custom-Font"                   : false,'),
+    ("index.js",
+     '  customFont = () => {\n    document.getElementById("Custom-font")?.remove();\n    if (!ElainaData.get("Custom-Font")) {\n',
+     '  customFont = () => {\n    document.getElementById("Custom-font")?.remove();\n'
+     '    if (!ElainaData.get("lust-default-font-reset")) {\n'
+     '      ElainaData.set("lust-default-font-reset", true);\n'
+     '      ElainaData.set("Custom-Font", false);\n'
+     '    }\n'
+     '    if (!ElainaData.get("Custom-Font")) {\n'),
     # Lust updates the theme itself: no Elaina changelog or update popup.
     ("index.js", "    const checkUpdate = new CheckUpdate();\n    checkUpdate.main();\n", ""),
     # ...nor the popup's styles: their bare ".message" rule also moved League's champ

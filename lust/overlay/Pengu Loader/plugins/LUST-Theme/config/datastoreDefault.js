@@ -65,7 +65,7 @@ export default {
 	"custom-rank-name"              : false,
 	"Rank-line1"                    : "Daughter of",
 	"Rank-line2"                    : "the Void",
-	"Custom-Font"                   : true,
+	"Custom-Font"                   : false,
 	"Custom-Font-Local"             : true,
 	"Custom-Font-Google"            : false,
 	"Google-Font-Url"               : "https://fonts.googleapis.com/css2?family=Roboto&display=swap",

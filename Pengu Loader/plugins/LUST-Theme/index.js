@@ -3649,6 +3649,10 @@ class AddCss {
   };
   customFont = () => {
     document.getElementById("Custom-font")?.remove();
+    if (!LustData.get("lust-default-font-reset")) {
+      LustData.set("lust-default-font-reset", true);
+      LustData.set("Custom-Font", false);
+    }
     if (!LustData.get("Custom-Font")) {
       return;
     }

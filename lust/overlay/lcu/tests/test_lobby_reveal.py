@@ -156,6 +156,13 @@ class LobbyRevealThreadTests(unittest.TestCase):
         thread._tick()  # cleared only once
         self.assertEqual(broadcaster.broadcast_lobby_reveal.call_count, 2)
 
+    def test_team_stays_until_the_game_starts(self):
+        thread, state, broadcaster = self._thread("ChampSelect")
+        thread._tick()
+        state.phase = "FINALIZATION"  # every pick locked, champ select's last seconds
+        thread._tick()
+        self.assertTrue(broadcaster.broadcast_lobby_reveal.call_args[0][0]["active"])
+
     def test_does_nothing_outside_champ_select(self):
         thread, _, broadcaster = self._thread("Lobby")
         thread._tick()

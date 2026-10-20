@@ -495,6 +495,11 @@ PATCHES = [
      "\tfilter: saturate(0.5) brightness(1) invert(1) hue-rotate(27deg) !important;\n}\n", ""),
     ("assets/styles/themes/rcp-fe-lol-parties.css",
      ":host .parties-status-card.open {\n\tfilter: hue-rotate(240deg) !important;\n}\n", ""),
+    # Champ select keeps the text above the timer (contrast(0) made it vanish) and
+    # League's own lock-in button.
+    ("assets/styles/themes/rcp-fe-lol-parties.css",
+     ".champion-select .timer-status::before {\n\tfilter: contrast(0) brightness(1) !important;\n}\n\n"
+     ".champion-select .action-button-container::after {\n\tfilter: sepia(1) !important;\n}\n", ""),
     # Lust updates the theme itself: no Elaina changelog or update popup.
     ("index.js", "    const checkUpdate = new CheckUpdate();\n    checkUpdate.main();\n", ""),
     # No automation that plays for the player: auto find queue and honor skip.

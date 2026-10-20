@@ -28,6 +28,8 @@ from utils.core.logging import get_logger
 log = get_logger()
 
 POLL_INTERVAL_S = 1.5
+# Lust marks the last seconds of champ select, once every pick is locked, FINALIZATION
+CHAMP_SELECT_PHASES = {"ChampSelect", "FINALIZATION"}
 # Re-send the same team now and then so a plugin that reloads mid champ select catches up
 REBROADCAST_INTERVAL_S = 5.0
 
@@ -56,7 +58,7 @@ class LobbyRevealThread(threading.Thread):
                 log.debug(f"[Reveal] Poll failed: {e}")
 
     def _tick(self) -> None:
-        if getattr(self.state, "phase", None) != "ChampSelect":
+        if getattr(self.state, "phase", None) not in CHAMP_SELECT_PHASES:
             if self._last_payload is not None and self._last_payload.get("active"):
                 self._send({"active": False, "players": [], "region": "", "multiUrl": "", "poroUrl": "", "uggUrl": ""})
             self._region = ""

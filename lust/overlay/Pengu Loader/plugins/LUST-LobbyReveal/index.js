@@ -805,7 +805,8 @@
   window.LustReveal = { renderHub };
 
   function handlePhaseChange(data) {
-    if (data && data.phase && data.phase !== "ChampSelect") render(null);
+    // FINALIZATION is the end of champ select once every pick is locked: keep the box
+    if (data && data.phase && data.phase !== "ChampSelect" && data.phase !== "FINALIZATION") render(null);
   }
 
   async function init() {

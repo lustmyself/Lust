@@ -1,0 +1,54 @@
+# GitHub turns off scheduled workflows in a repository with no activity for 60 days.
+# Rose can go longer than that without a release, which would stop Lust from following
+# it. Once a month this commits the date to lust/keepalive.txt (a push made with the
+# workflow token starts no other workflow) and makes sure every workflow is enabled.
+name: Keep alive
+
+on:
+  schedule:
+    - cron: "41 4 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: keepalive
+  cancel-in-progress: false
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Commit the date
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          date -u +%Y-%m-%d > lust/keepalive.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add lust/keepalive.txt
+          if git diff --cached --quiet; then
+            echo "Already up to date"
+            exit 0
+          fi
+          git commit -m "Keep scheduled workflows alive"
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:main
+
+      - name: Enable every workflow
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow list --all --json id,state --jq '.[] | select(.state != "active") | .id' |
+            while read -r id; do
+              echo "Enabling workflow $id"
+              gh workflow enable "$id" --repo "$GITHUB_REPOSITORY"
+            done

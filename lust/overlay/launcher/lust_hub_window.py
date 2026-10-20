@@ -50,6 +50,7 @@ ICONS = {
     "play": "", "folder": "", "log": "", "power": "",
     "restart": "", "close": "", "sync": "", "download": "",
 }
+ICONS["music"] = "\ue8d6"
 REFRESH_MS = 500
 STATE_INTERVAL_S = 0.5
 
@@ -192,6 +193,7 @@ class HubWindow:
         self.clickable: dict[str, Callable[[], None]] = {}
         self.enabled: dict[str, bool] = {}
         self.cards: dict[str, dict] = {}
+        self.page = "lol"
 
         root = self.root = tk.Tk()
         root.withdraw()
@@ -313,6 +315,13 @@ class HubWindow:
         self.status_dot = c.create_oval(right - p(84), p(32), right - p(76), p(40), fill=AMBER, outline="")
         self.status_text = self.text(right - p(70), p(36), "", size=9, bold=True)
 
+        # LoL / Spotify tabs
+        tx = self.w / 2 - p(80)
+        self.tab_lol = self.pill("tab_lol", tx, p(25), tx + p(76), p(47), "LoL", lambda: self._set_page("lol"))
+        self.tab_spotify = self.pill("tab_spotify", tx + p(84), p(25), tx + p(160), p(47), "Spotify",
+                                     lambda: self._set_page("spotify"))
+        lol_start = len(c.find_all())
+
         # Where the game settings are
         self.hint = self.text(left, p(74), self.t("client_hint"), size=10, color=YELLOW, bold=True, width=width)
 
@@ -367,6 +376,10 @@ class HubWindow:
                                   "fill": ACCENT, "hover_fill": "#c4b5fd", "oval": True}
         self.clickable["v_button"] = self._update_clicked
         self.enabled["v_button"] = True
+
+        for item in c.find_all()[lol_start:]:
+            c.addtag_withtag("page-lol", item)
+        self._spotify_layout()
 
         # Toast, drawn last so it sits on top
         self.toast_bg = self.rrect(0, 0, 1, 1, p(16), fill="#24212f", outline=ACCENT_LINE, state="hidden")
@@ -425,6 +438,86 @@ class HubWindow:
             item["hover_fill"] = "#1f1d2b"
             self.c.addtag_withtag(tag, item["tag"])
             self.segments[value] = item
+
+    # ---- Spotify page ----
+
+    SP_THEMES = (("lust", "Lust", "#1a1026"), ("nord", "Nord", "#2e3440"),
+                 ("catppuccin", "Catppuccin", "#1e1e2e"), ("original", "Orijinal", "#121212"))
+
+    def _spotify_layout(self) -> None:
+        p, c = self.p, self.c
+        start = len(c.find_all())
+        left, right = p(PAD), self.w - p(PAD)
+        width = right - left
+        half = (width - p(GAP)) / 2
+        y = p(76)
+        h = p(62)
+        self.sp_status = self.tile("sp_status", left, y, left + half, y + h, "music")
+        self.sp_auto = self.tile("sp_auto", right - half, y, right, y + h, "sync", lambda: self._act("spotify_auto"))
+        y2 = y + h + p(GAP)
+        h2 = p(150)
+        self.card("sp_themes", left, y2, right, y2 + h2)
+        self.text(left + p(18), y2 + p(20), "Tema", size=9, color=SUB)
+        box_w = (width - p(36) - 3 * p(GAP)) / 4
+        self.sp_boxes = {}
+        for i, (key, label, color) in enumerate(self.SP_THEMES):
+            x1 = left + p(18) + i * (box_w + p(GAP))
+            box = self.card(f"sp_t_{key}", x1, y2 + p(36), x1 + box_w, y2 + h2 - p(14),
+                            clickable=lambda k=key: self._choose_theme(k), radius=12)
+            self.rrect(x1 + p(10), y2 + p(46), x1 + box_w - p(10), y2 + p(100), p(8), fill=color, outline="",
+                       tags=(box["tag"],))
+            self.rrect(x1 + p(18), y2 + p(84), x1 + p(58), y2 + p(92), p(4), fill=ACCENT if key == "lust" else SUB,
+                       outline="", tags=(box["tag"],))
+            box["label"] = self.text((x1 + x1 + box_w) / 2, y2 + h2 - p(30), label, size=9, bold=True,
+                                     anchor="center", tags=(box["tag"],))
+            self.sp_boxes[key] = box
+        y3 = y2 + h2 + p(GAP)
+        self.pill("sp_apply", left, y3, left + half, y3 + p(40), "Temayı uygula", self._apply_theme, accent=True)
+        self.pill("sp_restore", right - half, y3, right, y3 + p(40), "Orijinale döndür",
+                  lambda: self._act("spotify_apply", {"theme": "original"}))
+        self.sp_note = self.text(left, y3 + p(62), "Spicetify ile çalışır. Spotify'ın Microsoft Store sürümü "
+                                 "desteklenmez; spotify.com'dan indirilen sürüm gerekir.", size=8, color=FAINT,
+                                 width=width)
+        for item in c.find_all()[start:]:
+            c.addtag_withtag("page-spotify", item)
+        c.itemconfig("page-spotify", state="hidden")
+
+    def _choose_theme(self, key: str) -> None:
+        self.sp_choice = key
+        self._draw_spotify((self.state.value or {}).get("spotify") or {})
+
+    def _apply_theme(self) -> None:
+        self._act("spotify_apply", {"theme": self.sp_choice})
+
+    def _set_page(self, page: str) -> None:
+        if page == self.page:
+            return
+        self.page = page
+        self.c.itemconfig("page-lol", state="normal" if page == "lol" else "hidden")
+        self.c.itemconfig("page-spotify", state="normal" if page == "spotify" else "hidden")
+        self._set_hover(None)
+        self._refresh(reschedule=False)
+
+    def _draw_spotify(self, sp: dict) -> None:
+        c = self.c
+        if not getattr(self, "sp_choice", None):
+            self.sp_choice = sp.get("theme") or "lust"
+        if sp.get("installed"):
+            sub = f"{sp.get('version') or ''} · " + ("Uygulanıyor…" if sp.get("busy") else
+                                                     ("Tema: " + dict((k, l) for k, l, _ in self.SP_THEMES).get(sp.get("theme"), "Orijinal")))
+            dot = AMBER if sp.get("busy") else GREEN
+        else:
+            sub = "Store sürümü desteklenmez" if sp.get("store") else "Bulunamadı"
+            dot = RED
+        self._tile_set(self.sp_status, "Spotify", sub, dot)
+        self._tile_set(self.sp_auto, "Otomatik uygula", "Spotify güncellenince", ACCENT if sp.get("auto") else FAINT)
+        for key, box in self.sp_boxes.items():
+            chosen = key == self.sp_choice
+            c.itemconfig(box["bg"], outline=ACCENT if chosen else CARD_LINE, width=2 if chosen else 1)
+            c.itemconfig(box["label"], fill=TEXT if chosen else SUB)
+        ok = bool(sp.get("installed")) and not sp.get("busy")
+        for key in ("sp_apply", "sp_restore"):
+            self.enabled[key] = ok
 
     # ---- interaction ----
 
@@ -570,6 +663,22 @@ class HubWindow:
 
     def _draw(self, s: dict) -> None:
         c = self.c
+        self._draw_toast(s)
+        for key, item in (("lol", self.tab_lol), ("spotify", self.tab_spotify)):
+            lit = key == self.page
+            item["lit"] = ACCENT_SOFT if lit else None
+            c.itemconfig(item["bg"], fill=ACCENT_SOFT if lit else item["fill"],
+                         outline=ACCENT_LINE if lit else "")
+            c.itemconfig(item["label"], fill="#c4b5fd" if lit else SUB)
+        if self.page == "spotify" and s.get("prompt"):
+            self._set_page("lol")  # the update question is on the LoL page
+            return
+        if self.page == "spotify":
+            ready_all = s["running"] and s["ready"]
+            c.itemconfig(self.status_dot, fill=GREEN if ready_all else AMBER)
+            c.itemconfig(self.status_text, text=self.t("status_ready" if ready_all else "status_starting"))
+            self._draw_spotify(s.get("spotify") or {})
+            return
         if s.get("lang") and s["lang"] != self.lang:
             self.lang = s["lang"]
             c.itemconfig(self.hint, text=self.t("client_hint"))
@@ -639,6 +748,7 @@ class HubWindow:
         items = (s.get("news") or {}).get("items") or []
         c.itemconfig(self.v_news, text="\n".join(f"•  {item}" for item in items[:3]))
 
+    def _draw_toast(self, s: dict) -> None:
         toast = s.get("toast")
         if toast and toast.get("id") != self.toast_id:
             first = self.toast_id is None

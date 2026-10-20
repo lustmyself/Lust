@@ -503,7 +503,7 @@ EDITS += [
      '\n'
      '        # Wait for tray icon to be ready (up to 5 seconds)\n'),
     ('Lust.spec', "    'launcher.core',\n",
-     "    'launcher.core',\n    'launcher.lust_hub',\n    'launcher.lust_hub_window',\n    'tkinter',\n"),
+     "    'launcher.core',\n    'launcher.lust_hub',\n    'launcher.lust_hub_window',\n    'launcher.lust_spotify',\n    'tkinter',\n"),
 ]
 
 

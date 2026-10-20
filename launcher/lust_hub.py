@@ -162,6 +162,27 @@ def _news():
     return {"version": data.get("version", ""), "items": data.get(LANG) or data.get("en") or []}
 
 
+def _spotify_status():
+    from launcher import lust_spotify
+    return lust_spotify.status()
+
+
+def _spotify_apply(theme: str) -> str:
+    from launcher import lust_spotify
+    toast("Spotify teması uygulanıyor…")
+    _cache.pop("spotify", None)
+    message = lust_spotify.apply(theme)
+    _cache.pop("spotify", None)
+    return message
+
+
+def _spotify_auto() -> str:
+    from launcher import lust_spotify
+    lust_spotify.set_auto(not lust_spotify.settings().get("auto", True))
+    _cache.pop("spotify", None)
+    return ""
+
+
 def _version_tuple(version: str):
     return tuple(int(part) for part in re.findall(r"\d+", version or ""))
 
@@ -187,6 +208,7 @@ def snapshot() -> dict:
         offline=_cached("offline", 2, _offline_status) or {"running": False, "status": ""},
         autostart=bool(_cached("autostart", 30, _autostart)),
         news=_cached("news", 300, _news) or {"version": "", "items": []},
+        spotify=_cached("spotify", 5, _spotify_status) or {},
     )
     state["detail"] = _translate(state["detail"])
     state["status"] = _translate(state["status"])
@@ -303,6 +325,8 @@ ACTIONS: dict[str, Callable[[dict], str]] = {
     "update": lambda body: _update_now(),
     "check": lambda body: _check_now(),
     "prompt": lambda body: _answer_prompt(bool(body.get("accept"))),
+    "spotify_apply": lambda body: _spotify_apply(str(body.get("theme") or "")),
+    "spotify_auto": lambda body: _spotify_auto(),
 }
 
 
@@ -373,6 +397,17 @@ def attach(tray_manager) -> None:
     _tray = tray_manager
     _set(phase="ready", progress=100, detail="", status="")
     threading.Thread(target=_release_watch, daemon=True, name="LustHubReleases").start()
+    threading.Thread(target=_spotify_reapply, daemon=True, name="LustSpotify").start()
+
+
+def _spotify_reapply() -> None:
+    try:
+        from launcher import lust_spotify
+        message = lust_spotify.reapply_if_updated()
+        if message:
+            toast(message)
+    except Exception as exc:  # noqa: BLE001
+        log.debug(f"[Hub] Spotify re-apply failed: {exc}")
 
 
 # ---- startup (the launcher's dialog) ----

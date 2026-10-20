@@ -270,6 +270,7 @@ hiddenimports = [
     'pengu.communication.lust_custom_skins',
     'launcher.lust_hub',
     'launcher.lust_hub_window',
+    'launcher.lust_spotify',
     'tkinter',
     'launcher.lust_offline',
     'launcher.autostart_default',

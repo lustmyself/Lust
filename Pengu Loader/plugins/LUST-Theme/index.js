@@ -2854,74 +2854,153 @@ const assetMessageLocaleKeys = {
     notExist: "theme-settings.font-not-exist"
   }
 };
+// Lust: the asset library shows each folder's files (Lust lists them over the
+// bridge, since Pengu 1.1.6 plugins can't), Add opens the folder, x deletes a file,
+// and files dropped on a row are copied into its folder.
+const LUST_ASSET_CHUNK = 512 * 1024;
+const lustAssetWaiters = new Map();
+let lustAssetRequests = 0;
+let lustAssetsSubscribed = false;
+function lustAssets(kind, action, extra = {}) {
+  const bridge = window.__lustBridge;
+  if (!bridge) return Promise.resolve({ error: lustTr("Lust isn't connected"), files: null });
+  if (!lustAssetsSubscribed) {
+    lustAssetsSubscribed = true;
+    bridge.subscribe("lust-assets", (reply) => {
+      const waiter = lustAssetWaiters.get(reply && reply.requestId);
+      if (waiter) {
+        lustAssetWaiters.delete(reply.requestId);
+        waiter(reply);
+      }
+    });
+  }
+  const requestId = `${Date.now()}-${++lustAssetRequests}`;
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      lustAssetWaiters.delete(requestId);
+      resolve({ error: lustTr("Lust didn't answer"), files: null });
+    }, 15000);
+    lustAssetWaiters.set(requestId, (reply) => {
+      clearTimeout(timer);
+      resolve(reply);
+    });
+    bridge.send({ type: "lust-assets", kind, action, requestId, ...extra });
+  });
+}
+function lustBlobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+async function uploadLustAsset(kind, file) {
+  const total = Math.max(1, Math.ceil(file.size / LUST_ASSET_CHUNK));
+  for (let index = 0; index < total; index++) {
+    const data = await lustBlobToBase64(file.slice(index * LUST_ASSET_CHUNK, (index + 1) * LUST_ASSET_CHUNK));
+    const reply = await lustAssets(kind, "save", { name: file.name, index, total, data });
+    if (reply.error) return reply;
+  }
+  return lustAssets(kind, "list");
+}
+// Keeps the theme's list in the folder's order of discovery: known files first.
+function syncLustAssetList(dataKey, files) {
+  const current = LustData.get(dataKey) || [];
+  const next = current.filter((name) => files.includes(name)).concat(files.filter((name) => !current.includes(name)));
+  LustData.set(dataKey, next);
+  if (dataKey === "Wallpaper-list" && LustData.get("wallpaper-index") >= next.length)
+    LustData.set("wallpaper-index", 0);
+  if (dataKey === "Audio-list" && LustData.get("audio-index") >= next.length)
+    LustData.set("audio-index", 0);
+  return next;
+}
 async function createFileListRow(type, dataKey, inputKey, regex) {
-  const messageEl = () => document.querySelector("#add-background-manual-message");
-  const labelId = `theme-settings-${type}-list`;
-  const forbiddenFileNameChars = /[\\/:*?"<>|]/;
-  const typeKey = assetLocaleKeys[type];
-  const messageKeys = assetMessageLocaleKeys[type];
-  const updateLabel = async () => {
-    const label = document.querySelector(`#${labelId}`);
-    if (label) {
-      label.innerText = `${await getString(typeKey)}: 
-[${LustData.get(dataKey).join(", ")}]`;
-    }
-  };
-  const showMessage = async (msgKey, color) => {
-    const text = messageEl();
-    if (text) {
-      text.textContent = await getString(messageKeys[msgKey]);
-      text.style.color = color;
-    }
-  };
-  return [
-    UI.createLabel(await getString(typeKey) + `: 
-[${LustData.get(dataKey).join(", ")}]`, labelId),
-    UI.createRow(`manual-${type}`, [
-      UI.createSearchBox(inputKey),
-      UI.createButton(await getString("theme-settings.add"), `add-${type}`, async () => {
-        const currentList = LustData.get(dataKey);
-        const newItem = LustData.get(inputKey);
-        if (forbiddenFileNameChars.test(newItem)) {
-          await showMessage("invalid", "red");
-        } else if (!regex.test(newItem)) {
-          await showMessage("invalid", "red");
-        } else if (currentList.includes(newItem)) {
-          await showMessage("alreadyAdded", "red");
-        } else {
-          currentList.push(newItem);
-          LustData.set(dataKey, currentList);
-          await showMessage("added", "green");
+  // The theme needs at least one wallpaper and one audio file
+  const keepOne = type === "wallpaper" || type === "audio";
+  const row = document.createElement("div");
+  row.className = "lust-asset-row";
+  const head = document.createElement("div");
+  head.className = "lust-asset-head";
+  const title = document.createElement("span");
+  title.textContent = await getString(assetLocaleKeys[type]);
+  const add = document.createElement("lol-uikit-flat-button");
+  add.textContent = lustTr("Add");
+  add.addEventListener("click", () => lustAssets(type, "open"));
+  head.append(title, add);
+  const list = document.createElement("div");
+  list.className = "lust-asset-list";
+  const hint = document.createElement("div");
+  hint.className = "lust-asset-hint";
+  row.append(head, list, hint);
+  const idleHint = lustTr("Drop files here, or Add to open the folder");
+  let names = LustData.get(dataKey) || [];
+  const show = (files, error) => {
+    if (Array.isArray(files))
+      names = syncLustAssetList(dataKey, files);
+    list.replaceChildren(...names.map((name) => {
+      const chip = document.createElement("span");
+      chip.className = "lust-asset-chip";
+      chip.textContent = name;
+      const remove = document.createElement("span");
+      remove.className = "lust-asset-remove";
+      remove.textContent = "\u00d7";
+      remove.title = lustTr("Delete");
+      remove.addEventListener("click", async () => {
+        if (keepOne && names.length <= 1) {
+          hint.textContent = lustTr("Keep at least one");
+          return;
         }
-        await updateLabel();
-      }),
-      UI.createButton(await getString("theme-settings.delete"), `delete-${type}`, async () => {
-        const currentList = LustData.get(dataKey);
-        const deleteItem = LustData.get(inputKey);
-        const index = currentList.indexOf(deleteItem);
-        if (index !== -1) {
-          currentList.splice(index, 1);
-          LustData.set(dataKey, currentList);
-          await showMessage("deleted", "green");
-        } else {
-          await showMessage("notExist", "red");
-        }
-        await updateLabel();
-      })
-    ])
-  ];
+        const reply = await lustAssets(type, "delete", { name });
+        show(reply.files, reply.error);
+      });
+      chip.appendChild(remove);
+      return chip;
+    }));
+    hint.textContent = error || idleHint;
+    hint.classList.toggle("error", !!error);
+  };
+  show(null, "");
+  row.addEventListener("dragover", (event) => {
+    event.preventDefault();
+    row.classList.add("dragging");
+  });
+  row.addEventListener("dragleave", () => row.classList.remove("dragging"));
+  row.addEventListener("drop", async (event) => {
+    event.preventDefault();
+    row.classList.remove("dragging");
+    for (const file of Array.from(event.dataTransfer.files || [])) {
+      if (!regex.test(file.name.toLowerCase())) {
+        show(null, lustTr("{name} isn't a {type} file", { name: file.name, type: title.textContent.toLowerCase() }));
+        continue;
+      }
+      hint.textContent = lustTr("Adding {name}...", { name: file.name });
+      const reply = await uploadLustAsset(type, file);
+      show(reply.files, reply.error);
+    }
+  });
+  // Files pasted into the folder show up when the player comes back to the client
+  const refresh = async () => {
+    if (!document.body.contains(row)) {
+      clearInterval(timer);
+      window.removeEventListener("focus", refresh);
+      return;
+    }
+    const reply = await lustAssets(type, "list");
+    if (Array.isArray(reply.files)) show(reply.files, reply.error);
+  };
+  const timer = setInterval(refresh, 4000);
+  window.addEventListener("focus", refresh);
+  setTimeout(refresh, 0);
+  return [row];
 }
 async function assetLibrarySection() {
   return UI.createSection("theme-settings-asset-library", await getString("theme-settings.settings-section-asset-library"), [
-    UI.createLabel(await getString("theme-settings.update-list-manually"), ""),
-    UI.createRowHideable("add-background-manually-row", [
-      UI.createLabel("", "add-background-manual-message", "theme-settings-message"),
-      ...await createFileListRow("wallpaper", "Wallpaper-list", "manual-wallpaper-name", fileRegex.Wallpaper),
-      ...await createFileListRow("audio", "Audio-list", "manual-audio-name", fileRegex.Audio),
-      ...await createFileListRow("banner", "Banner-list", "manual-banner-name", fileRegex.Banner),
-      ...await createFileListRow("font", "Font-list", "manual-font-name", fileRegex.Font)
-    ])
-  ], !window.isContextFSExist);
+    ...await createFileListRow("wallpaper", "Wallpaper-list", "manual-wallpaper-name", fileRegex.Wallpaper),
+    ...await createFileListRow("audio", "Audio-list", "manual-audio-name", fileRegex.Audio),
+    ...await createFileListRow("banner", "Banner-list", "manual-banner-name", fileRegex.Banner),
+    ...await createFileListRow("font", "Font-list", "manual-font-name", fileRegex.Font)
+  ]);
 }
 
 const windowEffectList = {
@@ -4751,7 +4830,15 @@ const LUST_TR = {
   "Paste the file, type its name": "Dosyayı yapıştır, adını yaz",
   "Not a video or image file name": "Video ya da resim dosyası adı değil",
   "{name} is not in the folder": "{name} klasörde yok",
-  "16:9 Size Preferred": "16:9 boyut önerilir"
+  "16:9 Size Preferred": "16:9 boyut önerilir",
+  "Add": "Ekle",
+  "Delete": "Sil",
+  "Drop files here, or Add to open the folder": "Dosyaları buraya bırak ya da klasörü açmak için Ekle'ye bas",
+  "Keep at least one": "En az bir tane kalmalı",
+  "{name} isn't a {type} file": "{name} bir {type} dosyası değil",
+  "Adding {name}...": "{name} ekleniyor...",
+  "Lust isn't connected": "Lust bağlı değil",
+  "Lust didn't answer": "Lust cevap vermedi"
 };
 function lustTr(text, vars) {
   const i18n = window.LustI18n;
@@ -4952,6 +5039,18 @@ const LUST_PANEL_CSS = `
   .lust-status-row { display: flex; gap: 8px; margin-bottom: 6px; }
   .lust-status-row lol-uikit-flat-button { flex: 1; }
   .lust-status-row .lust-status-active { filter: brightness(1.35); outline: 1px solid #c8aa6e; }
+  .lust-asset-row { margin: 10px 0; padding: 10px; border: 1px dashed #785a2866; transition: border-color .15s, background .15s; }
+  .lust-asset-row.dragging { border-color: #c8aa6e; background: #c8aa6e14; }
+  .lust-asset-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+    color: #f0e6d2; font: 700 13px "Beaufort for LOL", serif; }
+  .lust-asset-head lol-uikit-flat-button { width: 110px; }
+  .lust-asset-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .lust-asset-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 4px 3px 8px;
+    border: 1px solid #3c3c41; background: #1e2328; color: #cdbe91; font-size: 12px; }
+  .lust-asset-remove { cursor: pointer; padding: 0 4px; color: #a09b8c; font-size: 14px; line-height: 1; }
+  .lust-asset-remove:hover { color: #e84057; }
+  .lust-asset-hint { margin-top: 8px; color: #7e7a70; font-size: 11px; }
+  .lust-asset-hint.error { color: #e84057; }
   .lust-customize { display: flex; flex-direction: column; gap: 10px; padding: 4px 2px 8px; }
   .lust-customize-row { display: grid; grid-template-columns: 1fr 36px 96px 80px; align-items: center; gap: 8px;
     color: #cdbe91; font: 13px "Beaufort for LOL", serif; }

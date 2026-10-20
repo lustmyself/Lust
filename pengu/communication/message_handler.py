@@ -236,6 +236,10 @@ class MessageHandler:
 
     def _route(self, payload_type: Optional[str], payload: dict) -> None:
         # Route to appropriate handler
+        if payload_type == "lust-assets":
+            from pengu.communication.lust_assets import handle as _handle_lust_assets
+            self._send_response(json.dumps(_handle_lust_assets(payload)))
+            return
         if payload_type in {"chroma-log", "plugin-log"}:
             self._handle_chroma_log(payload)
         elif payload_type == "request-local-preview":

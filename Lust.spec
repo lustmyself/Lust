@@ -269,6 +269,7 @@ hiddenimports = [
     'launcher.core',
     'launcher.lust_offline',
     'launcher.autostart_default',
+    'pengu.communication.lust_assets',
     'launcher.core.launcher',
     'launcher.sequences',
     'launcher.sequences.hash_check_sequence',

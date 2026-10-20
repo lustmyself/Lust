@@ -334,6 +334,20 @@ EDITS += [
      "            // The nav item's capture listener already toggled the settings panel\n"),
 ]
 
+# LUST-Theme's asset library lists, opens, deletes and receives its files through Lust
+EDITS += [
+    ('pengu/communication/message_handler.py',
+     '        # Route to appropriate handler\n'
+     '        if payload_type in {"chroma-log", "plugin-log"}:\n',
+     '        # Route to appropriate handler\n'
+     '        if payload_type == "lust-assets":\n'
+     '            from pengu.communication.lust_assets import handle as _handle_lust_assets\n'
+     '            self._send_response(json.dumps(_handle_lust_assets(payload)))\n'
+     '            return\n'
+     '        if payload_type in {"chroma-log", "plugin-log"}:\n'),
+    ('Lust.spec', "    'launcher.core',\n", "    'launcher.core',\n    'pengu.communication.lust_assets',\n"),
+]
+
 # Once Pengu is active, an earlier "could not be activated" report no longer applies:
 # Troubleshooting kept showing it after Lust had recovered by itself.
 PENGU_PY = 'utils/integration/pengu_loader.py'

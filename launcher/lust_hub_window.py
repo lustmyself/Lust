@@ -592,7 +592,9 @@ class HubWindow:
                 continue
             c.itemconfig(box["image"], image="", state="hidden")
             bg, accent = self.sp_colors[key]
-            panel = _blend(tuple(int(bg[i:i + 2], 16) for i in (1, 3, 5)), (255, 255, 255), 0.07)
+            rgb = tuple(int(bg[i:i + 2], 16) for i in (1, 3, 5))
+            light = sum(rgb) > 3 * 150  # light themes get darker cards, dark themes lighter ones
+            panel = _blend(rgb, (0, 0, 0) if light else (255, 255, 255), 0.1 if light else 0.07)
             for item, fill in ((mock["main"], bg), (mock["side"], panel), (mock["bar"], panel),
                                (mock["title"], accent), (mock["play"], accent)):
                 c.itemconfig(item, fill=fill, state="normal")

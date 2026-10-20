@@ -36,7 +36,7 @@ THEMES = {
     "luminous": ("Luminous", "Base", "Luminous", "#1b1b2f", "#7dd3fc"),
     "nord": ("Sleek", "Nord", "Nord", "#2e3440", "#88c0d0"),
     "lust": ("Lust", "Lust", "Mor", "#1a1026", "#a78bfa"),
-    "pink": ("Lust", "Pink", "Pembe", "#1f0f18", "#f472b6"),
+    "pink": ("Lust", "Pink", "Pembe", "#ffb3d9", "#d6337f"),
     "catppuccin": ("Sleek", "Catppuccin", "Catppuccin", "#1e1e2e", "#cba6f7"),
     "dracula": ("Sleek", "Dracula", "Dracula", "#282a36", "#ff79c6"),
     "tokyonight": ("Sleek", "TokyoNight", "Tokyo Night", "#1a1b26", "#7aa2f7"),
@@ -102,21 +102,21 @@ notification-error = f87171
 misc               = 24222f
 
 [Pink]
-text               = fdf2f8
-subtext            = 9d8a95
-main               = 140b10
-sidebar            = 100809
-player             = 100809
-card               = 1f0f18
+text               = 2b0f1e
+subtext            = 6b3a55
+main               = ffb3d9
+sidebar            = ff9fcf
+player             = ff9fcf
+card               = ffc6e2
 shadow             = 000000
-selected-row       = f472b6
-button             = f472b6
-button-active      = f9a8d4
-button-disabled    = 4a2a3a
-tab-active         = 3a1a2c
-notification       = f472b6
-notification-error = f87171
-misc               = 2f1a26
+selected-row       = 7a2e55
+button             = d6337f
+button-active      = b0245f
+button-disabled    = e7a3c4
+tab-active         = ff86c2
+notification       = d6337f
+notification-error = b91c1c
+misc               = ffa6d2
 """
 LUST_CSS = """/* Lust for Spotify: rounded cards, one purple accent */
 .main-card-card, .main-trackList-trackListRow { border-radius: 10px !important; }

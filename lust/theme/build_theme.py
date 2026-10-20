@@ -374,6 +374,16 @@ PATCHES = [
     ("index.js",
      'function Settings(context) {\n  ElainaData.set("settingsChangenumber", 0);\n  settingsUtils(context, structure);\n}\n',
      LUST_PANEL_JS),
+    # No automation that plays for the player: auto find queue and honor skip.
+    ("index.js", "  AutoQueue(context);\n  skipHonor(context);\n", ""),
+    ("index.js", "        await queueSection(),\n", ""),
+    # No fake mastery score or rank sent to friends.
+    ("index.js",
+     '      if (ElainaData.get("Custom-mastery-score"))\n        customProfile.customMasteryScore();\n', ""),
+    ("index.js",
+     '      if (ElainaData.get("Custom-rank")) {\n        window.setTimeout(async () => {\n'
+     '          customProfile.customRank();\n          window.customRank = customProfile.customRank;\n'
+     '        }, 1e4);\n      }\n', ""),
     # Name colors come from the CUSTOMIZE tab now, League's own until a player picks one.
     ("index.js",
      '    if (ElainaData.get("change-nickname-color"))\n      addCss.customNicknameColor();',
@@ -737,6 +747,10 @@ def rename(text):
 
 # (file, start, end): text cut from start up to end, for blocks too long to quote.
 CUTS = [
+    # Fake mastery score and rank sent to friends: removed with their settings.
+    ("index.js",
+     '      UI.createCheckBox(\n        `${await getString("plugins-settings.custom-mastery-score")}`,',
+     '      UI.createCheckBox(\n        `${await getString("plugins-settings.custom-challenge-crystal")}`,'),
     # The theme's own nickname color settings (replaced by the CUSTOMIZE tab).
     ("index.js",
      '    UI.createCheckBox(\n      `${await getString("theme-settings.change-nickname-color")}`,',

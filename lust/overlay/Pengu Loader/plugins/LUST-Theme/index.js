@@ -4166,42 +4166,6 @@ async function pluginsProfileSection() {
     UI.createRowHideable("customprf", [
       br(),
       UI.createCheckBox(
-        `${await getString("plugins-settings.custom-mastery-score")}`,
-        "cusmastery",
-        "cusmasterybox",
-        () => {
-          restartAfterChange("cusmastery", "Custom-mastery-score");
-        },
-        true,
-        "Custom-mastery-score"
-      ),
-      br(),
-      UI.createSearchBox("Mastery-Score"),
-      br(),
-      UI.createRow("customrank_checkbox", [
-        UI.createCheckBox(
-          `${await getString("plugins-settings.custom-rank-hover")}`,
-          "cusrankhover",
-          "cusrankhoverbox",
-          () => {
-            restartAfterChange("cusrankhover", "Custom-rank");
-          },
-          true,
-          "Custom-rank"
-        ),
-        br(),
-        UI.createButton(await getString("common.refresh"), "refresh_option", async () => {
-          window.customRank();
-        })
-      ]),
-      UI.createRow("customrank_detail", [
-        rankDropdown("Ranked Queue ID", await getString("plugins-settings.ranked-queue")),
-        br(),
-        rankDropdown("Ranked Tier ID", await getString("plugins-settings.ranked-tier")),
-        br(),
-        rankDropdown("Ranked Division ID", await getString("plugins-settings.ranked-division"))
-      ]),
-      UI.createCheckBox(
         `${await getString("plugins-settings.custom-challenge-crystal")}`,
         "cuschalcry",
         "cuschalcrybox",
@@ -4311,7 +4275,6 @@ async function pluginsSettings(panel) {
       UI.createRow("plugins-settings-root", [
         ...await pluginsInfoSection(),
         await coreSection(),
-        await queueSection(),
         await pluginsProfileSection(),
         await developerSection()
       ])
@@ -7884,16 +7847,8 @@ class ApplyUI {
       customProfile.invisibleBanner();
     }
     if (LustData.get("Custom-profile-hover")) {
-      if (LustData.get("Custom-mastery-score"))
-        customProfile.customMasteryScore();
       if (LustData.get("Custom-challenge-crystal"))
         customProfile.customChallengeCrystal();
-      if (LustData.get("Custom-rank")) {
-        window.setTimeout(async () => {
-          customProfile.customRank();
-          window.customRank = customProfile.customRank;
-        }, 1e4);
-      }
     }
     if (false)
       customProfile.CustomProfileRankName();
@@ -11235,8 +11190,6 @@ async function init(context) {
   initDebug();
   Settings(context);
   transparentLobby(context);
-  AutoQueue(context);
-  skipHonor(context);
 }
 class LustTheme {
   async main() {

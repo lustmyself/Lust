@@ -25,7 +25,7 @@ class ReapplyTests(unittest.TestCase):
             run.assert_not_called()
             self.exe.write_bytes(b"version two")
             self.assertTrue(spotify.reapply_if_updated())
-            run.assert_called_once_with("backup", "apply")
+            run.assert_called_once_with("apply")
             self.assertIsNone(spotify.reapply_if_updated())  # marker updated
 
     def test_nothing_without_a_theme_or_with_auto_off(self):
@@ -36,6 +36,17 @@ class ReapplyTests(unittest.TestCase):
             spotify._save({"theme": "lust", "auto": False})
             self.assertIsNone(spotify.reapply_if_updated())
             run.assert_not_called()
+
+    def test_patch_falls_back_to_backup_then_restore(self):
+        calls = []
+
+        def run(*args):
+            calls.append(args)
+            if args != ("restore", "backup", "apply"):
+                raise RuntimeError("Please restore first then backup")
+        with patch.object(spotify, "_run", side_effect=run):
+            spotify._patch()
+        self.assertEqual(calls, [("apply",), ("backup", "apply"), ("restore", "backup", "apply")])
 
     def test_unknown_theme_is_ignored(self):
         self.assertEqual(spotify.apply("../evil"), "")

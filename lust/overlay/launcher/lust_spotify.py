@@ -14,6 +14,7 @@ import ctypes
 import io
 import json
 import os
+import re
 import subprocess
 import threading
 import zipfile
@@ -213,11 +214,27 @@ def _run(*args: str) -> str:
         capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=180,
         creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
     )
-    output = (result.stdout + result.stderr).strip()
+    output = re.sub(r"\x1b\[[0-9;]*m", "", result.stdout + result.stderr).strip()
     log.info(f"[Spotify] spicetify {' '.join(args)} -> {result.returncode}")
     if result.returncode != 0 or "error" in output.lower().split("\n")[-1]:
         raise RuntimeError(output.splitlines()[-1] if output else f"exit {result.returncode}")
     return output
+
+
+def _patch() -> None:
+    """Put the theme in Spotify, whatever state Spicetify is in.
+
+    "apply" works once Spotify is backed up; the first time it needs "backup apply";
+    after a Spotify update the old backup has to be replaced: "restore backup apply".
+    """
+    errors = []
+    for args in (("apply",), ("backup", "apply"), ("restore", "backup", "apply")):
+        try:
+            _run(*args)
+            return
+        except RuntimeError as exc:
+            errors.append(str(exc))
+    raise RuntimeError(errors[-1])
 
 
 def _themes_dir() -> Path:
@@ -277,7 +294,7 @@ def apply(key: str) -> str:
                 # Luminous draws with its own script
                 _run("config", "current_theme", folder, "color_scheme", scheme,
                      "inject_theme_js", "1" if folder == "Luminous" else "0")
-                _run("backup", "apply")
+                _patch()
                 _save({"theme": key, "marker": _marker(exe)})
                 message = "Tema uygulandı"
             _restart_spotify()
@@ -304,7 +321,7 @@ def reapply_if_updated() -> Optional[str]:
     log.info("[Spotify] Spotify changed since the theme was applied; applying it again")
     with _lock:
         try:
-            _run("backup", "apply")
+            _patch()
             _save({"marker": _marker(exe)})
             return "Spotify güncellenmiş; tema yeniden uygulandı"
         except Exception as exc:  # noqa: BLE001

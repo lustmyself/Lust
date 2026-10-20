@@ -1,7 +1,7 @@
 /**
  * @name Lust-LobbyReveal
  * @author Lust Team
- * @description Shows champ select teammates' Riot IDs, ranks, recent form and mains, with op.gg links
+ * @description Shows champ select teammates' Riot IDs, ranks and mains, with op.gg links
  * @link https://github.com/steele123/reveal
  */
 (function initLobbyReveal() {
@@ -33,10 +33,6 @@
   };
   const AUTO_OPEN_DELAYS = [0, 3, 6, 10];
 
-  const SOLO_DUO_QUEUE_ID = 420;
-  const RECENT_GAMES = 20;
-  // Below this many recent games a win rate is noise, so show the record instead.
-  const MIN_GAMES_FOR_WIN_RATE = 10;
   const MAINS_PER_PLAYER = 3;
 
   const CSS_RULES = `
@@ -406,7 +402,7 @@
     return node;
   }
 
-  // ---- Teammate details (rank, recent form, mains, profile icon) ----
+  // ---- Teammate details (rank, mains, profile icon) ----
 
   async function lcuGet(path) {
     const response = await fetch(path);
@@ -435,22 +431,6 @@
     };
   }
 
-  // League reports other players' season losses as 0, so the win rate comes from
-  // their recent Solo/Duo games instead. Each game lists only the requested player.
-  function parseRecentForm(history) {
-    const form = { wins: 0, losses: 0 };
-    const games = (history && history.games && history.games.games) || [];
-    for (const game of games) {
-      if (game.queueId !== SOLO_DUO_QUEUE_ID) continue;
-      const win = game.participants && game.participants[0] && game.participants[0].stats
-        ? game.participants[0].stats.win
-        : undefined;
-      if (win === true) form.wins += 1;
-      else if (win === false) form.losses += 1;
-    }
-    return form;
-  }
-
   function topMains(mastery, names) {
     return (Array.isArray(mastery) ? mastery : [])
       .filter((entry) => entry.championPoints > 0)
@@ -474,9 +454,6 @@
         queueRender();
       }, () => {});
     settle("rank", lcuGet(`/lol-ranked/v1/ranked-stats/${puuid}`).then(parseRank));
-    settle("recent", lcuGet(
-      `/lol-match-history/v1/products/lol/${puuid}/matches?begIndex=0&endIndex=${RECENT_GAMES - 1}`
-    ).then(parseRecentForm));
     settle("iconId", lcuGet(`/lol-summoner/v2/summoners/puuid/${puuid}`).then((s) => s.profileIconId));
     settle("mains", Promise.all([
       lcuGet(`/lol-champion-mastery/v1/${puuid}/champion-mastery`),
@@ -490,13 +467,6 @@
     return `${name}${rank.division ? ` ${rank.division}` : ""} · ${rank.leaguePoints} LP`;
   }
 
-  function formatRecentForm(recent) {
-    const games = recent ? recent.wins + recent.losses : 0;
-    if (!games) return "";
-    if (games < MIN_GAMES_FOR_WIN_RATE) return `${recent.wins}W ${recent.losses}L`;
-    return `${Math.round((recent.wins / games) * 100)}%`;
-  }
-
   function statsLine(entry) {
     const line = el("div", "lust-reveal-line lust-reveal-stats");
     if (entry.rank) {
@@ -504,12 +474,6 @@
       crest.src = `/fe/lol-static-assets/images/ranked-mini-crests/${entry.rank.tier.toLowerCase()}.svg`;
       line.appendChild(crest);
       line.appendChild(el("span", "lust-reveal-tier", formatTier(entry.rank)));
-    }
-    const form = formatRecentForm(entry.recent);
-    if (form) {
-      const recent = el("span", "", `· ${form}`);
-      recent.title = `Last ${entry.recent.wins + entry.recent.losses} Solo/Duo games: ${entry.recent.wins}W ${entry.recent.losses}L`;
-      line.appendChild(recent);
     }
     if (entry.mains && entry.mains.length) {
       const mains = el("span", "lust-reveal-mains");
@@ -743,9 +707,6 @@
     const block = el("div", "lust-reveal-details");
     const lines = [];
     if (entry.rank) lines.push(formatTier(entry.rank));
-    if (entry.recent && entry.recent.wins + entry.recent.losses) {
-      lines.push(`Last ${entry.recent.wins + entry.recent.losses} Solo/Duo: ${entry.recent.wins}W ${entry.recent.losses}L`);
-    }
     for (const main of entry.mains || []) {
       lines.push(`${main.name} · Mastery ${main.level} · ${main.points.toLocaleString()} pts`);
     }

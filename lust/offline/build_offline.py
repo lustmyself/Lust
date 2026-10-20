@@ -40,10 +40,17 @@ PATCHES = [
     ("Deceive/Persistence.cs",
      'Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Deceive")',
      'Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Lust Offline")'),
+    # Lust has no FAQ of its own: the DNS fix lives in Deceive's.
+    ("Deceive/Utils.cs", "Please see the Deceive FAQ for more information.",
+     "Please see the FAQ for more information."),
+    ("Deceive/Utils.cs", 'Process.Start("https://github.com/molenzwiebel/Deceive#FAQ");',
+     'Process.Start("https://github.com/molenzwiebel/Deceive#faq");'),
     ("Deceive/Deceive.csproj",
      "    <OutputType>WinExe</OutputType>\n",
      "    <OutputType>WinExe</OutputType>\n    <AssemblyName>LustOffline</AssemblyName>\n"
-     "    <Product>Lust Offline</Product>\n"),
+     "    <Product>Lust Offline</Product>\n    <AssemblyTitle>Lust Offline</AssemblyTitle>\n"
+     "    <Company>Lust</Company>\n"
+     "    <Copyright>Copyright (c) molenzwiebel and Lust contributors, GPL-3.0</Copyright>\n"),
 ]
 
 STRING_LITERAL = re.compile(r'\$?"(?:[^"\\\n]|\\.)*"')
@@ -54,8 +61,11 @@ SKIP_RENAME = {"Deceive/Properties/Resources.Designer.cs"}
 
 
 def rename_strings(text):
-    text = text.replace("https://github.com/molenzwiebel/Deceive", REPO_URL)
-    return STRING_LITERAL.sub(lambda m: WORD.sub("Lust", m.group(0)), text)
+    # Links to Deceive's repo point at Lust's, except its FAQ section
+    text = re.sub(r"https://github\.com/molenzwiebel/Deceive(?!#faq)", REPO_URL, text)
+    return STRING_LITERAL.sub(
+        lambda m: m.group(0) if "molenzwiebel/Deceive#faq" in m.group(0) else WORD.sub("Lust", m.group(0)),
+        text)
 
 
 def main():
@@ -85,7 +95,8 @@ def main():
         renamed = rename_strings(text)
         if renamed != text:
             path.write_text(renamed, encoding="utf-8")
-        leftover = [m.group(0) for m in STRING_LITERAL.finditer(renamed) if WORD.search(m.group(0))]
+        leftover = [m.group(0) for m in STRING_LITERAL.finditer(renamed)
+                    if WORD.search(m.group(0).replace("molenzwiebel/Deceive#faq", ""))]
         if leftover:
             sys.exit(f"[offline] Deceive left in {rel}: {leftover[:3]}")
 

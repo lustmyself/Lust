@@ -421,6 +421,30 @@ a.binaries = filter_binaries(a.binaries)
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
+# Lust: version info for Lust.exe (antivirus heuristics distrust exes without any)
+import re as _re
+from PyInstaller.utils.win32.versioninfo import (
+    VSVersionInfo, FixedFileInfo, StringFileInfo, StringTable, StringStruct, VarFileInfo, VarStruct,
+)
+_lust_version = _re.search(r'APP_VERSION = "([^"]+)"', Path('config.py').read_text(encoding='utf-8')).group(1)
+_lust_numbers = tuple((list(map(int, _re.findall(r'\d+', _lust_version))) + [0, 0, 0, 0])[:4])
+lust_version_info = VSVersionInfo(
+    ffi=FixedFileInfo(filevers=_lust_numbers, prodvers=_lust_numbers),
+    kids=[
+        StringFileInfo([StringTable('040904B0', [
+            StringStruct('CompanyName', 'Lust Team'),
+            StringStruct('FileDescription', 'Lust'),
+            StringStruct('FileVersion', _lust_version),
+            StringStruct('InternalName', 'Lust'),
+            StringStruct('LegalCopyright', 'Lust Team, MIT License'),
+            StringStruct('OriginalFilename', 'Lust.exe'),
+            StringStruct('ProductName', 'Lust'),
+            StringStruct('ProductVersion', _lust_version),
+        ])]),
+        VarFileInfo([VarStruct('Translation', [1033, 1200])]),
+    ],
+)
+
 exe = EXE(
     pyz,
     a.scripts,
@@ -438,6 +462,7 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     icon='assets/icon.ico',
+    version=lust_version_info,
     uac_admin=True,  # Request admin rights (required for injection)
 )
 

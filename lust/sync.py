@@ -312,6 +312,38 @@ EDITS += [
      '\nThe patcher stops working with game builds released after its end-of-life date: update LTK Manager and restart Lust.\n'),
 ]
 
+# Lust.exe carries version info: antivirus heuristics distrust exes without any
+LUST_VERSION_INFO = '''# Lust: version info for Lust.exe (antivirus heuristics distrust exes without any)
+import re as _re
+from PyInstaller.utils.win32.versioninfo import (
+    VSVersionInfo, FixedFileInfo, StringFileInfo, StringTable, StringStruct, VarFileInfo, VarStruct,
+)
+_lust_version = _re.search(r'APP_VERSION = "([^"]+)"', Path('config.py').read_text(encoding='utf-8')).group(1)
+_lust_numbers = tuple((list(map(int, _re.findall(r'\\d+', _lust_version))) + [0, 0, 0, 0])[:4])
+lust_version_info = VSVersionInfo(
+    ffi=FixedFileInfo(filevers=_lust_numbers, prodvers=_lust_numbers),
+    kids=[
+        StringFileInfo([StringTable('040904B0', [
+            StringStruct('CompanyName', 'Lust Team'),
+            StringStruct('FileDescription', 'Lust'),
+            StringStruct('FileVersion', _lust_version),
+            StringStruct('InternalName', 'Lust'),
+            StringStruct('LegalCopyright', 'Lust Team, MIT License'),
+            StringStruct('OriginalFilename', 'Lust.exe'),
+            StringStruct('ProductName', 'Lust'),
+            StringStruct('ProductVersion', _lust_version),
+        ])]),
+        VarFileInfo([VarStruct('Translation', [1033, 1200])]),
+    ],
+)
+
+'''
+EDITS += [
+    ('Lust.spec', "exe = EXE(\n", LUST_VERSION_INFO + "exe = EXE(\n"),
+    ('Lust.spec', "    icon='assets/icon.ico',\n    uac_admin=True,",
+     "    icon='assets/icon.ico',\n    version=lust_version_info,\n    uac_admin=True,"),
+]
+
 # Lust Offline: League starts through the chat proxy built from lust/offline
 EDITS += [
     ('main/__init__.py',

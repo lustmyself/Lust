@@ -218,7 +218,7 @@ internal static class Utils
             return;
 
         var result = MessageBox.Show(
-            "Your machine is failing to resolve some required domains. You will need to switch DNS servers or add an entry to your hosts file. Please see the Lust FAQ for more information. Lust will not work until this issue is resolved. Would you like to open the FAQ now?",
+            "Your machine is failing to resolve some required domains. You will need to switch DNS servers or add an entry to your hosts file. Please see the FAQ for more information. Lust will not work until this issue is resolved. Would you like to open the FAQ now?",
             StartupHandler.DeceiveTitle,
             MessageBoxButtons.YesNo,
             MessageBoxIcon.Question,
@@ -227,7 +227,7 @@ internal static class Utils
 
         if (result is DialogResult.Yes)
         {
-            Process.Start("https://github.com/lustmyself/Lust#FAQ");
+            Process.Start("https://github.com/molenzwiebel/Deceive#faq");
         }
 
         Environment.Exit(0);

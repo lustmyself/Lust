@@ -4,6 +4,9 @@
     <OutputType>WinExe</OutputType>
     <AssemblyName>LustOffline</AssemblyName>
     <Product>Lust Offline</Product>
+    <AssemblyTitle>Lust Offline</AssemblyTitle>
+    <Company>Lust</Company>
+    <Copyright>Copyright (c) molenzwiebel and Lust contributors, GPL-3.0</Copyright>
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <AssemblyVersion>1.18.0.0</AssemblyVersion>

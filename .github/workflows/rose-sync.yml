@@ -175,6 +175,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # The build regenerates the icon; only the synced source belongs in the commit
+          git restore assets/icon.ico 2>/dev/null || true
           git add -A
           if git diff --cached --quiet; then
             echo "Source already matches Rose $TAG"

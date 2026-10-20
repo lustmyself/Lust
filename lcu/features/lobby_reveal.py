@@ -7,7 +7,7 @@ Reads the Riot IDs of champ select teammates from the Riot Client chat
 Same approach as https://github.com/steele123/reveal.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Dict, List, Optional
 from urllib.parse import quote
 

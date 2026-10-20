@@ -33,6 +33,11 @@ PATCHES = [
     ("Deceive/MainController.cs", "        TrayIcon.ShowBalloonTip(5000);\n", ""),
     # No tray icon of its own: Lust's tray menu and the CUSTOMIZE tab set the status.
     ("Deceive/MainController.cs", "            Visible = true,\n", "            Visible = false,\n"),
+    # The status file keeps the status in use, not only the one at exit: Lust's hub reads it
+    ("Deceive/MainController.cs",
+     "    private async Task UpdateStatusAsync(string newStatus)\n    {\n",
+     "    private async Task UpdateStatusAsync(string newStatus)\n    {\n"
+     "        try { File.WriteAllText(StatusFile, newStatus); } catch (IOException) { }\n"),
     # Lust ships updates itself; no prompt to download Deceive.
     ("Deceive/StartupHandler.cs", "        _ = Utils.CheckForUpdatesAsync();\n", ""),
     ("Deceive/StartupHandler.cs",

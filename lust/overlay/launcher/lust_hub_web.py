@@ -364,8 +364,17 @@ $("a-quit").addEventListener("click", () => {
   quitArmed = Date.now(); state && render(state); setTimeout(() => state && render(state), 3100);
 });
 $("v-btn").addEventListener("click", () => act(state && state.update_available ? "update" : "check"));
-$("sp-apply").addEventListener("click", () => act("spotify_apply", { theme: choice }));
-$("sp-restore").addEventListener("click", () => act("spotify_apply", { theme: "original" }));
+// Applying restarts Spotify (and stops the music): a second click confirms
+function confirmed(button, idle, run) {
+  if (button.dataset.armed && Date.now() - Number(button.dataset.armed) < 4000) {
+    delete button.dataset.armed; button.textContent = idle; run(); return;
+  }
+  button.dataset.armed = Date.now();
+  button.textContent = "Spotify yeniden başlayacak, onayla";
+  setTimeout(() => { if (button.dataset.armed) { delete button.dataset.armed; button.textContent = idle; } }, 4000);
+}
+$("sp-apply").addEventListener("click", (e) => confirmed(e.currentTarget, "Temayı uygula", () => act("spotify_apply", { theme: choice })));
+$("sp-restore").addEventListener("click", (e) => confirmed(e.currentTarget, "Orijinale döndür", () => act("spotify_apply", { theme: "original" })));
 const shell = () => window.pywebview && window.pywebview.api;
 $("w-min").addEventListener("click", () => shell() && shell().minimize());
 $("w-close").addEventListener("click", () => shell() ? shell().close() : window.close());

@@ -19,7 +19,6 @@ What changes compared to Elaina:
 - Settings that broadcast fake rank/mastery to friends start disabled.
 """
 
-import io
 import re
 import shutil
 import sys
@@ -41,6 +40,8 @@ TEXT_SUFFIXES = {".js", ".css", ".txt", ".json", ".md", ".url"}
 
 # Files dropped from the release (relative to the plugin root).
 REMOVE = [
+    # The update popup's styles, no longer loaded (their bare .message rule hid champ select's text)
+    "assets/styles/themes/theme-update-message.css",
     "assets/backgrounds/audio/Laur - Mellifluous.flac",
     "assets/backgrounds/audio/Laur - その花は世界を紡ぐ.flac",
     "assets/backgrounds/wallpapers/elaina1.webm",

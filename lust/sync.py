@@ -17,7 +17,6 @@ Any step that no longer fits Rose's code fails loudly instead of guessing.
 """
 
 import io
-import os
 import re
 import shutil
 import subprocess
@@ -630,6 +629,43 @@ EDITS += [
 EDITS += [
     ('installer.iss', 'AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}}\n',
      'AppId={{18B5D16F-154B-43C8-A6DF-21CB903DE869}}\nUsePreviousAppDir=no\n'),
+]
+
+
+# Update check without GitHub's API when its hourly limit is used up (60 calls per IP,
+# shared with the skin downloader): releases/latest redirects to the newest tag, and the
+# update package's name follows from it
+GH_CLIENT = "launcher/update/github_client.py"
+EDITS += [
+    (GH_CLIENT,
+     '        except Exception as e:\n'
+     '            log.warning("Update check failed while fetching latest release: %s", e)\n'
+     '            return None\n',
+     '        except Exception as e:\n'
+     '            log.warning("Update check failed while fetching latest release: %s", e)\n'
+     '            return self._latest_from_web()\n'
+     '\n'
+     '    def _latest_from_web(self) -> Optional[dict]:\n'
+     '        """The latest release from github.com itself, which the API limit does not cover."""\n'
+     '        repo = GITHUB_RELEASE_API.split("/repos/", 1)[-1].rsplit("/releases", 1)[0]\n'
+     '        try:\n'
+     '            response = requests.get(f"https://github.com/{repo}/releases/latest",\n'
+     '                                    timeout=self.timeout, allow_redirects=False)\n'
+     '            tag = response.headers.get("Location", "").rstrip("/").rsplit("/tag/", 1)[-1]\n'
+     '        except Exception as e:\n'
+     '            log.warning("Update check from github.com failed too: %s", e)\n'
+     '            return None\n'
+     '        if response.status_code not in (301, 302) or not re.fullmatch(r"v?[0-9][0-9A-Za-z.]*", tag):\n'
+     '            log.warning("Update check from github.com found no release tag")\n'
+     '            return None\n'
+     '        version = tag.lstrip("vV")\n'
+     '        name = f"update_package_{version}.zip"\n'
+     '        log.info("Latest release %s found on github.com (API limit reached)", tag)\n'
+     '        return {"tag_name": tag, "assets": [{\n'
+     '            "name": name, "size": 0,\n'
+     '            "browser_download_url": f"https://github.com/{repo}/releases/download/{tag}/{name}",\n'
+     '        }]}\n'),
+    (GH_CLIENT, "from typing import Optional\n", "import re\nfrom typing import Optional\n"),
 ]
 
 

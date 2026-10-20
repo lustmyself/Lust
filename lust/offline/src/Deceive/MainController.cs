@@ -322,6 +322,7 @@ internal class MainController : ApplicationContext
 
     private async Task UpdateStatusAsync(string newStatus)
     {
+        try { File.WriteAllText(StatusFile, newStatus); } catch (IOException) { }
         foreach (var connection in Connections)
             await connection.UpdateStatusAsync(newStatus);
 

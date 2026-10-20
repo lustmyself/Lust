@@ -195,6 +195,9 @@ LUST_PANEL_JS = '''function Settings(context) {
 // the hub for status, colors, theme and plugin settings. LUST keeps Rose's own.
 const LUST_PANEL_TABS = [
   { id: "customize", label: "CUSTOMIZE", render: customizeSettings, className: "customize_settings" },
+  // Drawn by the LUST-LobbyReveal plugin
+  { id: "reveal", label: "LOBBY REVEAL", className: "reveal_settings", reload: false,
+    render: async (view) => window.LustReveal && window.LustReveal.renderHub(view) },
   { id: "lust", label: "LUST" }
 ];
 
@@ -361,8 +364,11 @@ const LUST_PANEL_CSS = `
   .lust-panel-tab.active { color: #f0e6d2; border-bottom-color: #c8aa6e; }
   [data-lust-tab]:not([data-lust-tab="lust"]) > :not(.lust-keep) { display: none !important; }
   .lust-panel-view { display: none !important; width: 100%; height: 60vh; }
-  [data-lust-tab="customize"] > .lust-panel-view[data-tab="customize"] { display: block !important; }
-  #lust-settings-panel[data-lust-tab="customize"] #lust-settings-flyout { min-width: 560px !important; max-width: 560px !important; }
+  [data-lust-tab="customize"] > .lust-panel-view[data-tab="customize"],
+  [data-lust-tab="reveal"] > .lust-panel-view[data-tab="reveal"] { display: block !important; }
+  .lust-panel-view[data-tab="reveal"] { height: auto; }
+  #lust-settings-panel[data-lust-tab="customize"] #lust-settings-flyout,
+  #lust-settings-panel[data-lust-tab="reveal"] #lust-settings-flyout { min-width: 560px !important; max-width: 560px !important; }
   .lust-panel-reload { display: block; width: 220px; margin: 14px auto 6px; }
   .lust-hub-section { margin-bottom: 18px; }
   .lust-hub-title { margin: 0 0 8px; padding-bottom: 4px; border-bottom: 1px solid #785a2866; color: #f0e6d2;

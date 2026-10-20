@@ -16,9 +16,11 @@ from lcu.features.lobby_reveal import (
     apply_champ_select_session,
     build_opgg_multi_url,
     build_porofessor_url,
+    build_ugg_multi_url,
     opgg_region,
     parse_participants,
     porofessor_region,
+    riot_platform,
 )
 from state import SharedState
 from utils.core.logging import get_logger
@@ -41,6 +43,7 @@ class LobbyRevealThread(threading.Thread):
         self._last_sent_at = 0.0
         self._region = ""
         self._poro_region = ""
+        self._platform = ""
 
     def stop(self) -> None:
         self._stop_event.set()
@@ -55,9 +58,10 @@ class LobbyRevealThread(threading.Thread):
     def _tick(self) -> None:
         if getattr(self.state, "phase", None) != "ChampSelect":
             if self._last_payload is not None and self._last_payload.get("active"):
-                self._send({"active": False, "players": [], "region": "", "multiUrl": "", "poroUrl": ""})
+                self._send({"active": False, "players": [], "region": "", "multiUrl": "", "poroUrl": "", "uggUrl": ""})
             self._region = ""
             self._poro_region = ""
+            self._platform = ""
             return
 
         if not self._region:
@@ -65,6 +69,7 @@ class LobbyRevealThread(threading.Thread):
             web_region = (locale or {}).get("webRegion")
             self._region = opgg_region(web_region)
             self._poro_region = porofessor_region(web_region)
+            self._platform = riot_platform(web_region)
 
         players = parse_participants(self.chat.get_participants())
         if not players:
@@ -74,9 +79,10 @@ class LobbyRevealThread(threading.Thread):
         payload = {
             "active": True,
             "region": self._region,
-            "players": [p.to_payload(self._region) for p in players],
+            "players": [p.to_payload(self._region, self._platform) for p in players],
             "multiUrl": build_opgg_multi_url(players, self._region),
             "poroUrl": build_porofessor_url(players, self._poro_region),
+            "uggUrl": build_ugg_multi_url(players, self._platform),
         }
         now = time.monotonic()
         if payload != self._last_payload:

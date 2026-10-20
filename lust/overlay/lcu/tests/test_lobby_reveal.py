@@ -7,10 +7,13 @@ from lcu.features.lobby_reveal import (
     build_opgg_multi_url,
     build_opgg_profile_url,
     build_porofessor_url,
+    build_ugg_multi_url,
+    build_ugg_profile_url,
     opgg_region,
     parse_participants,
     parse_riotclient_args,
     porofessor_region,
+    riot_platform,
 )
 from threads.core.lobby_reveal_thread import LobbyRevealThread
 
@@ -84,6 +87,27 @@ class OpggLinkTests(unittest.TestCase):
         )
 
 
+class UggLinkTests(unittest.TestCase):
+    def test_platform_ids(self):
+        self.assertEqual(riot_platform("EUW"), "euw1")
+        self.assertEqual(riot_platform("LAS"), "la2")
+        self.assertEqual(riot_platform("KR"), "kr")
+        self.assertEqual(riot_platform("EUW1"), "euw1")
+        self.assertEqual(riot_platform(None), "")
+
+    def test_multi_and_profile_urls(self):
+        players = [RevealedPlayer("Player One", "NA1"), RevealedPlayer("Two", "EUW")]
+        self.assertEqual(
+            build_ugg_multi_url(players, "na1"),
+            "https://u.gg/lol/multisearch?region=na1&summoners=Player%20One-NA1%2CTwo-EUW",
+        )
+        self.assertEqual(build_ugg_multi_url(players, ""), "")
+        self.assertEqual(
+            build_ugg_profile_url(players[0], "na1"),
+            "https://u.gg/lol/profile/na1/Player%20One-NA1/overview",
+        )
+
+
 class PorofessorLinkTests(unittest.TestCase):
     def test_region_slugs(self):
         self.assertEqual(porofessor_region("EUW"), "euw")
@@ -120,6 +144,7 @@ class LobbyRevealThreadTests(unittest.TestCase):
         self.assertEqual(payload["players"][0]["puuid"], "p1")
         self.assertEqual(payload["multiUrl"], "https://www.op.gg/multisearch/euw?summoners=One%23EUW")
         self.assertEqual(payload["poroUrl"], "https://porofessor.gg/pregame/euw/One-EUW")
+        self.assertEqual(payload["uggUrl"], "https://u.gg/lol/multisearch?region=euw1&summoners=One-EUW")
 
         thread._tick()  # unchanged team is not re-sent right away
         self.assertEqual(broadcaster.broadcast_lobby_reveal.call_count, 1)

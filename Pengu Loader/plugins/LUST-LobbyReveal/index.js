@@ -17,6 +17,21 @@
     utility: "SUP",
   };
 
+  const SETTINGS_KEY = "lust-lobby-reveal-settings";
+  const DEFAULT_SETTINGS = { provider: "opgg", click: "opgg", autoOpen: false, autoOpenDelay: 6 };
+  // Multi-search sites: label and the payload field with the team's link.
+  const PROVIDERS = {
+    opgg: { label: "OP.GG", field: "multiUrl" },
+    porofessor: { label: "Porofessor", field: "poroUrl" },
+    ugg: { label: "U.GG", field: "uggUrl" },
+  };
+  const CLICK_ACTIONS = {
+    opgg: "Open OP.GG profile",
+    ugg: "Open U.GG profile",
+    details: "Show details",
+  };
+  const AUTO_OPEN_DELAYS = [0, 3, 6, 10];
+
   const SOLO_DUO_QUEUE_ID = 420;
   const RECENT_GAMES = 20;
   // Below this many recent games a win rate is noise, so show the record instead.
@@ -196,6 +211,32 @@
       box-shadow: 0 0 8px rgba(10, 200, 185, 0.6);
     }
 
+    #${PANEL_ID} .lust-reveal-also {
+      margin-top: 6px;
+      text-align: center;
+      font-family: "Spiegel", "Arial", sans-serif;
+      font-size: 11px;
+      color: #7e7a70;
+    }
+
+    #${PANEL_ID} .lust-reveal-also a {
+      margin: 0 4px;
+      color: #a09b8c;
+      text-decoration: none;
+    }
+
+    #${PANEL_ID} .lust-reveal-also a:hover {
+      color: #f0e6d2;
+    }
+
+    #${PANEL_ID} .lust-reveal-details {
+      margin: 2px 0 4px 38px;
+      font-family: "Spiegel", "Arial", sans-serif;
+      font-size: 11px;
+      line-height: 1.5;
+      color: #a09b8c;
+    }
+
     #${PANEL_ID} .lust-reveal-empty {
       font-family: "Spiegel", "Arial", sans-serif;
       font-size: 12px;
@@ -203,8 +244,149 @@
     }
   `;
 
+  const HUB_CSS = `
+    .lust-rv-hub {
+      position: relative;
+      overflow: hidden;
+      padding: 18px 18px 16px;
+      border: 1px solid #785a28;
+      background:
+        radial-gradient(120% 90% at 100% 0%, rgba(10, 200, 185, 0.16), transparent 55%),
+        radial-gradient(90% 80% at 0% 100%, rgba(139, 92, 246, 0.18), transparent 60%),
+        linear-gradient(160deg, #0d1a2b 0%, #010a13 70%);
+      box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.55);
+      font-family: "Spiegel", "Arial", sans-serif;
+      color: #cdbe91;
+    }
+
+    .lust-rv-hub::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(135deg, rgba(200, 170, 110, 0.035) 0 1px, transparent 1px 9px);
+    }
+
+    .lust-rv-title {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      font: 700 16px "Beaufort for LOL", serif;
+      letter-spacing: 1px;
+      color: #f0e6d2;
+      text-transform: uppercase;
+    }
+
+    .lust-rv-count {
+      font: 12px "Spiegel", "Arial", sans-serif;
+      letter-spacing: 0;
+      text-transform: none;
+      color: #a09b8c;
+    }
+
+    .lust-rv-field {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 0;
+      border-top: 1px solid rgba(120, 90, 40, 0.35);
+    }
+
+    .lust-rv-label {
+      font-size: 13px;
+      color: #f0e6d2;
+    }
+
+    .lust-rv-hint {
+      display: block;
+      margin-top: 2px;
+      font-size: 11px;
+      color: #7e7a70;
+    }
+
+    .lust-rv-hub select {
+      min-width: 170px;
+      padding: 6px 8px;
+      border: 1px solid #785a28;
+      background: #010a13;
+      color: #cdbe91;
+      font: 13px "Spiegel", "Arial", sans-serif;
+      outline: none;
+    }
+
+    .lust-rv-hub select.small {
+      min-width: 0;
+      width: 80px;
+      margin-right: 10px;
+    }
+
+    .lust-rv-switch {
+      position: relative;
+      flex: 0 0 auto;
+      width: 38px;
+      height: 20px;
+      border: 1px solid #785a28;
+      border-radius: 10px;
+      background: #1e2328;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .lust-rv-switch::after {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #a09b8c;
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .lust-rv-switch.on {
+      background: #0a3a40;
+      border-color: #0ac8b9;
+    }
+
+    .lust-rv-switch.on::after {
+      transform: translateX(18px);
+      background: #0ac8b9;
+    }
+  `;
+
   let panel = null;
   let collapsed = false;
+  let settings = loadSettings();
+  // puuids whose details row is open, for the "Show details" click action
+  const expanded = new Set();
+  let autoOpen = { done: false, timer: null };
+
+  function loadSettings() {
+    try {
+      return { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}") };
+    } catch {
+      return { ...DEFAULT_SETTINGS };
+    }
+  }
+
+  function saveSettings(changes) {
+    settings = { ...settings, ...changes };
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    } catch {}
+    queueRender();
+  }
+
+  function revealedCount() {
+    try {
+      return Number(localStorage.getItem("lust-lobby-reveal-count")) || 0;
+    } catch {
+      return 0;
+    }
+  }
   let lastData = null;
   let renderQueued = false;
   let championNames = null;
@@ -463,6 +645,8 @@
       root.hidden = true;
       root.replaceChildren();
       stats.clear();
+      expanded.clear();
+      resetAutoOpen();
       return;
     }
 
@@ -501,14 +685,24 @@
       const role = ROLE_LABELS[player.position];
       if (role) top.appendChild(el("span", "lust-reveal-role", role));
 
-      const name = el(player.opggUrl ? "a" : "span", "lust-reveal-name");
+      const profileUrl = settings.click === "ugg" ? player.uggUrl : settings.click === "opgg" ? player.opggUrl : "";
+      const name = el(profileUrl || settings.click === "details" ? "a" : "span", "lust-reveal-name");
       name.appendChild(document.createTextNode(player.gameName || ""));
       if (player.gameTag) name.appendChild(el("span", "lust-reveal-tag", `#${player.gameTag}`));
-      if (player.opggUrl) {
-        name.href = player.opggUrl;
+      if (profileUrl) {
+        name.href = profileUrl;
         name.target = "_blank";
         name.rel = "noreferrer";
-        name.title = `${player.riotId} on op.gg`;
+        name.title = `${player.riotId} on ${settings.click === "ugg" ? "u.gg" : "op.gg"}`;
+      } else if (settings.click === "details") {
+        name.href = "#";
+        name.title = "Show details";
+        name.addEventListener("click", (event) => {
+          event.preventDefault();
+          if (expanded.has(player.puuid)) expanded.delete(player.puuid);
+          else expanded.add(player.puuid);
+          queueRender();
+        });
       }
       top.appendChild(name);
 
@@ -521,26 +715,148 @@
       row.appendChild(info);
 
       body.appendChild(row);
+      if (settings.click === "details" && expanded.has(player.puuid)) {
+        body.appendChild(detailsBlock(entry));
+      }
     }
 
-    const links = el("div", "lust-reveal-links");
-    for (const [url, label, title] of [
-      [data.multiUrl, "OP.GG", "Multi-search the team on op.gg"],
-      [data.poroUrl, "Porofessor", "The team's pre-game page on Porofessor"],
-    ]) {
-      if (!url) continue;
-      const link = el("a", "lust-reveal-multi", label);
-      link.href = url;
+    // The chosen multi-search site as the button, the others as small links below.
+    const chosen = PROVIDERS[settings.provider] ? settings.provider : "opgg";
+    if (data[PROVIDERS[chosen].field]) {
+      const links = el("div", "lust-reveal-links");
+      const main = el("a", "lust-reveal-multi", `Multi ${PROVIDERS[chosen].label}`);
+      main.href = data[PROVIDERS[chosen].field];
+      main.target = "_blank";
+      main.rel = "noreferrer";
+      links.appendChild(main);
+      body.appendChild(links);
+    }
+    const also = el("div", "lust-reveal-also");
+    for (const [key, provider] of Object.entries(PROVIDERS)) {
+      if (key === chosen || !data[provider.field]) continue;
+      const link = el("a", "", provider.label);
+      link.href = data[provider.field];
       link.target = "_blank";
       link.rel = "noreferrer";
-      link.title = title;
-      links.appendChild(link);
+      also.appendChild(link);
     }
-    if (links.childElementCount) body.appendChild(links);
+    if (also.childElementCount) body.appendChild(also);
     root.appendChild(body);
     root.hidden = false;
     placePanel();
+    scheduleAutoOpen(data, players.length);
   }
+
+  function detailsBlock(entry) {
+    const block = el("div", "lust-reveal-details");
+    const lines = [];
+    if (entry.rank) lines.push(formatTier(entry.rank));
+    if (entry.recent && entry.recent.wins + entry.recent.losses) {
+      lines.push(`Last ${entry.recent.wins + entry.recent.losses} Solo/Duo: ${entry.recent.wins}W ${entry.recent.losses}L`);
+    }
+    for (const main of entry.mains || []) {
+      lines.push(`${main.name} · Mastery ${main.level} · ${main.points.toLocaleString()} pts`);
+    }
+    block.textContent = lines.length ? lines.join("\n") : "Loading...";
+    block.style.whiteSpace = "pre-line";
+    return block;
+  }
+
+  function openUrl(url) {
+    const link = document.createElement("a");
+    link.href = url;
+    link.target = "_blank";
+    link.rel = "noreferrer";
+    link.click();
+  }
+
+  // Once per champ select: count the lobby, and open the multi-search when all five
+  // names are in or the delay runs out, if the player turned that on.
+  function scheduleAutoOpen(data, count) {
+    if (autoOpen.done) return;
+    if (!autoOpen.counted) {
+      autoOpen.counted = true;
+      try {
+        localStorage.setItem("lust-lobby-reveal-count", String(revealedCount() + 1));
+      } catch {}
+    }
+    if (!settings.autoOpen) return;
+    const open = () => {
+      const latest = lastData || data;
+      const url = latest[PROVIDERS[settings.provider] ? PROVIDERS[settings.provider].field : "multiUrl"];
+      if (!url || autoOpen.done) return;
+      autoOpen.done = true;
+      clearTimeout(autoOpen.timer);
+      openUrl(url);
+    };
+    if (count >= 5) open();
+    else if (!autoOpen.timer) autoOpen.timer = setTimeout(open, settings.autoOpenDelay * 1000);
+  }
+
+  function resetAutoOpen() {
+    clearTimeout(autoOpen.timer);
+    autoOpen = { done: false, timer: null };
+  }
+
+  // ---- Hub (LOBBY REVEAL tab in the Lust panel) ----
+
+  function selectField(options, value, onChange, className) {
+    const select = el("select", className);
+    for (const [key, label] of Object.entries(options)) {
+      const option = el("option", "", label);
+      option.value = key;
+      select.appendChild(option);
+    }
+    select.value = String(value);
+    select.addEventListener("change", () => onChange(select.value));
+    return select;
+  }
+
+  function hubField(label, hint, control) {
+    const row = el("div", "lust-rv-field");
+    const text = el("div");
+    text.appendChild(el("span", "lust-rv-label", label));
+    if (hint) text.appendChild(el("span", "lust-rv-hint", hint));
+    row.append(text, control);
+    return row;
+  }
+
+  function renderHub(view) {
+    if (!document.getElementById("lust-rv-hub-style")) {
+      const style = el("style");
+      style.id = "lust-rv-hub-style";
+      style.textContent = HUB_CSS;
+      document.head.appendChild(style);
+    }
+    const hub = el("div", "lust-rv-hub");
+    const title = el("div", "lust-rv-title");
+    title.append(el("span", "", "Lobby Reveal"), el("span", "lust-rv-count", `${revealedCount().toLocaleString()} lobbies revealed`));
+    hub.appendChild(title);
+
+    const providerLabels = Object.fromEntries(Object.entries(PROVIDERS).map(([key, p]) => [key, p.label]));
+    hub.appendChild(hubField("Multi-search", "The team button in champ select",
+      selectField(providerLabels, settings.provider, (provider) => saveSettings({ provider }))));
+    hub.appendChild(hubField("Clicking a player", "What a teammate's name does",
+      selectField(CLICK_ACTIONS, settings.click, (click) => saveSettings({ click }))));
+
+    const autoControl = el("div");
+    autoControl.style.display = "flex";
+    autoControl.style.alignItems = "center";
+    const delays = Object.fromEntries(AUTO_OPEN_DELAYS.map((s) => [s, `${s} sec`]));
+    autoControl.appendChild(selectField(delays, settings.autoOpenDelay,
+      (delay) => saveSettings({ autoOpenDelay: Number(delay) }), "small"));
+    const toggle = el("div", `lust-rv-switch${settings.autoOpen ? " on" : ""}`);
+    toggle.addEventListener("click", () => {
+      saveSettings({ autoOpen: !settings.autoOpen });
+      toggle.classList.toggle("on", settings.autoOpen);
+    });
+    autoControl.appendChild(toggle);
+    hub.appendChild(hubField("Open lookup automatically", "Waits for all five names, up to the delay", autoControl));
+
+    view.appendChild(hub);
+  }
+
+  window.LustReveal = { renderHub };
 
   function handlePhaseChange(data) {
     if (data && data.phase && data.phase !== "ChampSelect") render(null);

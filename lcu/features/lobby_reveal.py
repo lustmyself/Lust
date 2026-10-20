@@ -22,6 +22,12 @@ UX_PROCESS_NAMES = {"leagueclientux.exe", "leagueclient.exe"}
 
 # webRegion values that op.gg spells differently
 OPGG_REGION_ALIASES = {"SG2": "SG"}
+# Riot platform ids by webRegion
+RIOT_PLATFORMS = {
+    "NA": "na1", "EUW": "euw1", "EUNE": "eun1", "BR": "br1", "JP": "jp1", "OCE": "oc1",
+    "TR": "tr1", "LAN": "la1", "LAS": "la2", "ME": "me1", "SG": "sg2", "PH": "ph2",
+    "TH": "th2", "TW": "tw2", "VN": "vn2",
+}
 # Porofessor's region slugs, for platform ids that differ from them
 POROFESSOR_REGIONS = {
     "NA1": "na", "EUW1": "euw", "EUN1": "eune", "EUNE": "eune", "BR1": "br", "JP1": "jp",
@@ -49,8 +55,9 @@ class RevealedPlayer:
     def riot_id(self) -> str:
         return f"{self.game_name}#{self.game_tag}" if self.game_tag else self.game_name
 
-    def to_payload(self, region: str) -> dict:
+    def to_payload(self, region: str, platform: str = "") -> dict:
         return {
+            "uggUrl": build_ugg_profile_url(self, platform) if platform else "",
             "gameName": self.game_name,
             "gameTag": self.game_tag,
             "riotId": self.riot_id,
@@ -141,6 +148,26 @@ def build_opgg_multi_url(players: List[RevealedPlayer], region: str) -> str:
         return ""
     summoners = ",".join(p.riot_id for p in players)
     return f"https://www.op.gg/multisearch/{region}?summoners={quote(summoners)}"
+
+
+def riot_platform(web_region: Optional[str]) -> str:
+    """Riot platform id (euw1, na1, ...), which u.gg uses."""
+    region = (web_region or "").upper()
+    if region[-1:].isdigit() or region in {"KR", "RU"}:
+        return region.lower()
+    return RIOT_PLATFORMS.get(region, region.lower())
+
+
+def build_ugg_multi_url(players: List[RevealedPlayer], platform: str) -> str:
+    if not players or not platform:
+        return ""
+    summoners = ",".join(f"{p.game_name}-{p.game_tag}" if p.game_tag else p.game_name for p in players)
+    return f"https://u.gg/lol/multisearch?region={platform}&summoners={quote(summoners)}"
+
+
+def build_ugg_profile_url(player: RevealedPlayer, platform: str) -> str:
+    slug = f"{player.game_name}-{player.game_tag}" if player.game_tag else player.game_name
+    return f"https://u.gg/lol/profile/{platform}/{quote(slug)}/overview"
 
 
 def porofessor_region(web_region: Optional[str]) -> str:

@@ -12,6 +12,13 @@ Everything that makes Lust different from Rose lives in this folder:
 Lust doesn't, it runs `sync.py`, tests, builds the installer and publishes
 `vX.Y.Z` here. Installed copies of Lust then update themselves.
 
+## Shipping Lust fixes between Rose releases
+
+`lust_patch.txt` holds `<rose version> <patch>`, e.g. `1.4.9 2`: sync then
+stamps Lust as 1.4.9.2, and the release workflow publishes `v1.4.9.2`, which
+installed copies offer as an update. Raise the patch to ship a fix. A newer
+Rose release builds as its own version again, without a patch number.
+
 ## Changing Lust
 
 Edits made directly to Rose-derived files are overwritten by the next sync.

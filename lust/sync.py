@@ -429,6 +429,45 @@ def install(tree):
             path.rmdir()
 
 
+LUST_PATCH = ROOT / "lust" / "lust_patch.txt"
+
+
+def lust_version(rose_version):
+    """Rose's version, plus Lust's own patch number while Lust follows that Rose release.
+
+    lust_patch.txt holds "<rose version> <patch>": raise the patch to ship Lust fixes
+    (1.4.9 -> 1.4.9.1 -> 1.4.9.2). A newer Rose release starts again without one.
+    """
+    try:
+        rose, patch = LUST_PATCH.read_text(encoding="utf-8").split()
+    except (OSError, ValueError):
+        return rose_version
+    return f"{rose_version}.{int(patch)}" if rose == rose_version and int(patch) > 0 else rose_version
+
+
+def apply_lust_version(tree):
+    config = tree / "config.py"
+    text = config.read_text(encoding="utf-8")
+    match = re.search(r'^APP_VERSION = "([^"]+)"', text, re.MULTILINE)
+    if not match:
+        raise SystemExit("[sync] APP_VERSION not found in config.py")
+    rose_version = match.group(1)
+    version = lust_version(rose_version)
+    if version == rose_version:
+        return
+    config.write_text(text.replace(f'APP_VERSION = "{rose_version}"', f'APP_VERSION = "{version}"', 1),
+                      encoding="utf-8")
+    iss = tree / "installer.iss"
+    iss_text = iss.read_text(encoding="utf-8")
+    for old, new in [(f'#define MyAppVersion "{rose_version}"', f'#define MyAppVersion "{version}"'),
+                     (f'#define MyAppVersionInfo "{rose_version}.0"', f'#define MyAppVersionInfo "{version}"')]:
+        if old not in iss_text:
+            raise SystemExit(f"[sync] {old!r} not found in installer.iss")
+        iss_text = iss_text.replace(old, new, 1)
+    iss.write_text(iss_text, encoding="utf-8")
+    print(f"[sync] Lust version {version}")
+
+
 def main():
     if len(sys.argv) != 2:
         raise SystemExit(__doc__)
@@ -440,6 +479,7 @@ def main():
         patch_core_dll(tree)
         copy_overlay(tree)
         apply_edits(tree)
+        apply_lust_version(tree)
         install(tree)
     print(f"[sync] Lust tree rebuilt from Rose {ref}")
 

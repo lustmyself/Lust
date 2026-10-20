@@ -62,8 +62,16 @@ jobs:
             exit 1
           fi
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
-          if [ "$DRY_RUN" != "true" ] && gh release view "v$tag" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
-            echo "Lust v$tag is already released; nothing to do"
+          # Lust's own patch number while it follows this Rose release (lust/lust_patch.txt)
+          version="$tag"
+          read -r patch_rose patch < lust/lust_patch.txt || true
+          patch="${patch%$'\r'}"
+          if [ "${patch_rose:-}" = "$tag" ] && [ "${patch:-0}" -gt 0 ]; then
+            version="$tag.$patch"
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if [ "$DRY_RUN" != "true" ] && gh release view "v$version" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "Lust v$version is already released; nothing to do"
             echo "skip=true" >> "$GITHUB_OUTPUT"
           else
             echo "Following Rose $tag"
@@ -80,12 +88,13 @@ jobs:
         shell: bash
         env:
           TAG: ${{ steps.rose.outputs.tag }}
+          VERSION: ${{ steps.rose.outputs.version }}
         run: |
           git fetch --no-tags "https://github.com/$ROSE_REPO.git" "refs/tags/$TAG:refs/rose/$TAG"
           python lust/sync.py "refs/rose/$TAG"
           version=$(grep -oP '^APP_VERSION = "\K[^"]+' config.py)
-          if [ "$version" != "$TAG" ]; then
-            echo "::error::Rose $TAG reports APP_VERSION $version"
+          if [ "$version" != "$VERSION" ]; then
+            echo "::error::Expected APP_VERSION $VERSION after syncing Rose $TAG, got $version"
             exit 1
           fi
 
@@ -143,17 +152,17 @@ jobs:
         if: steps.rose.outputs.skip == 'false'
         shell: bash
         env:
-          TAG: ${{ steps.rose.outputs.tag }}
+          VERSION: ${{ steps.rose.outputs.version }}
         run: |
           python scripts/build_all.py
           python scripts/create_update_package.py
-          test -f "installer/Lust_Setup_$TAG.exe"
-          test -f "installer/update_package_$TAG.zip"
+          test -f "installer/Lust_Setup_$VERSION.exe"
+          test -f "installer/update_package_$VERSION.zip"
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: steps.rose.outputs.skip == 'false'
         with:
-          name: lust-${{ steps.rose.outputs.tag }}
+          name: lust-${{ steps.rose.outputs.version }}
           path: installer/
           retention-days: 14
 
@@ -180,16 +189,17 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.rose.outputs.tag }}
+          VERSION: ${{ steps.rose.outputs.version }}
         run: |
-          # Releases are named Lust v1, v2, ... in order. The tag keeps Rose's version
-          # (vX.Y.Z), which the updater compares, so only the title is numbered.
+          # Releases are named Lust v1, v2, ... in order. The tag is the version the
+          # updater compares (Rose's, plus Lust's patch number), so only the title is numbered.
           number=$(( $(gh release list --repo "$GITHUB_REPOSITORY" --limit 1000 --json tagName --jq length) + 1 ))
-          notes="Lust v$number, built automatically from [Rose $TAG](https://github.com/$ROSE_REPO/releases/tag/$TAG).
+          notes="Lust v$number ($VERSION), built automatically from [Rose $TAG](https://github.com/$ROSE_REPO/releases/tag/$TAG).
 
-          **Install:** download \`Lust_Setup_$TAG.exe\` below. Existing installs update themselves."
-          gh release create "v$TAG" \
-            "installer/Lust_Setup_$TAG.exe" \
-            "installer/update_package_$TAG.zip" \
+          **Install:** download \`Lust_Setup_$VERSION.exe\` below. Existing installs update themselves."
+          gh release create "v$VERSION" \
+            "installer/Lust_Setup_$VERSION.exe" \
+            "installer/update_package_$VERSION.zip" \
             --repo "$GITHUB_REPOSITORY" \
             --target "$(git rev-parse HEAD)" \
             --title "Lust v$number" \

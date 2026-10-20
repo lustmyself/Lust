@@ -305,10 +305,8 @@ class HubWindow:
         width = right - left
         col = (width - 2 * p(GAP)) / 3
 
-        # Header: logo, version pill, status pill
-        logo = self.text(left, p(36), "LUST", color=ACCENT)
-        c.itemconfig(logo, font=("Georgia", 19, "bold"))
-        vx = left + p(78)
+        # Header: version pill, tabs, status pill
+        vx = left
         self.rrect(vx, p(27), vx + p(64), p(45), p(9), fill=CARD, outline=CARD_LINE)
         self.text(vx + p(32), p(36), self.version, size=8, color=SUB, anchor="center")
         self.status_pill = self.rrect(right - p(96), p(25), right, p(47), p(11), fill=CARD, outline=CARD_LINE)

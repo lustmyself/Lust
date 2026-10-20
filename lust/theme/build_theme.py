@@ -1258,12 +1258,13 @@ def apply_patches(root):
 
 def rename_tree(root):
     for path in sorted(root.rglob("*"), key=lambda p: len(p.parts), reverse=True):
-        # The MIT notice keeps Elaina's copyright line as the license requires.
-        if path.is_file() and path.suffix.lower() in TEXT_SUFFIXES and path.name != "LICENSE.txt":
+        if path.is_file() and path.suffix.lower() in TEXT_SUFFIXES:
             text = path.read_text(encoding="utf-8")
-            renamed = rename(text)
-            if renamed != text:
-                path.write_text(renamed, encoding="utf-8")
+            # The MIT notice keeps Elaina's copyright line as the license requires.
+            renamed = text if path.name == "LICENSE.txt" else rename(text)
+            # Every text file with LF endings: the release mixes in CRLF, and the
+            # output must be the same whichever OS builds it.
+            path.write_text(renamed, encoding="utf-8", newline="\n")
         if "elaina" in path.name.lower():
             path.rename(path.with_name(rename(path.name)))
 
@@ -1289,7 +1290,7 @@ def recolor(root):
         for old, new in COLOR_SWAPS:
             swapped = swapped.replace(old, new)
         if swapped != text:
-            path.write_text(swapped, encoding="utf-8")
+            path.write_text(swapped, encoding="utf-8", newline="\n")
     left = [old for old, _ in COLOR_SWAPS
             if any(old in p.read_text(encoding="utf-8") for p in root.rglob("*.css"))]
     if left:

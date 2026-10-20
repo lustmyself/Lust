@@ -2,8 +2,8 @@
 
 Lust doesn't patch Spotify itself: it downloads the official Spicetify CLI from its
 GitHub releases (github.com/spicetify/cli, LGPL) into Lust's data folder and runs it.
-Themes: Lust's own (written here), Sleek's Nord and Catppuccin schemes from
-spicetify-themes (MIT), or Spotify's original look. Spotify updates wipe the patch,
+Themes: Luminous (streetraceing/luminous, MIT), Lust's purple and pink (written
+here), Sleek's schemes from spicetify-themes (MIT), or Spotify's original look. Spotify updates wipe the patch,
 so with "auto" on Lust applies the theme again when Spotify.exe changes.
 Lust runs elevated and Spicetify refuses that unless told --bypass-admin.
 """
@@ -29,10 +29,31 @@ log = get_logger()
 
 RELEASES = "https://api.github.com/repos/spicetify/cli/releases/latest"
 SLEEK = "https://raw.githubusercontent.com/spicetify/spicetify-themes/master/Sleek/"
+LUMINOUS = "https://raw.githubusercontent.com/streetraceing/luminous/main/release/"  # MIT
+# key: (theme folder, color scheme, label, preview background, preview accent), in the tab's order
 THEMES = {
-    "lust": ("Lust", "Lust"),
-    "nord": ("Sleek", "Nord"),
-    "catppuccin": ("Sleek", "Catppuccin"),
+    "luminous": ("Luminous", "Base", "Luminous", "#1b1b2f", "#7dd3fc"),
+    "nord": ("Sleek", "Nord", "Nord", "#2e3440", "#88c0d0"),
+    "lust": ("Lust", "Lust", "Mor", "#1a1026", "#a78bfa"),
+    "pink": ("Lust", "Pink", "Pembe", "#1f0f18", "#f472b6"),
+    "catppuccin": ("Sleek", "Catppuccin", "Catppuccin", "#1e1e2e", "#cba6f7"),
+    "dracula": ("Sleek", "Dracula", "Dracula", "#282a36", "#ff79c6"),
+    "tokyonight": ("Sleek", "TokyoNight", "Tokyo Night", "#1a1b26", "#7aa2f7"),
+    "rosepine": ("Sleek", "RosePine", "Rosé Pine", "#191724", "#ebbcba"),
+    "ayudark": ("Sleek", "AyuDark", "Ayu Dark", "#0b0e14", "#e6b450"),
+    "eldritch": ("Sleek", "Eldritch", "Eldritch", "#212337", "#37f499"),
+    "bladerunner": ("Sleek", "BladeRunner", "Blade Runner", "#0d0d1a", "#ff2e88"),
+    "vantablack": ("Sleek", "VantaBlack", "Vantablack", "#000000", "#ffffff"),
+    "ultrablack": ("Sleek", "UltraBlack", "UltraBlack", "#050505", "#9ca3af"),
+    "cherry": ("Sleek", "Cherry", "Cherry", "#1a0a10", "#f43f5e"),
+    "coral": ("Sleek", "Coral", "Coral", "#1b1b1b", "#ff7f50"),
+    "deep": ("Sleek", "Deep", "Deep", "#0a0f1f", "#3b82f6"),
+    "futura": ("Sleek", "Futura", "Futura", "#101820", "#f2aa4c"),
+    "elementary": ("Sleek", "Elementary", "Elementary", "#1c1c1c", "#3689e6"),
+    "wealthy": ("Sleek", "Wealthy", "Wealthy", "#0f1410", "#d4af37"),
+    "greener": ("Sleek", "Greener", "Greener", "#0d1a12", "#22c55e"),
+    "psycho": ("Sleek", "Psycho", "Psycho", "#1a0d1a", "#ff00ff"),
+    "original": ("", "", "Orijinal", "#121212", "#1db954"),
 }
 LUST_COLORS = """[Lust]
 text               = f0eef5
@@ -50,6 +71,23 @@ tab-active         = 2a2340
 notification       = a78bfa
 notification-error = f87171
 misc               = 24222f
+
+[Pink]
+text               = fdf2f8
+subtext            = 9d8a95
+main               = 140b10
+sidebar            = 100809
+player             = 100809
+card               = 1f0f18
+shadow             = 000000
+selected-row       = f472b6
+button             = f472b6
+button-active      = f9a8d4
+button-disabled    = 4a2a3a
+tab-active         = 3a1a2c
+notification       = f472b6
+notification-error = f87171
+misc               = 2f1a26
 """
 LUST_CSS = """/* Lust for Spotify: rounded cards, one purple accent */
 .main-card-card, .main-trackList-trackListRow { border-radius: 10px !important; }
@@ -161,15 +199,22 @@ def _themes_dir() -> Path:
 
 
 def _install_theme(key: str) -> None:
-    folder, _ = THEMES[key]
+    folder = THEMES[key][0]
     target = _themes_dir() / folder
     target.mkdir(parents=True, exist_ok=True)
     if folder == "Lust":
         (target / "color.ini").write_text(LUST_COLORS, encoding="utf-8")
         (target / "user.css").write_text(LUST_CSS, encoding="utf-8")
+    elif folder == "Luminous":
+        for name in ("color.ini", "user.css", "theme.js"):
+            response = requests.get(LUMINOUS + name, timeout=30)
+            response.raise_for_status()
+            (target / name).write_bytes(response.content)
     elif not (target / "color.ini").exists():
         for name in ("color.ini", "user.css"):
-            (target / name).write_bytes(requests.get(SLEEK + name, timeout=30).content)
+            response = requests.get(SLEEK + name, timeout=30)
+            response.raise_for_status()
+            (target / name).write_bytes(response.content)
 
 
 def _restart_spotify() -> None:
@@ -188,7 +233,7 @@ def apply(key: str) -> str:
     if not exe:
         return ("Microsoft Store'daki Spotify desteklenmiyor: spotify.com'dan indir" if _store_install()
                 else "Spotify bulunamadı")
-    if key != "original" and key not in THEMES:
+    if key not in THEMES:
         return ""
     with _lock:
         _busy = True
@@ -200,8 +245,10 @@ def apply(key: str) -> str:
                 message = "Spotify orijinal görünümüne döndü"
             else:
                 _install_theme(key)
-                folder, scheme = THEMES[key]
-                _run("config", "current_theme", folder, "color_scheme", scheme)
+                folder, scheme = THEMES[key][:2]
+                # Luminous draws with its own script
+                _run("config", "current_theme", folder, "color_scheme", scheme,
+                     "inject_theme_js", "1" if folder == "Luminous" else "0")
                 _run("backup", "apply")
                 _save({"theme": key, "marker": _marker(exe)})
                 message = "Tema uygulandı"

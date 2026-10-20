@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import ctypes
 import os
+import re
 import subprocess
 import sys
 import threading
@@ -149,7 +150,30 @@ def lust_offline_running() -> bool:
     return bool(_processes({"lustoffline.exe"}))
 
 
+def _status_from_chat() -> str:
+    """The status Lust Offline last confirmed in its chat ("You are now appearing offline")."""
+    creds = _lcu_credentials()
+    if not creds:
+        return ""
+    port, token = creds
+    url = f"https://127.0.0.1:{port}/lol-chat/v1/conversations/{quote(LUST_OFFLINE_FRIEND, safe='')}/messages"
+    try:
+        messages = requests.get(url, auth=("riot", token), verify=False, timeout=2,
+                                proxies={"http": None, "https": None}).json()
+    except (requests.RequestException, ValueError):
+        return ""
+    for message in reversed(messages if isinstance(messages, list) else []):
+        match = re.search(r"appearing (online|offline|mobile)", str(message.get("body", "")), re.IGNORECASE)
+        if match:
+            return match.group(1).lower()
+    return ""
+
+
 def current_status() -> str:
+    # Lust Offline writes its status file only now and then, so its chat comes first
+    status = _status_from_chat()
+    if status:
+        return status
     try:
         status = STATUS_FILE.read_text(encoding="utf-8").strip()
     except OSError:

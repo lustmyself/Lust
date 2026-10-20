@@ -38,7 +38,7 @@ RED = "#f87171"
 RED_SOFT = "#2c1719"
 YELLOW = "#f2c94c"
 
-SIZE = (760, 576)
+SIZE = (760, 640)
 PAD = 18
 GAP = 10
 RADIUS = 14
@@ -439,9 +439,6 @@ class HubWindow:
 
     # ---- Spotify page ----
 
-    SP_THEMES = (("lust", "Lust", "#1a1026"), ("nord", "Nord", "#2e3440"),
-                 ("catppuccin", "Catppuccin", "#1e1e2e"), ("original", "Orijinal", "#121212"))
-
     def _spotify_layout(self) -> None:
         p, c = self.p, self.c
         start = len(c.find_all())
@@ -452,22 +449,26 @@ class HubWindow:
         h = p(62)
         self.sp_status = self.tile("sp_status", left, y, left + half, y + h, "music")
         self.sp_auto = self.tile("sp_auto", right - half, y, right, y + h, "sync", lambda: self._act("spotify_auto"))
+        from launcher.lust_spotify import THEMES
         y2 = y + h + p(GAP)
-        h2 = p(150)
+        cols, box_h = 5, p(54)
+        rows = (len(THEMES) + cols - 1) // cols
+        h2 = p(44) + rows * box_h + (rows - 1) * p(8) + p(14)
         self.card("sp_themes", left, y2, right, y2 + h2)
         self.text(left + p(18), y2 + p(20), "Tema", size=9, color=SUB)
-        box_w = (width - p(36) - 3 * p(GAP)) / 4
+        box_w = (width - p(36) - (cols - 1) * p(8)) / cols
         self.sp_boxes = {}
-        for i, (key, label, color) in enumerate(self.SP_THEMES):
-            x1 = left + p(18) + i * (box_w + p(GAP))
-            box = self.card(f"sp_t_{key}", x1, y2 + p(36), x1 + box_w, y2 + h2 - p(14),
-                            clickable=lambda k=key: self._choose_theme(k), radius=12)
-            self.rrect(x1 + p(10), y2 + p(46), x1 + box_w - p(10), y2 + p(100), p(8), fill=color, outline="",
-                       tags=(box["tag"],))
-            self.rrect(x1 + p(18), y2 + p(84), x1 + p(58), y2 + p(92), p(4), fill=ACCENT if key == "lust" else SUB,
+        self.sp_labels = {key: value[2] for key, value in THEMES.items()}
+        for i, (key, (_f, _s, label, color, accent)) in enumerate(THEMES.items()):
+            x1 = left + p(18) + (i % cols) * (box_w + p(8))
+            by = y2 + p(36) + (i // cols) * (box_h + p(8))
+            box = self.card(f"sp_t_{key}", x1, by, x1 + box_w, by + box_h,
+                            clickable=lambda k=key: self._choose_theme(k), radius=10)
+            self.rrect(x1 + p(8), by + p(8), x1 + p(38), by + box_h - p(8), p(7), fill=color,
                        outline="", tags=(box["tag"],))
-            box["label"] = self.text((x1 + x1 + box_w) / 2, y2 + h2 - p(30), label, size=9, bold=True,
-                                     anchor="center", tags=(box["tag"],))
+            self.c.create_oval(x1 + p(17), by + box_h / 2 - p(6), x1 + p(29), by + box_h / 2 + p(6),
+                               fill=accent, outline="", tags=(box["tag"],))
+            box["label"] = self.text(x1 + p(46), by + box_h / 2, label, size=9, bold=True, tags=(box["tag"],))
             self.sp_boxes[key] = box
         y3 = y2 + h2 + p(GAP)
         self.pill("sp_apply", left, y3, left + half, y3 + p(40), "Temayı uygula", self._apply_theme, accent=True)
@@ -499,10 +500,10 @@ class HubWindow:
     def _draw_spotify(self, sp: dict) -> None:
         c = self.c
         if not getattr(self, "sp_choice", None):
-            self.sp_choice = sp.get("theme") or "lust"
+            self.sp_choice = sp.get("theme") or "luminous"
         if sp.get("installed"):
             sub = f"{sp.get('version') or ''} · " + ("Uygulanıyor…" if sp.get("busy") else
-                                                     ("Tema: " + dict((k, l) for k, l, _ in self.SP_THEMES).get(sp.get("theme"), "Orijinal")))
+                                                     ("Tema: " + self.sp_labels.get(sp.get("theme"), "Orijinal")))
             dot = AMBER if sp.get("busy") else GREEN
         else:
             sub = "Store sürümü desteklenmez" if sp.get("store") else "Bulunamadı"

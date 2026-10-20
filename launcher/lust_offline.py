@@ -15,12 +15,17 @@ and started again through Lust Offline. Other games are never touched.
 from __future__ import annotations
 
 import ctypes
+import os
 import subprocess
 import sys
 import threading
 import time
+from pathlib import Path
+from urllib.parse import quote
 
 import psutil
+import pystray
+import requests
 
 from utils.core.logging import get_logger
 from utils.core.paths import get_assets_dir
@@ -129,6 +134,78 @@ def _watch(exe) -> None:
         except Exception as exc:  # keep watching whatever happens
             log.debug(f"[LustOffline] Watch failed: {exc}")
         time.sleep(WATCH_INTERVAL_S)
+
+
+# ---- Status (Lust's tray menu) ----
+
+# Lust Offline takes commands as chat messages to its "Lust Active!" friend and keeps
+# the status it applies in this file ("chat" is online).
+STATUS_FILE = Path(os.environ.get("APPDATA", "")) / "Lust Offline" / "status"
+LUST_OFFLINE_FRIEND = "41c322a1-b328-495b-a004-5ccd3e45eae8@eu1.pvp.net"
+STATUSES = [("online", "Online"), ("offline", "Offline"), ("mobile", "Mobile")]
+
+
+def lust_offline_running() -> bool:
+    return bool(_processes({"lustoffline.exe"}))
+
+
+def current_status() -> str:
+    try:
+        status = STATUS_FILE.read_text(encoding="utf-8").strip()
+    except OSError:
+        return ""
+    return "online" if status == "chat" else status
+
+
+def _lcu_credentials():
+    """App port and token from the League client's command line. Never log the token."""
+    for proc in _processes({"leagueclientux.exe"}):
+        try:
+            args = proc.cmdline()
+        except psutil.Error:
+            continue
+        options = dict(arg.split("=", 1) for arg in args if arg.startswith("--") and "=" in arg)
+        port, token = options.get("--app-port", ""), options.get("--remoting-auth-token", "")
+        if port.isdecimal() and token:
+            return int(port), token
+    return None
+
+
+def set_status(command: str) -> bool:
+    creds = _lcu_credentials()
+    if not creds:
+        return False
+    port, token = creds
+    url = f"https://127.0.0.1:{port}/lol-chat/v1/conversations/{quote(LUST_OFFLINE_FRIEND, safe='')}/messages"
+    try:
+        response = requests.post(url, json={"body": command, "type": "chat"}, auth=("riot", token),
+                                 verify=False, timeout=3, proxies={"http": None, "https": None})
+        return response.ok
+    except requests.RequestException as exc:
+        log.warning(f"[LustOffline] Could not change status: {exc}")
+        return False
+
+
+def tray_status_menu() -> pystray.Menu:
+    """Online / Offline / Mobile for Lust's tray icon (Lust Offline's own is hidden)."""
+    def item(command, label):
+        return pystray.MenuItem(
+            label,
+            lambda icon, menu_item: set_status(command),
+            checked=lambda menu_item: lust_offline_running() and current_status() == command,
+            radio=True,
+            enabled=lambda menu_item: lust_offline_running(),
+        )
+
+    return pystray.Menu(
+        *(item(command, label) for command, label in STATUSES),
+        pystray.MenuItem(
+            "League wasn't started through Lust",
+            None,
+            enabled=False,
+            visible=lambda menu_item: not lust_offline_running(),
+        ),
+    )
 
 
 def start_league_through_lust_offline() -> None:

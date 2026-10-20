@@ -21,7 +21,7 @@ internal class MainController : ApplicationContext
         TrayIcon = new NotifyIcon
         {
             Icon = Resources.DeceiveIcon,
-            Visible = true,
+            Visible = false,
             BalloonTipTitle = StartupHandler.DeceiveTitle,
             BalloonTipText = "Lust is currently masking your status. Right-click the tray icon for more options."
         };

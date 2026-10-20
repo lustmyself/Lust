@@ -31,6 +31,8 @@ PATCHES = [
      "if (false)"),
     # No "masking your status" balloon when it starts.
     ("Deceive/MainController.cs", "        TrayIcon.ShowBalloonTip(5000);\n", ""),
+    # No tray icon of its own: Lust's tray menu and the CUSTOMIZE tab set the status.
+    ("Deceive/MainController.cs", "            Visible = true,\n", "            Visible = false,\n"),
     # Lust ships updates itself; no prompt to download Deceive.
     ("Deceive/StartupHandler.cs", "        _ = Utils.CheckForUpdatesAsync();\n", ""),
     ("Deceive/StartupHandler.cs",

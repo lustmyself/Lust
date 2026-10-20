@@ -334,6 +334,18 @@ EDITS += [
      "            // The nav item's capture listener already toggled the settings panel\n"),
 ]
 
+# Lust Offline's status lives in Lust's tray menu (its own tray icon is hidden)
+EDITS += [
+    ('utils/integration/tray_manager.py',
+     '            pystray.MenuItem("Open Mods Folder", self._on_open_mods),\n',
+     '            pystray.MenuItem("Open Mods Folder", self._on_open_mods),\n'
+     '            pystray.MenuItem("Status", _lust_offline_status_menu()),\n'),
+    ('utils/integration/tray_manager.py',
+     "    def _create_menu(self) -> pystray.Menu:\n",
+     "    def _create_menu(self) -> pystray.Menu:\n"
+     "        from launcher.lust_offline import tray_status_menu as _lust_offline_status_menu\n"),
+]
+
 # Lust.exe carries version info: antivirus heuristics distrust exes without any
 LUST_VERSION_INFO = '''# Lust: version info for Lust.exe (antivirus heuristics distrust exes without any)
 import re as _re

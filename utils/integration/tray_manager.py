@@ -227,11 +227,13 @@ class TrayManager:
                 log.debug(f"Error stopping tray icon: {e}")
 
     def _create_menu(self) -> pystray.Menu:
+        from launcher.lust_offline import tray_status_menu as _lust_offline_status_menu
         """Create the context menu for the tray icon"""
         return pystray.Menu(
             pystray.MenuItem(f"Lust v{APP_VERSION}", None, enabled=False),
             pystray.Menu.SEPARATOR,
             pystray.MenuItem("Open Mods Folder", self._on_open_mods),
+            pystray.MenuItem("Status", _lust_offline_status_menu()),
             pystray.Menu.SEPARATOR,
             pystray.MenuItem("Restart", self._on_restart),
             pystray.MenuItem("Quit", self._on_quit),

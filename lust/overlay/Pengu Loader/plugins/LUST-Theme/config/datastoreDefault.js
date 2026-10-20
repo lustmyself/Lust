@@ -130,7 +130,7 @@ export default {
 
 	// Plugins settings
 	"Old-League-Loader-Settings"	: true,
-	"loot-helper"                   : true,
+	"loot-helper"                   : false,
 	"auto_accept"                   : false,
 	"auto_accept_button"            : true,
 	"auto_accept_delay"             : 0,

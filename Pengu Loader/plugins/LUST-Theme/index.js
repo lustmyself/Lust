@@ -4037,18 +4037,6 @@ async function pluginsInfoSection() {
 async function coreSection() {
   const br = () => document.createElement("br");
   return UI.createSection("plugins-settings-core", await getString("plugins-settings.settings-section-plugin-core"), [
-    UI.createRow("loothelp", [
-      UI.createCheckBox(
-        `${await getString("plugins-settings.loot-helper")}`,
-        "lh",
-        "lhbox",
-        () => {
-          restartAfterChange("lh", "loot-helper");
-        },
-        true,
-        "loot-helper"
-      )
-    ]),
     UI.createCheckBox(
       `${await getString("plugins-settings.auto-accept-button")}`,
       "autoacceptbutton",
@@ -4853,7 +4841,16 @@ const LUST_TR = {
   "Import settings": "Ayarları içe aktar",
   "Saved as Lust-settings.json": "Lust-settings.json olarak kaydedildi",
   "Settings imported, reloading the client...": "Ayarlar içe aktarıldı, istemci yenileniyor...",
-  "That isn't a Lust settings file.": "Bu bir Lust ayar dosyası değil."
+  "That isn't a Lust settings file.": "Bu bir Lust ayar dosyası değil.",
+  "Appearance": "Görünüm",
+  "Wallpaper": "Duvar kağıdı",
+  "Lobby Reveal": "Lobby Reveal",
+  "Lust core": "Lust çekirdeği",
+  "Advanced": "Gelişmiş",
+  "Close": "Kapat",
+  "Injection, the League path, custom mods and troubleshooting live in Lust's core settings.":
+    "Enjeksiyon, League yolu, özel modlar ve sorun giderme Lust'un çekirdek ayarlarında.",
+  "Open core settings": "Çekirdek ayarlarını aç"
 };
 function lustTr(text, vars) {
   const i18n = window.LustI18n;
@@ -4864,26 +4861,84 @@ function lustTr(text, vars) {
 
 function Settings(context) {
   LustData.set("settingsChangenumber", 0);
-  mountLustPanelTabs();
+  mountLustHub();
   applyLustColors();
 }
 
-// Lust: the Lust panel (the LUST item in the top navigation) opens on CUSTOMIZE,
-// the hub for status, colors, theme and plugin settings. LUST keeps Rose's own.
-const LUST_PANEL_TABS = [
-  { id: "customize", label: "CUSTOMIZE", render: customizeSettings, className: "customize_settings" },
+// Lust: the LUST item in the top navigation opens the Lust hub, a centered window
+// with tabs down the side. Rose's own settings stay in Rose's panel, opened from
+// the last tab. Theme sections are the theme's own, sorted into the tabs.
+async function lustThemeSections(page, sections) {
+  for (const build of sections) {
+    const built = await build();
+    (Array.isArray(built) ? built : [built]).forEach((node) => node && page.appendChild(node));
+  }
+  // The theme starts its foldable rows folded; only this page's, not every page's
+  page.querySelectorAll("#lust-theme-settings-row-hide-button").forEach((button) => button.click());
+}
+const LUST_HUB_TABS = [
+  { id: "status", label: "Status", icon: "status", render: async (page) => {
+    await newsCard(page);
+    await statusSection(lustSection(page, lustTr("Status")));
+  } },
+  { id: "look", label: "Appearance", icon: "look", reload: true, render: async (page) => {
+    colorSection(lustSection(page, lustTr("Colors")));
+    await lustThemeSections(page, [infoSection, interfaceSection, profileSection, customAssetsSection, gameTabsSection]);
+    if (typeof setWindowEffectsSettingsVisibility === "function") setWindowEffectsSettingsVisibility();
+  } },
+  { id: "wallpaper", label: "Wallpaper", icon: "wallpaper", reload: true, render: (page) =>
+    lustThemeSections(page, [assetLibrarySection, wallpaperSection, audioSection]) },
+  { id: "plugins", label: "Plugins", icon: "plugins", reload: true, render: async (page) => {
+    await lustThemeSections(page, [coreSection, pluginsProfileSection]);
+    const more = document.createElement("details");
+    more.className = "lust-hub-advanced";
+    const summary = document.createElement("summary");
+    summary.textContent = lustTr("Advanced");
+    more.appendChild(summary);
+    page.appendChild(more);
+    await lustThemeSections(more, [updatesSection, developerSection]);
+  } },
   // Drawn by the LUST-LobbyReveal plugin
-  { id: "reveal", label: "LOBBY REVEAL", className: "reveal_settings", reload: false,
-    render: async (view) => window.LustReveal && window.LustReveal.renderHub(view) },
-  { id: "lust", label: "LUST" }
+  { id: "reveal", label: "Lobby Reveal", icon: "reveal", render: async (page) =>
+    window.LustReveal && window.LustReveal.renderHub(page) },
+  { id: "backup", label: "Backup", icon: "backup", render: (page) => backupSection(lustSection(page, lustTr("Backup"))) },
+  { id: "core", label: "Lust core", icon: "core", render: (page) => coreTab(lustSection(page, lustTr("Lust core"))) },
 ];
+// Small line icons for the side tabs, drawn in the tab's text color
+const LUST_HUB_ICONS = {
+  status: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',
+  look: '<path d="M12 3a9 9 0 1 0 0 18c1 0 1.5-.8 1.5-1.6 0-1.4-1.2-1.6-1.2-2.9 0-1 .8-1.5 1.8-1.5H17a4 4 0 0 0 4-4c0-4.4-4-8-9-8z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="14.5" cy="7" r="1"/>',
+  wallpaper: '<rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.5"/>',
+  plugins: '<path d="M9 3h6v4a2 2 0 1 1 0 4v2h4v6h-6v-2a2 2 0 1 0-4 0v2H3v-6h2a2 2 0 1 0 0-4H3V7h6z"/>',
+  reveal: '<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.2c3 .3 5.5 2.6 5.5 5.8"/>',
+  backup: '<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/>',
+  core: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>',
+};
+function lustHubIcon(name) {
+  return `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${LUST_HUB_ICONS[name] || ""}</svg>`;
+}
+// Rose's own settings (injection, game path, mods) keep their panel.
+function coreTab(section) {
+  const note = document.createElement("div");
+  note.className = "lust-customize-state";
+  note.textContent = lustTr("Injection, the League path, custom mods and troubleshooting live in Lust's core settings.");
+  const open = document.createElement("lol-uikit-flat-button");
+  open.className = "lust-hub-primary";
+  open.textContent = lustTr("Open core settings");
+  open.addEventListener("click", () => {
+    closeLustHub();
+    const navItem = document.querySelector("lol-uikit-navigation-item.menu_item_Golden");
+    window.dispatchEvent(new CustomEvent("lust-open-settings", { detail: { navItem, lustCore: true } }));
+  });
+  section.append(note, open);
+}
 
 // Lust Offline (lust/offline) takes commands as chat messages to its "Lust Active!" friend.
 const LUST_OFFLINE_ID = "41c322a1-b328-495b-a004-5ccd3e45eae8@eu1.pvp.net";
 const LUST_OFFLINE_STATUSES = [
-  { command: "online", label: "Online" },
-  { command: "offline", label: "Offline" },
-  { command: "mobile", label: "Mobile" }
+  { command: "online", label: "Online", color: "#0acf83" },
+  { command: "offline", label: "Offline", color: "#9a9a9a" },
+  { command: "mobile", label: "Mobile", color: "#e8a33a" }
 ];
 async function lustOfflineRunning() {
   try {
@@ -4945,9 +5000,12 @@ async function statusSection(section) {
     return;
   }
   let current = await lustOfflineStatus() || localStorage.getItem("lust-offline-status") || "offline";
-  const buttons = LUST_OFFLINE_STATUSES.map(({ command, label }) => {
+  const buttons = LUST_OFFLINE_STATUSES.map(({ command, label, color }) => {
     const button = document.createElement("lol-uikit-flat-button");
-    button.textContent = lustTr(label);
+    button.style.setProperty("--lust-status", color);
+    const dot = document.createElement("span");
+    dot.className = "lust-status-dot";
+    button.append(dot, document.createTextNode(lustTr(label)));
     button.addEventListener("click", async () => {
       if (!await sendLustOffline(command)) {
         note.textContent = lustTr("Couldn't reach Lust Offline.");
@@ -5093,14 +5151,6 @@ function backupSection(section) {
   row.append(save, load, input);
   section.append(row, note);
 }
-async function customizeSettings(view) {
-  await newsCard(view);
-  await statusSection(lustSection(view, lustTr("Status")));
-  colorSection(lustSection(view, lustTr("Colors")));
-  await themeSettings(lustSection(view, lustTr("Theme")));
-  await pluginsSettings(lustSection(view, lustTr("Plugins")));
-  backupSection(lustSection(view, lustTr("Backup")));
-}
 function colorSection(section) {
   const list = document.createElement("div");
   list.className = "lust-customize";
@@ -5137,26 +5187,51 @@ function colorSection(section) {
   section.appendChild(list);
 }
 const LUST_PANEL_CSS = `
-  .lust-panel-tabs { display: flex; width: 100%; margin: 4px 0 12px; border-bottom: 1px solid #785a2866; }
-  .lust-panel-tab { flex: 1; padding: 6px 0; text-align: center; cursor: pointer; color: #a09b8c;
-    font: 700 12px "Beaufort for LOL", serif; letter-spacing: 1px; border-bottom: 2px solid transparent; }
-  .lust-panel-tab:hover { color: #f0e6d2; }
-  .lust-panel-tab.active { color: #f0e6d2; border-bottom-color: #c8aa6e; }
-  /* Only the settings form: the panel's own children include the click-outside backdrop */
-  .lust-panel-form[data-lust-tab]:not([data-lust-tab="lust"]) > :not(.lust-keep) { display: none !important; }
-  .lust-panel-view { display: none !important; width: 100%; height: 60vh; }
-  [data-lust-tab="customize"] > .lust-panel-view[data-tab="customize"],
-  [data-lust-tab="reveal"] > .lust-panel-view[data-tab="reveal"] { display: block !important; }
-  .lust-panel-view[data-tab="reveal"] { height: auto; }
-  #lust-settings-panel[data-lust-tab="customize"] #lust-settings-flyout,
-  #lust-settings-panel[data-lust-tab="reveal"] #lust-settings-flyout { min-width: 560px !important; max-width: 560px !important; }
-  .lust-panel-reload { display: block; width: 220px; margin: 14px auto 6px; }
+  #lust-hub-backdrop { position: fixed; inset: 0; z-index: 10050; display: flex; align-items: center;
+    justify-content: center; background: rgba(1, 4, 9, .62); }
+  #lust-hub { display: flex; width: min(860px, 92vw); height: min(600px, 86vh); background: #010a13;
+    border: 1px solid #785a28; border-top: 2px solid #a78bfa; box-shadow: 0 12px 40px rgba(0, 0, 0, .6);
+    color: #cdbe91; font-family: "Spiegel", "Arial", sans-serif; }
+  .lust-hub-side { flex: 0 0 190px; display: flex; flex-direction: column; padding: 16px 0;
+    background: #0a0f1a; border-right: 1px solid #785a2866; }
+  .lust-hub-logo { padding: 0 18px 14px; color: #a78bfa; font: 700 18px "Beaufort for LOL", serif; letter-spacing: 3px; }
+  .lust-hub-tab { display: flex; align-items: center; gap: 10px; padding: 10px 18px; cursor: pointer; color: #a09b8c;
+    font-size: 13px; border-left: 2px solid transparent; }
+  .lust-hub-tab svg { color: #6f6a60; flex: 0 0 auto; }
+  .lust-hub-tab:hover { color: #f0e6d2; background: #ffffff08; }
+  .lust-hub-tab.active { color: #f0e6d2; background: #8b5cf61f; border-left-color: #a78bfa; }
+  .lust-hub-tab.active svg { color: #a78bfa; }
+  .lust-hub-version { margin-top: auto; padding: 0 18px; color: #5b5a56; font-size: 11px; }
+  .lust-hub-main { position: relative; flex: 1; min-width: 0; overflow-y: auto; padding: 20px 26px 24px; }
+  .lust-hub-main::-webkit-scrollbar { width: 6px; }
+  .lust-hub-main::-webkit-scrollbar-thumb { background: #785a28; }
+  .lust-hub-close { position: absolute; top: 12px; right: 14px; cursor: pointer; color: #7e7a70; font-size: 18px; line-height: 1; }
+  .lust-hub-close:hover { color: #f0e6d2; }
+  .lust-hub-page { display: none; }
+  .lust-hub-page.active { display: block; }
+  .lust-hub-primary { display: inline-block; margin-top: 12px; min-width: 200px; }
+  .lust-panel-reload { display: block; width: 220px; margin: 18px 0 4px; }
+  .lust-hub-advanced { margin-top: 14px; border-top: 1px solid #785a2840; padding-top: 10px; }
+  .lust-hub-advanced > summary { cursor: pointer; color: #7e7a70; font-size: 12px; letter-spacing: .5px; }
+  .lust-hub-advanced > summary:hover { color: #cdbe91; }
+  /* The theme's own sections, drawn in the hub's style */
+  #lust-hub .theme-settings-section { margin: 0 0 18px; padding: 0; border: 0; background: none; }
+  #lust-hub .theme-settings-section-title { display: block; margin: 0 0 10px; padding: 0 0 6px;
+    border-bottom: 1px solid #785a2866; color: #f0e6d2; font: 700 13px "Beaufort for LOL", serif;
+    letter-spacing: 1px; text-transform: uppercase; }
+  #lust-hub .theme-settings-section-content { display: flex; flex-direction: column; gap: 6px; }
+  #lust-hub lol-uikit-flat-checkbox { margin: 2px 0; }
+  #lust-hub .lust-theme-settings-row { color: #cdbe91; font-size: 13px; }
+  #lust-hub p, #lust-hub label { color: #cdbe91; }
+  #lust-hub .lust-reveal-hub, #lust-hub .lust-rv-hub { margin: 0; }
   .lust-hub-section { margin-bottom: 18px; }
   .lust-hub-title { margin: 0 0 8px; padding-bottom: 4px; border-bottom: 1px solid #785a2866; color: #f0e6d2;
     font: 700 13px "Beaufort for LOL", serif; letter-spacing: 1px; text-transform: uppercase; }
   .lust-status-row { display: flex; gap: 8px; margin-bottom: 6px; }
   .lust-status-row lol-uikit-flat-button { flex: 1; }
-  .lust-status-row .lust-status-active { filter: brightness(1.35); outline: 1px solid #c8aa6e; }
+  .lust-status-row .lust-status-active { filter: brightness(1.25); outline: 1px solid var(--lust-status, #c8aa6e); }
+  .lust-status-dot { display: inline-block; width: 8px; height: 8px; margin-right: 8px; border-radius: 50%;
+    vertical-align: 1px; background: var(--lust-status, #9a9a9a); }
   .lust-news { margin: 0 0 18px; padding: 12px 14px; border: 1px solid #c8aa6e;
     background: linear-gradient(160deg, #1b1430 0%, #010a13 80%); color: #cdbe91; font-size: 12px; }
   .lust-news-title { margin-bottom: 6px; color: #f0e6d2; font: 700 14px "Beaufort for LOL", serif; letter-spacing: 1px; }
@@ -5181,73 +5256,114 @@ const LUST_PANEL_CSS = `
     background: none; cursor: pointer; }
   .lust-customize-state { color: #a09b8c; font-size: 11px; }
 `;
-function addLustPanelTabs(panel) {
-  const links = panel.querySelector(".settings-links");
-  const form = links?.parentElement;
-  if (!form || form.querySelector(".lust-panel-tabs"))
-    return !!form;
-  links.querySelectorAll("a").forEach((link) => {
-    if (/discord\.com|ko-fi\.com/.test(link.href))
-      link.remove();
+let lustHubTab = "status";
+function closeLustHub() {
+  document.getElementById("lust-hub-backdrop")?.remove();
+  document.querySelector("lol-uikit-navigation-item.menu_item_Golden")?.removeAttribute("active");
+}
+function openLustHub() {
+  if (document.getElementById("lust-hub-backdrop"))
+    return;
+  const backdrop = document.createElement("div");
+  backdrop.id = "lust-hub-backdrop";
+  backdrop.addEventListener("mousedown", (event) => {
+    if (event.target === backdrop) closeLustHub();
   });
-  form.classList.add("lust-panel-form");
-  form.firstElementChild?.classList.add("lust-keep");
-  const tabBar = document.createElement("div");
-  tabBar.className = "lust-panel-tabs lust-keep";
-  form.firstElementChild ? form.firstElementChild.after(tabBar) : form.prepend(tabBar);
-  let anchor = tabBar;
+  const hub = document.createElement("div");
+  hub.id = "lust-hub";
+  const side = document.createElement("div");
+  side.className = "lust-hub-side";
+  const logo = document.createElement("div");
+  logo.className = "lust-hub-logo";
+  logo.textContent = "LUST";
+  side.appendChild(logo);
+  const main = document.createElement("div");
+  main.className = "lust-hub-main";
+  const close = document.createElement("div");
+  close.className = "lust-hub-close";
+  close.textContent = "\u00d7";
+  close.title = lustTr("Close");
+  close.addEventListener("click", closeLustHub);
+  main.appendChild(close);
   const select = async (tab) => {
-    form.dataset.lustTab = tab.id;
-    panel.dataset.lustTab = tab.id;
-    tabBar.querySelectorAll(".lust-panel-tab").forEach((button) => {
-      button.classList.toggle("active", button.dataset.tab === tab.id);
-    });
-    const view = form.querySelector(`.lust-panel-view[data-tab="${tab.id}"]`);
-    if (view && !view.dataset.rendered) {
-      view.dataset.rendered = "true";
-      await tab.render(view);
-      if (tab.reload === false)
-        return;
+    lustHubTab = tab.id;
+    side.querySelectorAll(".lust-hub-tab").forEach((item) => item.classList.toggle("active", item.dataset.tab === tab.id));
+    main.querySelectorAll(".lust-hub-page").forEach((page) => page.classList.toggle("active", page.dataset.tab === tab.id));
+    main.scrollTop = 0;
+    const page = main.querySelector(`.lust-hub-page[data-tab="${tab.id}"]`);
+    if (page.dataset.rendered) return;
+    page.dataset.rendered = "true";
+    try {
+      await tab.render(page);
+    } catch (err) {
+      error(`Lust hub: ${tab.id} failed`, err);
+    }
+    if (tab.reload) {
       const reload = document.createElement("lol-uikit-flat-button");
       reload.className = "lust-panel-reload";
       reload.textContent = lustTr("Reload client to apply");
       reload.addEventListener("click", () => window.restartClient());
-      view.appendChild(reload);
+      page.appendChild(reload);
     }
   };
-  LUST_PANEL_TABS.forEach((tab) => {
-    const button = document.createElement("div");
-    button.className = "lust-panel-tab";
-    button.dataset.tab = tab.id;
-    button.textContent = lustTr(tab.label);
-    button.addEventListener("click", () => select(tab));
-    tabBar.appendChild(button);
-    if (tab.render) {
-      const view = document.createElement("lol-uikit-scrollable");
-      view.className = `${tab.className} lust-panel-view lust-keep`;
-      view.dataset.tab = tab.id;
-      anchor.after(view);
-      anchor = view;
-    }
+  LUST_HUB_TABS.forEach((tab) => {
+    const item = document.createElement("div");
+    item.className = "lust-hub-tab";
+    item.dataset.tab = tab.id;
+    item.innerHTML = lustHubIcon(tab.icon);
+    item.appendChild(document.createTextNode(lustTr(tab.label)));
+    item.addEventListener("click", () => select(tab));
+    side.appendChild(item);
+    const page = document.createElement("div");
+    page.className = "lust-hub-page";
+    page.dataset.tab = tab.id;
+    main.appendChild(page);
   });
-  select(LUST_PANEL_TABS[0]);
+  const version = document.createElement("div");
+  version.className = "lust-hub-version";
+  fetch("//plugins/LUST-News/whats-new.json").then((r) => r.json()).then((news) => {
+    version.textContent = `Lust ${news.version}`;
+  }).catch(() => {});
+  side.appendChild(version);
+  hub.append(side, main);
+  backdrop.appendChild(hub);
+  document.body.appendChild(backdrop);
+  document.querySelector("lol-uikit-navigation-item.menu_item_Golden")?.setAttribute("active", "true");
+  select(LUST_HUB_TABS.find((tab) => tab.id === lustHubTab) || LUST_HUB_TABS[0]);
+}
+// Rose's panel, now opened only for core settings: drop its Discord and Ko-Fi links.
+function cleanRosePanel(panel) {
+  const links = panel.querySelector(".settings-links");
+  if (!links) return false;
+  links.querySelectorAll("a").forEach((link) => {
+    if (/discord\.com|ko-fi\.com/.test(link.href)) link.remove();
+  });
   return true;
 }
-function mountLustPanelTabs() {
+function mountLustHub() {
   const style = document.createElement("style");
   style.textContent = LUST_PANEL_CSS;
   document.head.appendChild(style);
+  // A click on LUST opens the hub. Caught on the way down, before LUST-UI's own
+  // listener on the nav item; with Rose's panel open the click goes through to close it.
+  document.addEventListener("click", (event) => {
+    const navItem = event.target.closest && event.target.closest("lol-uikit-navigation-item.menu_item_Golden");
+    if (!navItem || document.getElementById("lust-settings-panel")) return;
+    event.stopPropagation();
+    event.preventDefault();
+    if (document.getElementById("lust-hub-backdrop")) closeLustHub();
+    else openLustHub();
+  }, true);
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && document.getElementById("lust-hub-backdrop")) closeLustHub();
+  });
   new MutationObserver(() => {
     const panel = document.getElementById("lust-settings-panel");
-    if (!panel || panel.dataset.lustTabsPending)
-      return;
-    panel.dataset.lustTabsPending = "true";
+    if (!panel || panel.dataset.lustCleaned) return;
+    panel.dataset.lustCleaned = "true";
     let tries = 0;
     const attempt = () => {
-      if (!document.body.contains(panel))
-        return;
-      if (!addLustPanelTabs(panel) && ++tries < 40)
-        setTimeout(attempt, 100);
+      if (document.body.contains(panel) && !cleanRosePanel(panel) && ++tries < 40) setTimeout(attempt, 100);
     };
     attempt();
   }).observe(document.body, { childList: true });
@@ -11578,7 +11694,7 @@ class LustTheme {
     if (false)
       inviteAllFriends.main();
     const lootHelper = new LootHelper();
-    if (LustData$1.get("loot-helper"))
+    if (false)
       lootHelper.main();
     const nameSpoofer = new NameSpoofer();
     nameSpoofer.main();

@@ -11296,8 +11296,6 @@ async function init(context) {
 }
 class LustTheme {
   async main() {
-    const checkUpdate = new CheckUpdate();
-    checkUpdate.main();
     const applyUI = new ApplyUI();
     await applyUI.main();
     const filters = new Filters();

@@ -477,6 +477,8 @@ PATCHES = [
     ("index.js",
      'function Settings(context) {\n  ElainaData.set("settingsChangenumber", 0);\n  settingsUtils(context, structure);\n}\n',
      LUST_PANEL_JS),
+    # Lust updates the theme itself: no Elaina changelog or update popup.
+    ("index.js", "    const checkUpdate = new CheckUpdate();\n    checkUpdate.main();\n", ""),
     # No automation that plays for the player: auto find queue and honor skip.
     ("index.js", "  AutoQueue(context);\n  skipHonor(context);\n", ""),
     ("index.js", "        await queueSection(),\n", ""),

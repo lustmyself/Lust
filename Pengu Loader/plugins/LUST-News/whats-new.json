@@ -1,13 +1,15 @@
 {
-  "version": "1.4.9.5",
+  "version": "1.4.9.6",
   "en": [
-    "New Lust hub: click LUST and everything opens in one centered window",
-    "Status, appearance, wallpaper, plugins, Lobby Reveal, backup and Lust core each have their own tab",
-    "Loot helper removed"
+    "Lust desktop hub: startup progress, updates and quick actions in one window",
+    "Open it any time with a click on Lust's tray icon",
+    "Open League, pick your status, copy your log, toggle Start with Windows, restart or close Lust from the hub",
+    "The Dodge button in Lobby Reveal is smaller, so it isn't clicked by accident"
   ],
   "tr": [
-    "Yeni Lust merkezi: LUST'a tıkla, her şey ortada tek bir pencerede açılsın",
-    "Durum, görünüm, duvar kağıdı, eklentiler, Lobby Reveal, yedek ve Lust çekirdeği ayrı sekmelerde",
-    "Ganimet yardımcısı kaldırıldı"
+    "Lust masaüstü merkezi: açılış ilerlemesi, güncellemeler ve hızlı işlemler tek pencerede",
+    "Lust'ın tray ikonuna tıklayarak istediğin zaman aç",
+    "League'i aç, durumunu seç, logunu kopyala, Windows ile başlatmayı aç/kapat, Lust'ı yeniden başlat ya da kapat",
+    "Lobby Reveal'daki Dodge butonu küçüldü, yanlışlıkla tıklanmıyor"
   ]
 }

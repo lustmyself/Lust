@@ -668,6 +668,10 @@ def run_league_unlock(args: Optional[argparse.Namespace] = None,
             timeout_thread.start()
 
         tray_manager.restart_callback = updated_tray_restart_callback
+
+        # The desktop hub takes over from the launcher and uses the tray's quit and restart
+        from launcher.lust_hub import attach as attach_hub
+        attach_hub(tray_manager)
     
     # Initialize threads (this starts the WebSocket server)
     thread_manager, t_phase, t_ui, t_ws, t_lcu_monitor = initialize_threads(

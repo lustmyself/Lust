@@ -267,6 +267,9 @@ hiddenimports = [
     # Launcher module
     'launcher',
     'launcher.core',
+    'launcher.lust_hub',
+    'launcher.lust_hub_window',
+    'tkinter',
     'launcher.lust_offline',
     'launcher.autostart_default',
     'pengu.communication.lust_assets',

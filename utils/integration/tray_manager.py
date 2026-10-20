@@ -195,6 +195,15 @@ class TrayManager:
             except Exception:
                 log.debug("Unable to show error message box for settings dialog failure")
 
+    def _on_open_hub(self, icon, item):
+        """Open Lust's desktop hub (a left click on the tray icon does this too)."""
+        try:
+            from launcher.lust_hub import open_window
+
+            open_window()
+        except Exception as e:
+            log.error(f"Failed to open the Lust hub: {e}")
+
     def _on_open_mods(self, icon, item):
         """Open the user mods folder in the file explorer."""
         log.info("Open Mods Folder requested from system tray")
@@ -232,6 +241,7 @@ class TrayManager:
         return pystray.Menu(
             pystray.MenuItem(f"Lust v{APP_VERSION}", None, enabled=False),
             pystray.Menu.SEPARATOR,
+            pystray.MenuItem("Lust Hub", self._on_open_hub, default=True),
             pystray.MenuItem("Open Mods Folder", self._on_open_mods),
             pystray.MenuItem("Status", _lust_offline_status_menu()),
             pystray.Menu.SEPARATOR,
@@ -309,6 +319,13 @@ class TrayManager:
         Args:
             status: "locked" or "unlocked"
         """
+        try:
+            from launcher.lust_hub import set_ready as _hub_set_ready
+
+            _hub_set_ready(status == "unlocked")
+        except Exception as e:
+            log.debug(f"Hub status update failed: {e}")
+
         # Wait for tray icon to be ready (up to 5 seconds)
         max_wait = TRAY_READY_MAX_WAIT_S
         wait_interval = TRAY_READY_CHECK_INTERVAL_S

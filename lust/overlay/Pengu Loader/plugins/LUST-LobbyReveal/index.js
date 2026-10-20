@@ -251,18 +251,26 @@
       box-shadow: 0 0 8px rgba(10, 200, 185, 0.6);
     }
 
+    /* Small and tucked to the right so it isn't hit by accident */
     #${PANEL_ID} .lust-reveal-dodge {
-      margin-top: 8px;
-      padding: 5px 0;
+      display: table;
+      margin: 8px 0 0 auto;
+      padding: 2px 8px;
       text-align: center;
       font-family: "Spiegel", "Arial", sans-serif;
-      font-size: 11px;
+      font-size: 9px;
       font-weight: 700;
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
+      opacity: 0.7;
       text-transform: uppercase;
       color: #a09b8c;
       border: 1px solid #3c3c41;
       cursor: pointer;
+    }
+
+    #${PANEL_ID} .lust-reveal-dodge:hover,
+    #${PANEL_ID} .lust-reveal-dodge.armed {
+      opacity: 1;
     }
 
     #${PANEL_ID} .lust-reveal-dodge:hover {

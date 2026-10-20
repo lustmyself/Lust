@@ -105,13 +105,18 @@ def _confirm_update(dialog: UpdateDialog, remote_version: str, local_version: st
         f"New version: {remote_version}\n\n"
         "Do you want to download and install it now?"
     )
-    result = user32.MessageBoxW(
-        dialog.hwnd or None,
-        message,
-        "Lust update available",
-        MB_YESNO | MB_ICONINFORMATION | MB_DEFBUTTON2 | MB_TOPMOST,
-    )
-    accepted = result == IDYES
+    # The desktop hub asks in its window; None means no hub page, so ask with a message box
+    hub_answer = dialog.confirm_update(remote_version, local_version) if hasattr(dialog, "confirm_update") else None
+    if hub_answer is not None:
+        accepted = hub_answer
+    else:
+        result = user32.MessageBoxW(
+            dialog.hwnd or None,
+            message,
+            "Lust update available",
+            MB_YESNO | MB_ICONINFORMATION | MB_DEFBUTTON2 | MB_TOPMOST,
+        )
+        accepted = result == IDYES
     updater_log.info(
         "Update prompt answered: %s (current=%s, available=%s).",
         "accepted" if accepted else "declined",
@@ -203,7 +208,8 @@ def run_launcher(dev_mode: bool = False, test_download_fail: bool = False) -> No
 
 def _run_launcher_dialog(dev_mode: bool, test_download_fail: bool) -> None:
     updater_log.info("Launcher sequence starting.")
-    dialog = UpdateDialog()
+    from launcher.lust_hub import make_launcher_dialog
+    dialog = make_launcher_dialog()
     try:
         dialog.show_window(SW_SHOWNORMAL)
         dialog.pump_messages()

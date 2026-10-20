@@ -442,6 +442,71 @@ EDITS += [
 ]
 
 
+# Desktop hub (launcher/lust_hub.py): startup progress, updates and quick actions in one window
+EDITS += [
+    ('launcher/core/launcher.py',
+     '    updater_log.info("Launcher sequence starting.")\n    dialog = UpdateDialog()\n',
+     '    updater_log.info("Launcher sequence starting.")\n'
+     '    from launcher.lust_hub import make_launcher_dialog\n'
+     '    dialog = make_launcher_dialog()\n'),
+    ('launcher/core/launcher.py',
+     '    result = user32.MessageBoxW(\n'
+     '        dialog.hwnd or None,\n'
+     '        message,\n'
+     '        "Lust update available",\n'
+     '        MB_YESNO | MB_ICONINFORMATION | MB_DEFBUTTON2 | MB_TOPMOST,\n'
+     '    )\n'
+     '    accepted = result == IDYES\n',
+     '    # The desktop hub asks in its window; None means no hub page, so ask with a message box\n'
+     '    hub_answer = dialog.confirm_update(remote_version, local_version) if hasattr(dialog, "confirm_update") else None\n'
+     '    if hub_answer is not None:\n'
+     '        accepted = hub_answer\n'
+     '    else:\n'
+     '        result = user32.MessageBoxW(\n'
+     '            dialog.hwnd or None,\n'
+     '            message,\n'
+     '            "Lust update available",\n'
+     '            MB_YESNO | MB_ICONINFORMATION | MB_DEFBUTTON2 | MB_TOPMOST,\n'
+     '        )\n'
+     '        accepted = result == IDYES\n'),
+    ('main/__init__.py',
+     '        tray_manager.restart_callback = updated_tray_restart_callback\n',
+     '        tray_manager.restart_callback = updated_tray_restart_callback\n'
+     '\n'
+     '        # The desktop hub takes over from the launcher and uses the tray\'s quit and restart\n'
+     '        from launcher.lust_hub import attach as attach_hub\n'
+     '        attach_hub(tray_manager)\n'),
+    ('utils/integration/tray_manager.py',
+     '            pystray.MenuItem("Open Mods Folder", self._on_open_mods),\n',
+     '            pystray.MenuItem("Lust Hub", self._on_open_hub, default=True),\n'
+     '            pystray.MenuItem("Open Mods Folder", self._on_open_mods),\n'),
+    ('utils/integration/tray_manager.py',
+     '    def _on_open_mods(self, icon, item):\n',
+     '    def _on_open_hub(self, icon, item):\n'
+     '        """Open Lust\'s desktop hub (a left click on the tray icon does this too)."""\n'
+     '        try:\n'
+     '            from launcher.lust_hub import open_window\n'
+     '\n'
+     '            open_window()\n'
+     '        except Exception as e:\n'
+     '            log.error(f"Failed to open the Lust hub: {e}")\n'
+     '\n'
+     '    def _on_open_mods(self, icon, item):\n'),
+    ('utils/integration/tray_manager.py',
+     '        # Wait for tray icon to be ready (up to 5 seconds)\n',
+     '        try:\n'
+     '            from launcher.lust_hub import set_ready as _hub_set_ready\n'
+     '\n'
+     '            _hub_set_ready(status == "unlocked")\n'
+     '        except Exception as e:\n'
+     '            log.debug(f"Hub status update failed: {e}")\n'
+     '\n'
+     '        # Wait for tray icon to be ready (up to 5 seconds)\n'),
+    ('Lust.spec', "    'launcher.core',\n",
+     "    'launcher.core',\n    'launcher.lust_hub',\n    'launcher.lust_hub_window',\n    'tkinter',\n"),
+]
+
+
 def apply_edits(tree):
     failures = []
     for rel, old, new in EDITS:

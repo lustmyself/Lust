@@ -196,8 +196,16 @@ jobs:
           # Releases are named Lust v1, v2, ... in order. The tag is the version the
           # updater compares (Rose's, plus Lust's patch number), so only the title is numbered.
           number=$(( $(gh release list --repo "$GITHUB_REPOSITORY" --limit 1000 --json tagName --jq length) + 1 ))
+          news="Pengu Loader/plugins/LUST-News/whats-new.json"
+          changes=""
+          if [ -f "$news" ] && [ "$(jq -r .version "$news")" = "$VERSION" ]; then
+            changes="**What's new**
+          $(jq -r '.en[] | "- " + .' "$news")
+          "
+          fi
           notes="Lust v$number ($VERSION), built automatically from [Rose $TAG](https://github.com/$ROSE_REPO/releases/tag/$TAG).
 
+          $changes
           **Install:** download \`Lust_Setup_$VERSION.exe\` below. Existing installs update themselves."
           gh release create "v$VERSION" \
             "installer/Lust_Setup_$VERSION.exe" \

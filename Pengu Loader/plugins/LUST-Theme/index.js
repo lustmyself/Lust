@@ -4838,7 +4838,16 @@ const LUST_TR = {
   "{name} isn't a {type} file": "{name} bir {type} dosyası değil",
   "Adding {name}...": "{name} ekleniyor...",
   "Lust isn't connected": "Lust bağlı değil",
-  "Lust didn't answer": "Lust cevap vermedi"
+  "Lust didn't answer": "Lust cevap vermedi",
+  "What's new in Lust {version}": "Lust {version} yenilikleri",
+  "Got it": "Tamam",
+  "Backup": "Yedek",
+  "Keep your settings in a file, or bring them from another PC.": "Ayarlarını bir dosyada sakla ya da başka bir bilgisayardan getir.",
+  "Export settings": "Ayarları dışa aktar",
+  "Import settings": "Ayarları içe aktar",
+  "Saved as Lust-settings.json": "Lust-settings.json olarak kaydedildi",
+  "Settings imported, reloading the client...": "Ayarlar içe aktarıldı, istemci yenileniyor...",
+  "That isn't a Lust settings file.": "Bu bir Lust ayar dosyası değil."
 };
 function lustTr(text, vars) {
   const i18n = window.LustI18n;
@@ -4977,11 +4986,114 @@ function applyLustColors() {
     .map((item) => `${item.selector} { color: ${utils.sanitizeColor(LustData.get(item.key))} !important; }`)
     .join("\n");
 }
+// What changed in this version (LUST-News/whats-new.json), shown once per version.
+async function newsCard(view) {
+  let news;
+  try {
+    news = await (await fetch("//plugins/LUST-News/whats-new.json")).json();
+  } catch {
+    return;
+  }
+  let seen = "";
+  try {
+    seen = localStorage.getItem("lust-news-seen") || "";
+  } catch {}
+  if (!news || !news.version || seen === news.version)
+    return;
+  const language = window.LustI18n && window.LustI18n.language === "tr" ? "tr" : "en";
+  const items = news[language] || news.en || [];
+  const card = document.createElement("div");
+  card.className = "lust-news";
+  const title = document.createElement("div");
+  title.className = "lust-news-title";
+  title.textContent = lustTr("What's new in Lust {version}", { version: news.version });
+  const list = document.createElement("ul");
+  items.forEach((item) => {
+    const entry = document.createElement("li");
+    entry.textContent = item;
+    list.appendChild(entry);
+  });
+  const done = document.createElement("lol-uikit-flat-button");
+  done.textContent = lustTr("Got it");
+  done.addEventListener("click", () => {
+    try {
+      localStorage.setItem("lust-news-seen", news.version);
+    } catch {}
+    card.remove();
+  });
+  card.append(title, list, done);
+  view.appendChild(card);
+}
+// Every theme setting plus the lust-* ones other plugins keep in localStorage
+// (Lobby Reveal's choices and box position), in one file to take to another PC.
+function exportLustSettings() {
+  const local = {};
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith("lust-"))
+        local[key] = localStorage.getItem(key);
+    }
+  } catch {}
+  const backup = { app: "Lust", format: 1, saved: new Date().toISOString(), theme: LustData.getAll(), local };
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" }));
+  link.download = "Lust-settings.json";
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(link.href), 10000);
+}
+function backupSection(section) {
+  const row = document.createElement("div");
+  row.className = "lust-status-row";
+  const note = document.createElement("div");
+  note.className = "lust-customize-state";
+  note.textContent = lustTr("Keep your settings in a file, or bring them from another PC.");
+  const save = document.createElement("lol-uikit-flat-button");
+  save.textContent = lustTr("Export settings");
+  save.addEventListener("click", () => {
+    exportLustSettings();
+    note.textContent = lustTr("Saved as Lust-settings.json");
+  });
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".json,application/json";
+  input.style.display = "none";
+  input.addEventListener("change", async () => {
+    const file = input.files && input.files[0];
+    input.value = "";
+    if (!file) return;
+    try {
+      const backup = JSON.parse(await file.text());
+      if (!backup || backup.app !== "Lust" || typeof backup.theme !== "object")
+        throw new Error("not a Lust settings file");
+      LustData.setAll(backup.theme);
+      if (LustData.flush) await LustData.flush();
+      for (const [key, value] of Object.entries(backup.local || {})) {
+        if (key.startsWith("lust-") && typeof value === "string") {
+          try {
+            localStorage.setItem(key, value);
+          } catch {}
+        }
+      }
+      note.textContent = lustTr("Settings imported, reloading the client...");
+      setTimeout(() => window.restartClient(), 1500);
+    } catch {
+      note.textContent = lustTr("That isn't a Lust settings file.");
+    }
+  });
+  const load = document.createElement("lol-uikit-flat-button");
+  load.textContent = lustTr("Import settings");
+  load.addEventListener("click", () => input.click());
+  row.append(save, load, input);
+  section.append(row, note);
+}
 async function customizeSettings(view) {
+  await newsCard(view);
   await statusSection(lustSection(view, lustTr("Status")));
   colorSection(lustSection(view, lustTr("Colors")));
   await themeSettings(lustSection(view, lustTr("Theme")));
   await pluginsSettings(lustSection(view, lustTr("Plugins")));
+  backupSection(lustSection(view, lustTr("Backup")));
 }
 function colorSection(section) {
   const list = document.createElement("div");
@@ -5039,6 +5151,11 @@ const LUST_PANEL_CSS = `
   .lust-status-row { display: flex; gap: 8px; margin-bottom: 6px; }
   .lust-status-row lol-uikit-flat-button { flex: 1; }
   .lust-status-row .lust-status-active { filter: brightness(1.35); outline: 1px solid #c8aa6e; }
+  .lust-news { margin: 0 0 18px; padding: 12px 14px; border: 1px solid #c8aa6e;
+    background: linear-gradient(160deg, #1b1430 0%, #010a13 80%); color: #cdbe91; font-size: 12px; }
+  .lust-news-title { margin-bottom: 6px; color: #f0e6d2; font: 700 14px "Beaufort for LOL", serif; letter-spacing: 1px; }
+  .lust-news ul { margin: 0 0 10px; padding-left: 18px; line-height: 1.6; }
+  .lust-news lol-uikit-flat-button { width: 120px; }
   .lust-asset-row { margin: 10px 0; padding: 10px; border: 1px dashed #785a2866; transition: border-color .15s, background .15s; }
   .lust-asset-row.dragging { border-color: #c8aa6e; background: #c8aa6e14; }
   .lust-asset-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;

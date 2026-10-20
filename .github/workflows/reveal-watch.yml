@@ -43,6 +43,7 @@ jobs:
             exit 0
           fi
 
+          # shellcheck disable=SC2016  # \(...) below is jq interpolation, not shell
           commits=$(gh api "repos/$REVEAL_REPO/compare/$known...$latest" \
             --jq '.commits[] | "- [`\(.sha[0:7])`](\(.html_url)) \(.commit.message | split("\n")[0])"')
           body=$(printf '%s\n\n%s\n\n%s\n\n%s\n' \

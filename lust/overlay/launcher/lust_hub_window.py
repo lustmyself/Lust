@@ -450,26 +450,52 @@ class HubWindow:
         self.sp_status = self.tile("sp_status", left, y, left + half, y + h, "music")
         self.sp_auto = self.tile("sp_auto", right - half, y, right, y + h, "sync", lambda: self._act("spotify_auto"))
         from launcher.lust_spotify import THEMES
+        self.sp_keys = list(THEMES)
+        self.sp_labels = {key: value[2] for key, value in THEMES.items()}
+        self.sp_colors = {key: (value[3], value[4]) for key, value in THEMES.items()}
+        self.sp_page = 0
+        self.sp_images = {}
+        self.sp_loaded = queue.Queue()
+        self.sp_loading = False
         y2 = y + h + p(GAP)
-        cols, box_h = 5, p(54)
-        rows = (len(THEMES) + cols - 1) // cols
-        h2 = p(44) + rows * box_h + (rows - 1) * p(8) + p(14)
+        cols, rows = 4, 2
+        self.sp_per_page = cols * rows
+        box_w = (width - p(36) - (cols - 1) * p(10)) / cols
+        img_h = (box_w - p(12)) * 9 / 16
+        box_h = img_h + p(40)
+        h2 = p(44) + rows * box_h + (rows - 1) * p(10) + p(14)
         self.card("sp_themes", left, y2, right, y2 + h2)
         self.text(left + p(18), y2 + p(20), "Tema", size=9, color=SUB)
-        box_w = (width - p(36) - (cols - 1) * p(8)) / cols
-        self.sp_boxes = {}
-        self.sp_labels = {key: value[2] for key, value in THEMES.items()}
-        for i, (key, (_f, _s, label, color, accent)) in enumerate(THEMES.items()):
-            x1 = left + p(18) + (i % cols) * (box_w + p(8))
-            by = y2 + p(36) + (i // cols) * (box_h + p(8))
-            box = self.card(f"sp_t_{key}", x1, by, x1 + box_w, by + box_h,
-                            clickable=lambda k=key: self._choose_theme(k), radius=10)
-            self.rrect(x1 + p(8), by + p(8), x1 + p(38), by + box_h - p(8), p(7), fill=color,
-                       outline="", tags=(box["tag"],))
-            self.c.create_oval(x1 + p(17), by + box_h / 2 - p(6), x1 + p(29), by + box_h / 2 + p(6),
-                               fill=accent, outline="", tags=(box["tag"],))
-            box["label"] = self.text(x1 + p(46), by + box_h / 2, label, size=9, bold=True, tags=(box["tag"],))
-            self.sp_boxes[key] = box
+        self.pill("sp_prev", right - p(108), y2 + p(9), right - p(78), y2 + p(31), "‹", lambda: self._sp_turn(-1))
+        self.sp_pager = self.text(right - p(63), y2 + p(20), "", size=8, color=SUB, anchor="center")
+        self.pill("sp_next", right - p(48), y2 + p(9), right - p(18), y2 + p(31), "›", lambda: self._sp_turn(1))
+        self.sp_slots = []
+        for i in range(self.sp_per_page):
+            x1 = left + p(18) + (i % cols) * (box_w + p(10))
+            by = y2 + p(40) + (i // cols) * (box_h + p(10))
+            box = self.card(f"sp_slot_{i}", x1, by, x1 + box_w, by + box_h,
+                            clickable=lambda i=i: self._sp_pick(i), radius=12)
+            tag = box["tag"]
+            ix1, iy1, ix2, iy2 = x1 + p(6), by + p(6), x1 + box_w - p(6), by + p(6) + img_h
+            iw, ih = ix2 - ix1, iy2 - iy1
+            # A drawn Spotify window, for themes without a screenshot
+            mock = {
+                "main": self.rrect(ix1, iy1, ix2, iy2, p(8), outline="", tags=(tag,)),
+                "side": c.create_rectangle(ix1 + p(5), iy1 + p(5), ix1 + iw * 0.24, iy2 - p(18), outline="", tags=(tag,)),
+                "bar": c.create_rectangle(ix1 + p(5), iy2 - p(14), ix2 - p(5), iy2 - p(5), outline="", tags=(tag,)),
+                "cards": [c.create_rectangle(ix1 + iw * (0.29 + 0.235 * n), iy1 + ih * 0.32,
+                                             ix1 + iw * (0.29 + 0.235 * n) + iw * 0.2, iy1 + ih * 0.62,
+                                             outline="", tags=(tag,)) for n in range(3)],
+                "title": c.create_rectangle(ix1 + iw * 0.29, iy1 + ih * 0.12, ix1 + iw * 0.6, iy1 + ih * 0.2,
+                                            outline="", tags=(tag,)),
+                "play": c.create_oval((ix1 + ix2) / 2 - p(4), iy2 - p(13), (ix1 + ix2) / 2 + p(4), iy2 - p(6),
+                                      outline="", tags=(tag,)),
+            }
+            box["mock"] = mock
+            box["image"] = c.create_image(ix1, iy1, anchor="nw", tags=(tag,))
+            box["img_size"] = (int(iw), int(ih))
+            box["label"] = self.text(x1 + p(12), iy2 + p(17), "", size=9, bold=True, tags=(tag,))
+            self.sp_slots.append(box)
         y3 = y2 + h2 + p(GAP)
         self.pill("sp_apply", left, y3, left + half, y3 + p(40), "Temayı uygula", self._apply_theme, accent=True)
         self.pill("sp_restore", right - half, y3, right, y3 + p(40), "Orijinale döndür",
@@ -488,6 +514,91 @@ class HubWindow:
     def _apply_theme(self) -> None:
         self._act("spotify_apply", {"theme": self.sp_choice})
 
+    def _sp_page_keys(self) -> list:
+        start = self.sp_page * self.sp_per_page
+        return self.sp_keys[start:start + self.sp_per_page]
+
+    def _sp_turn(self, step: int) -> None:
+        pages = (len(self.sp_keys) + self.sp_per_page - 1) // self.sp_per_page
+        self.sp_page = (self.sp_page + step) % pages
+        self._draw_slots()
+
+    def _sp_pick(self, index: int) -> None:
+        keys = self._sp_page_keys()
+        if index < len(keys):
+            self._choose_theme(keys[index])
+
+    def _load_previews(self) -> None:
+        """Screenshots download in the background; the Tk thread turns them into images."""
+        if self.sp_loading:
+            return
+        self.sp_loading = True
+
+        def run():
+            from launcher import lust_spotify
+            for key in self.sp_keys:
+                path = lust_spotify.preview_path(key)
+                if path:
+                    self.sp_loaded.put((key, path))
+        threading.Thread(target=run, daemon=True, name="LustSpotifyPreviews").start()
+
+    def _take_previews(self) -> None:
+        changed = False
+        try:
+            while True:
+                key, path = self.sp_loaded.get_nowait()
+                try:
+                    from PIL import Image, ImageDraw, ImageTk
+                    w, h = self.sp_slots[0]["img_size"]
+                    scale = 2
+                    with Image.open(path) as image:
+                        picture = image.convert("RGB").resize((w * scale, h * scale), Image.LANCZOS)
+                    mask = Image.new("L", picture.size, 0)
+                    ImageDraw.Draw(mask).rounded_rectangle((0, 0, *picture.size), self.p(8) * scale, fill=255)
+                    framed = Image.new("RGB", picture.size, CARD)
+                    framed.paste(picture, (0, 0), mask)
+                    self.sp_images[key] = ImageTk.PhotoImage(framed.resize((w, h), Image.LANCZOS))
+                    changed = True
+                except Exception as exc:  # noqa: BLE001 - the drawn preview stays
+                    log.debug(f"[Hub] Preview {key} not shown: {exc}")
+        except queue.Empty:
+            pass
+        if changed and self.page == "spotify":
+            self._draw_slots()
+
+    def _draw_slots(self) -> None:
+        c = self.c
+        keys = self._sp_page_keys()
+        pages = (len(self.sp_keys) + self.sp_per_page - 1) // self.sp_per_page
+        c.itemconfig(self.sp_pager, text=f"{self.sp_page + 1}/{pages}")
+        shown = self.page == "spotify"
+        for index, box in enumerate(self.sp_slots):
+            key = keys[index] if index < len(keys) else None
+            self.enabled[f"sp_slot_{index}"] = key is not None
+            if not key or not shown:
+                c.itemconfig(box["tag"], state="hidden")
+                continue
+            c.itemconfig(box["tag"], state="normal")
+            chosen = key == getattr(self, "sp_choice", None)
+            c.itemconfig(box["bg"], outline=ACCENT if chosen else CARD_LINE, width=2 if chosen else 1)
+            c.itemconfig(box["label"], text=self.sp_labels[key], fill=TEXT if chosen else SUB)
+            image = self.sp_images.get(key)
+            mock = box["mock"]
+            mock_items = [mock["main"], mock["side"], mock["bar"], mock["title"], mock["play"], *mock["cards"]]
+            if image:
+                c.itemconfig(box["image"], image=image, state="normal")
+                for item in mock_items:
+                    c.itemconfig(item, state="hidden")
+                continue
+            c.itemconfig(box["image"], image="", state="hidden")
+            bg, accent = self.sp_colors[key]
+            panel = _blend(tuple(int(bg[i:i + 2], 16) for i in (1, 3, 5)), (255, 255, 255), 0.07)
+            for item, fill in ((mock["main"], bg), (mock["side"], panel), (mock["bar"], panel),
+                               (mock["title"], accent), (mock["play"], accent)):
+                c.itemconfig(item, fill=fill, state="normal")
+            for item in mock["cards"]:
+                c.itemconfig(item, fill=panel, state="normal")
+
     def _set_page(self, page: str) -> None:
         if page == self.page:
             return
@@ -498,7 +609,7 @@ class HubWindow:
         self._refresh(reschedule=False)
 
     def _draw_spotify(self, sp: dict) -> None:
-        c = self.c
+        self._load_previews()
         if not getattr(self, "sp_choice", None):
             self.sp_choice = sp.get("theme") or "luminous"
         if sp.get("installed"):
@@ -510,10 +621,7 @@ class HubWindow:
             dot = RED
         self._tile_set(self.sp_status, "Spotify", sub, dot)
         self._tile_set(self.sp_auto, "Otomatik uygula", "Spotify güncellenince", ACCENT if sp.get("auto") else FAINT)
-        for key, box in self.sp_boxes.items():
-            chosen = key == self.sp_choice
-            c.itemconfig(box["bg"], outline=ACCENT if chosen else CARD_LINE, width=2 if chosen else 1)
-            c.itemconfig(box["label"], fill=TEXT if chosen else SUB)
+        self._draw_slots()
         ok = bool(sp.get("installed")) and not sp.get("busy")
         for key in ("sp_apply", "sp_restore"):
             self.enabled[key] = ok
@@ -615,6 +723,7 @@ class HubWindow:
                     self.reveal()
         except queue.Empty:
             pass
+        self._take_previews()
         self.root.after(100, self._poll_commands)
 
     # ---- state ----

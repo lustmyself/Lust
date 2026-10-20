@@ -1,6 +1,7 @@
 {
-  "version": "1.4.9.12",
+  "version": "1.4.9.13",
   "en": [
+    "Spotify themes show real previews, eight per page",
     "Spotify tab: 21 themes (Luminous first, Nord, purple, pink, Catppuccin and more) through Spicetify, applied again after Spotify updates",
     "The desktop hub shows your Lust Offline status correctly",
     "A cleaner, modern Lust desktop hub with rounded cards",
@@ -9,6 +10,7 @@
     "The Custom mods button is gone from champ select for good"
   ],
   "tr": [
+    "Spotify temaları gerçek önizlemeleriyle görünüyor, sayfa başına sekiz tane",
     "Spotify sekmesi: Spicetify ile 21 tema (önce Luminous, sonra Nord, Mor, Pembe, Catppuccin ve fazlası), Spotify güncellenince yeniden uygulanır",
     "Masaüstü merkezi Lust Offline durumunu doğru gösteriyor",
     "Daha temiz ve modern Lust masaüstü merkezi, yuvarlak kartlarla",

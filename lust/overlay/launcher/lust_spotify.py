@@ -55,6 +55,34 @@ THEMES = {
     "psycho": ("Sleek", "Psycho", "Psycho", "#1a0d1a", "#ff00ff"),
     "original": ("", "", "Orijinal", "#121212", "#1db954"),
 }
+# Theme screenshots for the tab's cards (Lust's own themes and the original are drawn instead)
+PREVIEWS = {key: SLEEK + key + ".png" for key, value in THEMES.items() if value[0] == "Sleek"}
+PREVIEWS["luminous"] = "https://raw.githubusercontent.com/streetraceing/luminous/main/assets/luminous.png"
+PREVIEW_SIZE = (320, 180)
+
+
+def preview_path(key: str) -> Optional[Path]:
+    """A theme's screenshot, cropped to the card's shape and cached. None when it has none."""
+    url = PREVIEWS.get(key)
+    if not url:
+        return None
+    cache = _dir() / "previews"
+    cache.mkdir(parents=True, exist_ok=True)
+    path = cache / f"{key}.png"
+    if path.is_file():
+        return path
+    try:
+        from PIL import Image, ImageOps
+        response = requests.get(url, timeout=30)
+        response.raise_for_status()
+        with Image.open(io.BytesIO(response.content)) as image:
+            ImageOps.fit(image.convert("RGB"), PREVIEW_SIZE, Image.LANCZOS, centering=(0, 0)).save(path)
+        return path
+    except Exception as exc:  # noqa: BLE001 - the card keeps its drawn preview
+        log.debug(f"[Spotify] Preview for {key} failed: {exc}")
+        return None
+
+
 LUST_COLORS = """[Lust]
 text               = f0eef5
 subtext            = 8d8a95

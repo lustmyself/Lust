@@ -268,6 +268,7 @@ hiddenimports = [
     'launcher',
     'launcher.core',
     'launcher.lust_offline',
+    'launcher.autostart_default',
     'launcher.core.launcher',
     'launcher.sequences',
     'launcher.sequences.hash_check_sequence',

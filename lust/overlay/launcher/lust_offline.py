@@ -4,7 +4,7 @@ Lust Offline (lust/offline, a rebranded Deceive) must start the Riot Client itse
 so it can route chat through its proxy. Lust does that when it starts. A Riot
 Client idling in the background is closed and restarted through the proxy; an
 open game is left alone (closing it would be worse than appearing online), and
-nothing starts right after Windows boots (Lust's own autostart).
+nothing starts when Lust itself was started with Windows.
 """
 
 from __future__ import annotations
@@ -42,6 +42,15 @@ def _processes(names):
     return found
 
 
+def _started_at_logon() -> bool:
+    """Start with Windows runs Lust from Task Scheduler, whose host is svchost.exe."""
+    try:
+        parent = psutil.Process().parent()
+        return bool(parent) and (parent.name() or "").lower() == "svchost.exe"
+    except psutil.Error:
+        return False
+
+
 def _close_riot_client():
     procs = _processes(RIOT_CLIENT_PROCESSES)
     for proc in procs:
@@ -63,8 +72,8 @@ def start_league_through_lust_offline() -> None:
         return
     uptime = ctypes.windll.kernel32.GetTickCount64
     uptime.restype = ctypes.c_ulonglong
-    if uptime() < BOOT_GRACE_MS:
-        log.info("[LustOffline] Windows just started; leaving League closed")
+    if uptime() < BOOT_GRACE_MS or _started_at_logon():
+        log.info("[LustOffline] Started with Windows; leaving League closed")
         return
     games = _processes(GAME_PROCESSES)
     if games:

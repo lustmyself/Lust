@@ -569,6 +569,10 @@ def run_league_unlock(args: Optional[argparse.Namespace] = None,
     # Check initial status (will show locked until all components are ready)
     app_status.update_status(force=True)
     
+    # Start with Windows is on by default, set once on the first run
+    from launcher.autostart_default import apply_autostart_default
+    apply_autostart_default()
+
     # Open League through Lust Offline so the player can appear offline
     from launcher.lust_offline import start_league_through_lust_offline
     start_league_through_lust_offline()

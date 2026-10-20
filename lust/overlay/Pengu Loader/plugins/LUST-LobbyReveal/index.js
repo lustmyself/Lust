@@ -278,13 +278,6 @@
       text-transform: uppercase;
     }
 
-    .lust-rv-count {
-      font: 12px "Spiegel", "Arial", sans-serif;
-      letter-spacing: 0;
-      text-transform: none;
-      color: #a09b8c;
-    }
-
     .lust-rv-field {
       display: flex;
       align-items: center;
@@ -380,13 +373,6 @@
     queueRender();
   }
 
-  function revealedCount() {
-    try {
-      return Number(localStorage.getItem("lust-lobby-reveal-count")) || 0;
-    } catch {
-      return 0;
-    }
-  }
   let lastData = null;
   let renderQueued = false;
   let championNames = null;
@@ -770,17 +756,10 @@
     link.click();
   }
 
-  // Once per champ select: count the lobby, and open the multi-search when all five
-  // names are in or the delay runs out, if the player turned that on.
+  // Once per champ select: open the multi-search when all five names are in or the
+  // delay runs out, if the player turned that on.
   function scheduleAutoOpen(data, count) {
-    if (autoOpen.done) return;
-    if (!autoOpen.counted) {
-      autoOpen.counted = true;
-      try {
-        localStorage.setItem("lust-lobby-reveal-count", String(revealedCount() + 1));
-      } catch {}
-    }
-    if (!settings.autoOpen) return;
+    if (autoOpen.done || !settings.autoOpen) return;
     const open = () => {
       const latest = lastData || data;
       const url = latest[PROVIDERS[settings.provider] ? PROVIDERS[settings.provider].field : "multiUrl"];
@@ -830,7 +809,7 @@
     }
     const hub = el("div", "lust-rv-hub");
     const title = el("div", "lust-rv-title");
-    title.append(el("span", "", "Lobby Reveal"), el("span", "lust-rv-count", `${revealedCount().toLocaleString()} lobbies revealed`));
+    title.append(el("span", "", "Lobby Reveal"));
     hub.appendChild(title);
 
     const providerLabels = Object.fromEntries(Object.entries(PROVIDERS).map(([key, p]) => [key, p.label]));

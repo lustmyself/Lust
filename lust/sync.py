@@ -370,12 +370,17 @@ EDITS += [
 EDITS += [
     ('main/__init__.py',
      '    # Initialize core components\n',
+     '    # Start with Windows is on by default, set once on the first run\n'
+     '    from launcher.autostart_default import apply_autostart_default\n'
+     '    apply_autostart_default()\n'
+     '\n'
      '    # Open League through Lust Offline so the player can appear offline\n'
      '    from launcher.lust_offline import start_league_through_lust_offline\n'
      '    start_league_through_lust_offline()\n'
      '\n'
      '    # Initialize core components\n'),
-    ('Lust.spec', "    'launcher.core',\n", "    'launcher.core',\n    'launcher.lust_offline',\n"),
+    ('Lust.spec', "    'launcher.core',\n",
+     "    'launcher.core',\n    'launcher.lust_offline',\n    'launcher.autostart_default',\n"),
     ('Lust.spec', "    'injection/tools/mod-tools.exe',\n",
      "    'injection/tools/mod-tools.exe',\n    'injection/tools/LustOffline.exe',  # built by lust/offline/build_offline.py\n"),
 ]

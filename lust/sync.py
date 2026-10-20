@@ -534,11 +534,14 @@ EDITS += [
      '                    log.warning(f"[CustomSkins] Could not pick a custom skin: {e}")\n'
      '\n'
      '            # Auto-select previously used custom mods (so users don\'t need to open the Custom Mods UI)\n'),
+    # The button is never put in champ select (a CSS hide lost to the plugin's own !important rule)
     ('Pengu Loader/plugins/LUST-CustomWheel/index.js',
-     '  const CSS_RULES = `\n',
-     '  const CSS_RULES = `\n'
-     '    /* Lust: custom skins moved to the Lust hub (Custom skins tab) */\n'
-     '    .lust-custom-wheel-button { display: none !important; }\n'),
+     '    // Append to container (same structure as QUIT button)\n'
+     '    targetContainer.appendChild(button);\n',
+     '    // Lust: custom skins live in the Lust hub (Custom skins tab), not in champ select\n'
+     '    return;\n'
+     '    // Append to container (same structure as QUIT button)\n'
+     '    targetContainer.appendChild(button);\n'),
     ('Lust.spec', "    'launcher.core',\n", "    'launcher.core',\n    'pengu.communication.lust_custom_skins',\n"),
 ]
 

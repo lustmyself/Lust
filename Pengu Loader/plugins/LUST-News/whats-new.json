@@ -1,17 +1,15 @@
 {
-  "version": "1.4.9.8",
+  "version": "1.4.9.9",
   "en": [
-    "A mod that crashes the game no longer makes the client reconnect forever: Lust stops it, switches the custom skin off and the game starts without mods",
-    "Custom skins: a new tab in the Lust hub. Press + and paste your skin files, or drop them on the tab",
-    "Switch each custom skin on or off; one that is on plays when you go in with that champion's default skin",
-    "The Custom mods button in champ select is gone",
-    "The desktop hub is in Turkish and shows where your game settings are"
+    "A cleaner, modern Lust desktop hub with rounded cards",
+    "Lobby Reveal box redesigned: minimal, rounded, titled Reveal",
+    "The text above the champ select timer is back",
+    "The Custom mods button is gone from champ select for good"
   ],
   "tr": [
-    "Oyunu çökerten bir mod artık client'ı sonsuz reconnect döngüsüne sokmuyor: Lust enjeksiyonu durduruyor, özel skini kapatıyor ve oyun modsuz açılıyor",
-    "Özel skinler: Lust merkezinde yeni sekme. +'ya bas ve skin dosyalarını yapıştır ya da sekmeye sürükle",
-    "Her özel skini aç ya da kapat; açık olan, o şampiyonla default skinde oyuna girince oynar",
-    "Şampiyon seçimindeki Custom mods butonu kaldırıldı",
-    "Masaüstü merkezi Türkçe ve oyun ayarlarının nerede olduğunu gösteriyor"
+    "Daha temiz ve modern Lust masaüstü merkezi, yuvarlak kartlarla",
+    "Lobby Reveal kutusu yenilendi: sade, yuvarlak ve başlığı Reveal",
+    "Şampiyon seçimindeki zamanlayıcının üstündeki yazı geri geldi",
+    "Custom mods butonu şampiyon seçiminden tamamen kalktı"
   ]
 }

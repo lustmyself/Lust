@@ -96,7 +96,7 @@ class VersionTests(unittest.TestCase):
 
 class WindowTextTests(unittest.TestCase):
     def test_both_languages_have_every_text(self):
-        from launcher.lust_hub_window import TEXT
+        from launcher.lust_hub_window import TEXT_STRINGS as TEXT
         self.assertEqual(set(TEXT["en"]), set(TEXT["tr"]))
 
 

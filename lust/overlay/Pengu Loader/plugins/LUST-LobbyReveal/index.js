@@ -42,7 +42,6 @@
     "Placements": "Yerleştirme",
     "Unranked": "Derecesiz",
     "Drag to move · double-click to reset": "Taşımak için sürükle · sıfırlamak için çift tıkla",
-    "Lobby ({count})": "Lobi ({count})",
     "Show": "Göster",
     "Hide": "Gizle",
     "Waiting for teammates...": "Takım arkadaşları bekleniyor...",
@@ -79,18 +78,21 @@
   const MAINS_PER_PLAYER = 3;
 
   const CSS_RULES = `
+    /* Lust: a quiet glass card, one purple accent */
     #${PANEL_ID} {
       position: fixed;
-      right: 14px;
-      bottom: 14px;
+      right: 16px;
+      bottom: 92px;
       z-index: 99999;
-      width: 300px;
-      padding: 10px 12px 12px;
-      background: rgba(1, 10, 19, 0.92);
-      border: 1px solid #785a28;
-      box-shadow: 0 0 12px rgba(0, 0, 0, 0.7);
-      font-family: "Beaufort for LOL", serif;
-      color: #cdbe91;
+      width: 296px;
+      padding: 12px 12px 10px;
+      background: rgba(9, 12, 20, 0.86);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+      font-family: "Spiegel", "Arial", sans-serif;
+      color: #d8d4cc;
       user-select: none;
     }
 
@@ -102,24 +104,38 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 8px;
-      font-size: 13px;
+      margin: 0 2px 8px;
+      font-size: 11px;
       font-weight: 700;
-      letter-spacing: 1px;
-      color: #f0e6d2;
+      letter-spacing: 1.5px;
+      color: #8d8a95;
       text-transform: uppercase;
       cursor: move;
     }
 
+    #${PANEL_ID} .lust-reveal-head > span:first-child::before {
+      content: "";
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      margin-right: 8px;
+      border-radius: 50%;
+      background: #a78bfa;
+      box-shadow: 0 0 8px #a78bfa;
+      vertical-align: 1px;
+    }
+
     #${PANEL_ID} .lust-reveal-toggle {
       cursor: pointer;
-      color: #a09b8c;
-      font-size: 14px;
-      padding: 0 2px;
+      color: #6f6c78;
+      font-size: 12px;
+      padding: 2px 4px;
+      border-radius: 6px;
     }
 
     #${PANEL_ID} .lust-reveal-toggle:hover {
-      color: #f0e6d2;
+      color: #f0eef5;
+      background: rgba(255, 255, 255, 0.06);
     }
 
     #${PANEL_ID}.collapsed .lust-reveal-body {
@@ -133,19 +149,23 @@
     #${PANEL_ID} .lust-reveal-row {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 4px 0;
-      font-family: "Spiegel", "Arial", sans-serif;
+      gap: 10px;
+      padding: 6px 6px;
+      border-radius: 10px;
       font-size: 12px;
+      transition: background 0.12s;
+    }
+
+    #${PANEL_ID} .lust-reveal-row:hover {
+      background: rgba(255, 255, 255, 0.045);
     }
 
     #${PANEL_ID} .lust-reveal-icon {
       flex: 0 0 30px;
       width: 30px;
       height: 30px;
-      border-radius: 50%;
-      border: 1px solid #785a28;
-      background: #1e2328;
+      border-radius: 9px;
+      background: #1a1d27;
     }
 
     #${PANEL_ID} .lust-reveal-info {
@@ -162,9 +182,13 @@
 
     #${PANEL_ID} .lust-reveal-role {
       flex: 0 0 auto;
-      font-size: 10px;
+      padding: 0 4px;
+      border-radius: 4px;
+      background: rgba(167, 139, 250, 0.14);
+      font-size: 9px;
       font-weight: 700;
-      color: #a09b8c;
+      line-height: 14px;
+      color: #c4b5fd;
     }
 
     #${PANEL_ID} .lust-reveal-name {
@@ -172,56 +196,69 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      color: #f0e6d2;
+      font-weight: 700;
+      color: #f0eef5;
       text-decoration: none;
     }
 
     #${PANEL_ID} .lust-reveal-name:hover {
-      color: #c8aa6e;
-      text-decoration: underline;
+      color: #c4b5fd;
     }
 
     #${PANEL_ID} .lust-reveal-tag {
-      color: #7e7a70;
+      font-weight: 400;
+      color: #6f6c78;
     }
 
     #${PANEL_ID} .lust-reveal-stats {
       margin-top: 2px;
       font-size: 11px;
-      color: #a09b8c;
+      color: #8d8a95;
       white-space: nowrap;
     }
 
     #${PANEL_ID} .lust-reveal-crest {
-      width: 16px;
-      height: 16px;
+      width: 14px;
+      height: 14px;
     }
 
     #${PANEL_ID} .lust-reveal-tier {
-      color: #cdbe91;
+      color: #b9b5c2;
     }
 
     #${PANEL_ID} .lust-reveal-mains {
       display: flex;
-      gap: 2px;
+      gap: 3px;
       margin-left: auto;
     }
 
     #${PANEL_ID} .lust-reveal-main {
       width: 18px;
       height: 18px;
-      border: 1px solid #3c3c41;
+      border-radius: 5px;
     }
 
+    /* Shown on the row under the mouse only */
     #${PANEL_ID} .lust-reveal-copy {
       flex: 0 0 auto;
       cursor: pointer;
-      font-size: 10px;
-      color: #7e7a70;
+      padding: 0 5px;
+      border-radius: 5px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: #8d8a95;
+      opacity: 0;
+      transition: opacity 0.12s;
+    }
+
+    #${PANEL_ID} .lust-reveal-row:hover .lust-reveal-copy {
+      opacity: 1;
     }
 
     #${PANEL_ID} .lust-reveal-copy:hover {
-      color: #f0e6d2;
+      color: #f0eef5;
+      background: rgba(255, 255, 255, 0.08);
     }
 
     #${PANEL_ID} .lust-reveal-links {
@@ -233,87 +270,77 @@
     #${PANEL_ID} .lust-reveal-multi {
       flex: 1 1 0;
       display: block;
-      padding: 6px 0;
+      padding: 7px 0;
+      border-radius: 10px;
       text-align: center;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       letter-spacing: 1px;
       text-transform: uppercase;
       text-decoration: none;
-      color: #cdfafa;
-      background: linear-gradient(#1e2328, #1e2328) padding-box,
-        linear-gradient(#0ac8b9, #0397ab) border-box;
-      border: 2px solid transparent;
+      color: #ede9fe;
+      background: rgba(167, 139, 250, 0.16);
+      border: 1px solid rgba(167, 139, 250, 0.35);
+      transition: background 0.12s, border-color 0.12s;
     }
 
     #${PANEL_ID} .lust-reveal-multi:hover {
-      color: #f0e6d2;
-      box-shadow: 0 0 8px rgba(10, 200, 185, 0.6);
+      background: rgba(167, 139, 250, 0.28);
+      border-color: #a78bfa;
+    }
+
+    #${PANEL_ID} .lust-reveal-also {
+      margin-top: 7px;
+      text-align: center;
+      font-size: 10px;
+      color: #6f6c78;
+    }
+
+    #${PANEL_ID} .lust-reveal-also a {
+      margin: 0 5px;
+      color: #8d8a95;
+      text-decoration: none;
+    }
+
+    #${PANEL_ID} .lust-reveal-also a:hover {
+      color: #f0eef5;
     }
 
     /* Small and tucked to the right so it isn't hit by accident */
     #${PANEL_ID} .lust-reveal-dodge {
       display: table;
-      margin: 8px 0 0 auto;
+      margin: 6px 0 0 auto;
       padding: 2px 8px;
-      text-align: center;
-      font-family: "Spiegel", "Arial", sans-serif;
+      border-radius: 6px;
       font-size: 9px;
       font-weight: 700;
       letter-spacing: 0.5px;
-      opacity: 0.7;
       text-transform: uppercase;
-      color: #a09b8c;
-      border: 1px solid #3c3c41;
+      color: #6f6c78;
       cursor: pointer;
     }
 
-    #${PANEL_ID} .lust-reveal-dodge:hover,
-    #${PANEL_ID} .lust-reveal-dodge.armed {
-      opacity: 1;
-    }
-
     #${PANEL_ID} .lust-reveal-dodge:hover {
-      color: #f0e6d2;
-      border-color: #785a28;
+      color: #f0eef5;
+      background: rgba(255, 255, 255, 0.06);
     }
 
     #${PANEL_ID} .lust-reveal-dodge.armed {
       color: #fff;
-      background: #5c1a1f;
-      border-color: #e84057;
-    }
-
-    #${PANEL_ID} .lust-reveal-also {
-      margin-top: 6px;
-      text-align: center;
-      font-family: "Spiegel", "Arial", sans-serif;
-      font-size: 11px;
-      color: #7e7a70;
-    }
-
-    #${PANEL_ID} .lust-reveal-also a {
-      margin: 0 4px;
-      color: #a09b8c;
-      text-decoration: none;
-    }
-
-    #${PANEL_ID} .lust-reveal-also a:hover {
-      color: #f0e6d2;
+      background: rgba(232, 64, 87, 0.85);
     }
 
     #${PANEL_ID} .lust-reveal-details {
-      margin: 2px 0 4px 38px;
-      font-family: "Spiegel", "Arial", sans-serif;
+      margin: 0 6px 6px 46px;
       font-size: 11px;
       line-height: 1.5;
-      color: #a09b8c;
+      color: #8d8a95;
     }
 
     #${PANEL_ID} .lust-reveal-empty {
-      font-family: "Spiegel", "Arial", sans-serif;
+      padding: 6px;
       font-size: 12px;
-      color: #7e7a70;
+      color: #6f6c78;
     }
   `;
 
@@ -635,8 +662,8 @@
     };
   }
 
-  // Where the player dragged it; otherwise just above the Custom Mods button so the
-  // chat buttons in the corner stay clickable.
+  // Where the player dragged it; otherwise in the bottom-right corner (CSS), above the
+  // chat buttons so they stay clickable.
   function placePanel() {
     if (!panel || panel.hidden) return;
     const saved = savedPosition();
@@ -645,15 +672,7 @@
       Object.assign(panel.style, { left: `${left}px`, top: `${top}px`, right: "auto", bottom: "auto" });
       return;
     }
-    Object.assign(panel.style, { left: "", top: "" });
-    const button = document.querySelector(".lust-custom-wheel-button");
-    const rect = button && button.getBoundingClientRect();
-    if (!rect || !rect.height) {
-      Object.assign(panel.style, { right: "", bottom: "" });
-      return;
-    }
-    panel.style.right = `${Math.max(0, Math.round(window.innerWidth - rect.right))}px`;
-    panel.style.bottom = `${Math.round(window.innerHeight - rect.top + 8)}px`;
+    Object.assign(panel.style, { left: "", top: "", right: "", bottom: "" });
   }
 
   function makeDraggable(handle) {
@@ -724,7 +743,7 @@
     root.replaceChildren();
 
     const head = el("div", "lust-reveal-head");
-    head.appendChild(el("span", "", tr("Lobby ({count})", { count: players.length })));
+    head.appendChild(el("span", "", "Reveal"));
     const toggle = el("span", "lust-reveal-toggle", collapsed ? "▴" : "▾");
     toggle.title = tr(collapsed ? "Show" : "Hide");
     toggle.addEventListener("click", () => {
@@ -949,7 +968,7 @@
     bridge.subscribe("lobby-reveal", render);
     bridge.subscribe("phase-change", handlePhaseChange);
     bridge.onDisconnect(() => render(null));
-    // The Custom Mods button can appear or move after the panel does.
+    // Keeps a dragged panel inside the window when the client is resized.
     setInterval(placePanel, 500);
     if (window.LustI18n) window.LustI18n.onChange(() => queueRender());
     log("info", "Lobby reveal ready");

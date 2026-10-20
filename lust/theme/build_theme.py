@@ -1047,6 +1047,9 @@ PATCHES = [
     ("config/datastoreDefault.js", '"loot-helper"                   : true,', '"loot-helper"                   : false,'),
     # Lust updates the theme itself: no Elaina changelog or update popup.
     ("index.js", "    const checkUpdate = new CheckUpdate();\n    checkUpdate.main();\n", ""),
+    # ...nor the popup's styles: their bare ".message" rule also moved League's champ
+    # select text above the timer ("Game starting", "Pick your champion") off its place.
+    ("assets/styles/themes/elaina.css", '@import url("./theme-update-message.css");\n', ""),
     # No automation that plays for the player: auto find queue and honor skip.
     ("index.js", "  AutoQueue(context);\n  skipHonor(context);\n", ""),
     ("index.js", "        await queueSection(),\n", ""),

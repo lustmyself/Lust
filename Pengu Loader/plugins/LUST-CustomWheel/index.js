@@ -421,8 +421,6 @@
   }
 
   const CSS_RULES = `
-    /* Lust: custom skins moved to the Lust hub (Custom skins tab) */
-    .lust-custom-wheel-button { display: none !important; }
     .${BUTTON_CLASS} {
       pointer-events: auto;
       -webkit-user-select: none;
@@ -1988,6 +1986,8 @@
     // But we need absolute for button positioning, so we'll use a wrapper or ensure badge uses button as reference
     // Actually, absolute children can still position relative to absolute parents, so this should work
 
+    // Lust: custom skins live in the Lust hub (Custom skins tab), not in champ select
+    return;
     // Append to container (same structure as QUIT button)
     targetContainer.appendChild(button);
 

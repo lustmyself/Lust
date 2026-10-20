@@ -3,6 +3,9 @@
 It runs on its own thread (Tk is touched only there) and shows what launcher/lust_hub.py
 holds: startup progress, Lust's and League's status, the version, what's new, and the
 quick actions. Closing it only hides it; the tray icon brings it back.
+
+Everything is drawn on one canvas (rounded cards, icon tiles, pills), so card corners
+blend into the background instead of showing Tk's square widget edges.
 """
 
 from __future__ import annotations
@@ -17,66 +20,73 @@ from utils.core.logging import get_logger
 
 log = get_logger()
 
-BG = "#0b0e14"
-PANEL = "#0f131b"
-LINE = "#1e2328"
-HOVER = "#151a22"
-RAISED = "#1e2328"
-GOLD_DIM = "#785a28"
-TEXT_COLOR = "#cdbe91"
-BRIGHT = "#f0e6d2"
-MUTED = "#7a7568"
-PURPLE = "#a78bfa"
-PURPLE_BG = "#211c33"
-GREEN = "#0acf83"
+BG_TOP = (13, 12, 19)
+BG_BOTTOM = (22, 14, 34)
+CARD = "#15141d"
+CARD_HOVER = "#1c1a27"
+CARD_LINE = "#24222f"
+TILE = "#211f2c"
+TEXT = "#f0eef5"
+SUB = "#8d8a95"
+FAINT = "#5d5a66"
+ACCENT = "#a78bfa"
+ACCENT_SOFT = "#2a2340"
+ACCENT_LINE = "#4b3f73"
+GREEN = "#4ade80"
+AMBER = "#f5b14c"
+RED = "#f87171"
+RED_SOFT = "#2c1719"
 YELLOW = "#f2c94c"
-AMBER = "#e8a33a"
-RED = "#e07a7a"
-RED_LINE = "#5a2a2a"
-RED_BG = "#2a1416"
 
-SIZE = (780, 630)
+SIZE = (760, 576)
+PAD = 18
+GAP = 10
+RADIUS = 14
 FONT = "Segoe UI"
+FONT_BOLD = ("Segoe UI Semibold",)
 ICON_FONT = "Segoe MDL2 Assets"  # ships with Windows 10 and 11
-ICONS = {"play": "", "folder": "", "log": "", "power": "",
-         "restart": "", "close": ""}
+ICONS = {
+    "lust": "", "league": "", "skins": "", "appear": "",
+    "play": "", "folder": "", "log": "", "power": "",
+    "restart": "", "close": "", "sync": "", "download": "",
+}
 REFRESH_MS = 500
 STATE_INTERVAL_S = 0.5
 
-TEXT = {
+TEXT_STRINGS = {
     "en": {
-        "status": "Status", "running": "Lust is running", "starting": "Lust is starting",
-        "league_on": "League is open", "league_off": "League is closed",
-        "ready": "Skins ready", "not_ready": "Skins getting ready",
-        "version": "Version", "up_to_date": "Up to date", "new_version": "New version",
-        "checked": "Last checked", "never": "not yet", "check": "Check now", "update": "Update",
-        "whats_new": "What's new", "actions": "Quick actions",
-        "open_league": "Open League", "league_open": "League is open",
+        "lust": "Lust", "running": "Running", "starting": "Starting",
+        "league": "League", "league_on": "Open", "league_off": "Closed",
+        "skins": "Skins", "ready": "Ready", "not_ready": "Getting ready",
+        "up_to_date": "Up to date", "new_version": "New version {v}",
+        "checked": "last checked {when}", "never": "not yet", "check": "Check now", "update": "Update",
         "appear": "Appear as", "online": "Online", "offline": "Offline", "mobile": "Mobile",
-        "offline_hint": "Open League from here to choose your status",
-        "mods": "Open mods folder", "log": "Copy log", "autostart": "Start with Windows",
-        "on": "On", "off": "Off", "restart": "Restart Lust", "quit": "Close Lust",
-        "quit_confirm": "Click again to close Lust",
+        "offline_hint": "Open League from here to choose", "open_league": "Open League", "league_open": "League is open",
+        "start_league": "Through Lust Offline", "mods": "Mods folder", "mods_sub": "Open in Explorer",
+        "log": "Copy log", "log_sub": "Paste it into Discord", "autostart": "Start with Windows",
+        "on": "On", "off": "Off", "restart": "Restart", "restart_sub": "Restart Lust",
+        "quit": "Close Lust", "quit_sub": "Quit completely", "quit_confirm": "Click again",
         "client_hint": "Set your game settings by clicking the LUST tab in the LoL client.",
         "prompt_title": "Lust {v} is ready to install", "prompt_body": "You have {c}. Install it now?",
         "install": "Install", "later": "Not now", "just_now": "just now", "min_ago": "{n} min ago",
+        "status_ready": "Ready", "status_starting": "Starting",
     },
     "tr": {
-        "status": "Durum", "running": "Lust çalışıyor", "starting": "Lust başlıyor",
-        "league_on": "League açık", "league_off": "League kapalı",
-        "ready": "Skinler hazır", "not_ready": "Skinler hazırlanıyor",
-        "version": "Sürüm", "up_to_date": "Güncel", "new_version": "Yeni sürüm",
-        "checked": "Son kontrol", "never": "henüz yok", "check": "Şimdi kontrol et", "update": "Güncelle",
-        "whats_new": "Yenilikler", "actions": "Hızlı işlemler",
-        "open_league": "League'i aç", "league_open": "League açık",
+        "lust": "Lust", "running": "Çalışıyor", "starting": "Başlıyor",
+        "league": "League", "league_on": "Açık", "league_off": "Kapalı",
+        "skins": "Skinler", "ready": "Hazır", "not_ready": "Hazırlanıyor",
+        "up_to_date": "Güncel", "new_version": "Yeni sürüm {v}",
+        "checked": "son kontrol {when}", "never": "henüz yok", "check": "Şimdi kontrol et", "update": "Güncelle",
         "appear": "Görün", "online": "Çevrimiçi", "offline": "Çevrimdışı", "mobile": "Mobil",
-        "offline_hint": "Durum seçmek için League'i buradan aç",
-        "mods": "Mod klasörünü aç", "log": "Logu kopyala", "autostart": "Windows ile başlat",
-        "on": "Açık", "off": "Kapalı", "restart": "Lust'ı yeniden başlat", "quit": "Lust'ı kapat",
-        "quit_confirm": "Kapatmak için tekrar tıkla",
+        "offline_hint": "Seçmek için League'i buradan aç", "open_league": "League'i aç", "league_open": "League açık",
+        "start_league": "Lust Offline üzerinden", "mods": "Mod klasörü", "mods_sub": "Gezginde aç",
+        "log": "Logu kopyala", "log_sub": "Discord'a yapıştır", "autostart": "Windows ile başlat",
+        "on": "Açık", "off": "Kapalı", "restart": "Yeniden başlat", "restart_sub": "Lust'ı yeniden başlat",
+        "quit": "Lust'ı kapat", "quit_sub": "Tamamen kapat", "quit_confirm": "Tekrar tıkla",
         "client_hint": "Oyun ayarlarınızı LoL istemcisindeki LUST sekmesine tıklayarak ayarlayabilirsiniz.",
         "prompt_title": "Lust {v} kurulmaya hazır", "prompt_body": "Sendeki sürüm {c}. Şimdi kurulsun mu?",
         "install": "Kur", "later": "Şimdi değil", "just_now": "az önce", "min_ago": "{n} dk önce",
+        "status_ready": "Hazır", "status_starting": "Başlıyor",
     },
 }
 
@@ -159,77 +169,8 @@ class _State:
             self.wake.clear()
 
 
-class Button:
-    """A flat button (a frame with an icon, a text and an optional value at the end)."""
-
-    STYLES = {
-        "normal": {"bg": BG, "fg": TEXT_COLOR, "line": LINE, "hover_bg": HOVER, "hover_fg": BRIGHT,
-                   "hover_line": GOLD_DIM, "icon": TEXT_COLOR},
-        "primary": {"bg": RAISED, "fg": TEXT_COLOR, "line": GOLD_DIM, "hover_bg": "#232a33",
-                    "hover_fg": BRIGHT, "hover_line": GOLD_DIM, "icon": PURPLE},
-        "danger": {"bg": BG, "fg": RED, "line": RED_LINE, "hover_bg": RED_BG, "hover_fg": RED,
-                   "hover_line": RED, "icon": RED},
-        "chip": {"bg": PANEL, "fg": TEXT_COLOR, "line": LINE, "hover_bg": HOVER, "hover_fg": BRIGHT,
-                 "hover_line": GOLD_DIM, "icon": TEXT_COLOR},
-    }
-
-    def __init__(self, parent, command: Callable[[], None], icon: str = "", style: str = "normal",
-                 chip: bool = False) -> None:
-        import tkinter as tk
-        self.style = dict(self.STYLES[style])
-        self.command = command
-        self.enabled = True
-        self.selected = False
-        self.hover = False
-        pad = (10, 4) if chip else (12, 8)
-        self.frame = tk.Frame(parent, highlightthickness=1, cursor="hand2")
-        self.icon = tk.Label(self.frame, text=ICONS.get(icon, ""), font=(ICON_FONT, 10)) if icon else None
-        if self.icon:
-            self.icon.pack(side="left", padx=(pad[0], 0), pady=pad[1])
-        self.label = tk.Label(self.frame, font=(FONT, 9 if chip else 10), anchor="w")
-        self.label.pack(side="left", padx=(8 if icon else pad[0], pad[0]), pady=pad[1],
-                        fill="x", expand=not chip)
-        self.end = tk.Label(self.frame, font=(FONT, 9))
-        for widget in (self.frame, self.label, self.end, *( [self.icon] if self.icon else [])):
-            widget.bind("<Enter>", lambda _e: self._hover(True))
-            widget.bind("<Leave>", lambda _e: self._hover(False))
-            widget.bind("<Button-1>", lambda _e: self._click())
-        self._paint()
-
-    def _hover(self, on: bool) -> None:
-        self.hover = on
-        self._paint()
-
-    def _click(self) -> None:
-        if self.enabled:
-            self.command()
-
-    def set(self, text: str, enabled: bool = True, end: Optional[str] = None,
-            end_on: bool = False, selected: bool = False) -> None:
-        if self.label.cget("text") != text:
-            self.label.config(text=text)
-        if end is None:
-            self.end.pack_forget()
-        else:
-            if not self.end.winfo_ismapped():
-                self.end.pack(side="right", padx=(0, 12))
-            self.end.config(text=end, fg=PURPLE if end_on else MUTED)
-        if (enabled, selected) != (self.enabled, self.selected):
-            self.enabled, self.selected = enabled, selected
-            self.frame.config(cursor="hand2" if enabled else "arrow")
-        self._paint()
-
-    def _paint(self) -> None:
-        s = self.style
-        hot = self.hover and self.enabled
-        bg = PURPLE_BG if self.selected else (s["hover_bg"] if hot else s["bg"])
-        fg = BRIGHT if self.selected else (MUTED if not self.enabled else (s["hover_fg"] if hot else s["fg"]))
-        line = PURPLE if self.selected else (s["hover_line"] if hot else s["line"])
-        self.frame.config(bg=bg, highlightbackground=line, highlightcolor=line)
-        self.label.config(bg=bg, fg=fg)
-        self.end.config(bg=bg)
-        if self.icon:
-            self.icon.config(bg=bg, fg=MUTED if not self.enabled else s["icon"])
+def _blend(a, b, t):
+    return "#%02x%02x%02x" % tuple(int(a[i] + (b[i] - a[i]) * t) for i in range(3))
 
 
 class HubWindow:
@@ -238,29 +179,29 @@ class HubWindow:
         from config import APP_VERSION
         from launcher import lust_hub
 
-        self.tk = tk
         self.hub = lust_hub
         self.state = _State()
         self.lang = lust_hub.LANG
-        self.texts: list = []  # (widget, key) re-labelled when the language changes
+        self.version = APP_VERSION
         self.quit_armed = 0.0
         self.toast_id = None
         self.toast_after = None
         self.busy_pos = 0.0
-        self.news_key = None
         self.progress_value: Optional[int] = None
+        self.hover: Optional[str] = None
+        self.clickable: dict[str, Callable[[], None]] = {}
+        self.enabled: dict[str, bool] = {}
+        self.cards: dict[str, dict] = {}
 
         root = self.root = tk.Tk()
         root.withdraw()
         root.title("Lust")
-        root.configure(bg=BG)
         root.resizable(False, False)
-        scale = max(1.0, root.winfo_fpixels("1i") / 96)
-        self.scale = scale
-        width, height = int(SIZE[0] * scale), int(SIZE[1] * scale)
-        x = (root.winfo_screenwidth() - width) // 2
-        y = (root.winfo_screenheight() - height) // 2
-        root.geometry(f"{width}x{height}+{max(0, x)}+{max(0, y)}")
+        self.s = s = max(1.0, root.winfo_fpixels("1i") / 96)
+        self.w, self.h = int(SIZE[0] * s), int(SIZE[1] * s)
+        x = (root.winfo_screenwidth() - self.w) // 2
+        y = (root.winfo_screenheight() - self.h) // 2
+        root.geometry(f"{self.w}x{self.h}+{max(0, x)}+{max(0, y)}")
         try:
             from utils.core.paths import get_asset_path
             root.iconbitmap(default=str(get_asset_path("icon.ico")))
@@ -268,159 +209,254 @@ class HubWindow:
             pass
         root.protocol("WM_DELETE_WINDOW", self.hide)
 
-        tk.Frame(root, bg=PURPLE, height=2).pack(fill="x")
-        header = tk.Frame(root, bg=BG)
-        header.pack(fill="x", padx=20, pady=(12, 10))
-        tk.Label(header, text="LUST", bg=BG, fg=PURPLE, font=("Georgia", 17, "bold")).pack(side="left")
-        tk.Label(header, text=f"  {APP_VERSION}", bg=BG, fg=MUTED, font=(FONT, 9)).pack(side="left", pady=(6, 0))
-        tk.Frame(root, bg=LINE, height=1).pack(fill="x")
-        # Where the game settings are: the client's LUST tab, not this window
-        hint = self.tk.Label(root, bg=BG, fg=YELLOW, font=(FONT, 11, "bold"), anchor="w",
-                             wraplength=int((SIZE[0] - 40) * scale), justify="left")
-        hint.pack(fill="x", padx=20, pady=(12, 0))
-        self.texts.append((hint, "client_hint"))
+        c = self.c = tk.Canvas(root, width=self.w, height=self.h, highlightthickness=0, bd=0,
+                               bg=_blend(BG_TOP, BG_TOP, 0))
+        c.pack(fill="both", expand=True)
+        self._background()
+        self._layout()
+        c.bind("<Motion>", self._motion)
+        c.bind("<Leave>", lambda _e: self._set_hover(None))
+        c.bind("<Button-1>", self._click)
 
-        body = tk.Frame(root, bg=BG)
-        body.pack(fill="both", expand=True, padx=20, pady=16)
-        body.columnconfigure(0, weight=5, uniform="col")
-        body.columnconfigure(1, weight=4, uniform="col")
-        body.rowconfigure(0, weight=1)
-        left = tk.Frame(body, bg=BG)
-        left.grid(row=0, column=0, sticky="nsew", padx=(0, 16))
-        left.columnconfigure(0, weight=1)
-        right = tk.Frame(body, bg=BG)
-        right.grid(row=0, column=1, sticky="nsew")
-        right.columnconfigure(0, weight=1)
-
-        # Update prompt (only while the launcher asks)
-        self.prompt = self._card(left, line=PURPLE)
-        self.prompt.grid(row=0, column=0, sticky="ew", pady=(0, 12))
-        self.prompt_title = tk.Label(self.prompt, bg=PANEL, fg=BRIGHT, font=(FONT, 10), anchor="w")
-        self.prompt_title.pack(fill="x")
-        self.prompt_body = tk.Label(self.prompt, bg=PANEL, fg=MUTED, font=(FONT, 9), anchor="w")
-        self.prompt_body.pack(fill="x")
-        buttons = tk.Frame(self.prompt, bg=PANEL)
-        buttons.pack(anchor="w", pady=(8, 0))
-        self.prompt_yes = Button(buttons, lambda: self._act("prompt", {"accept": True}), style="primary", chip=True)
-        self.prompt_yes.frame.pack(side="left")
-        self.prompt_no = Button(buttons, lambda: self._act("prompt", {"accept": False}), style="chip", chip=True)
-        self.prompt_no.frame.pack(side="left", padx=(8, 0))
-        self.prompt.grid_remove()
-
-        # Status
-        status = self._card(left)
-        status.grid(row=1, column=0, sticky="ew", pady=(0, 12))
-        self._label(status, "status", small=True).pack(anchor="w", pady=(0, 6))
-        self.dots = {}
-        for key in ("run", "league", "ready"):
-            row = tk.Frame(status, bg=PANEL)
-            row.pack(fill="x", pady=1)
-            dot = tk.Canvas(row, width=10, height=10, bg=PANEL, highlightthickness=0)
-            dot.create_oval(1, 1, 9, 9, fill=MUTED, outline="", tags="dot")
-            dot.pack(side="left", padx=(0, 8))
-            text = tk.Label(row, bg=PANEL, fg=TEXT_COLOR, font=(FONT, 10), anchor="w")
-            text.pack(side="left")
-            self.dots[key] = (dot, text)
-
-        # Startup progress
-        self.progress = self._card(left)
-        self.progress.grid(row=2, column=0, sticky="ew", pady=(0, 12))
-        line = tk.Frame(self.progress, bg=PANEL)
-        line.pack(fill="x")
-        self.p_status = tk.Label(line, bg=PANEL, fg=TEXT_COLOR, font=(FONT, 10), anchor="w")
-        self.p_status.pack(side="left")
-        self.p_pct = tk.Label(line, bg=PANEL, fg=PURPLE, font=(FONT, 10))
-        self.p_pct.pack(side="right")
-        self.bar = tk.Canvas(self.progress, height=int(6 * scale), bg=LINE, highlightthickness=0)
-        self.bar.pack(fill="x", pady=(8, 6))
-        self.bar.create_rectangle(0, 0, 0, 0, fill=PURPLE, outline="", tags="fill")
-        self.p_detail = tk.Label(self.progress, bg=PANEL, fg=MUTED, font=(FONT, 9), anchor="w")
-        self.p_detail.pack(fill="x")
-
-        # Version
-        version = self._card(left)
-        version.grid(row=3, column=0, sticky="ew", pady=(0, 12))
-        line = tk.Frame(version, bg=PANEL)
-        line.pack(fill="x")
-        self._label(line, "version").pack(side="left")
-        self.u_state = tk.Label(line, bg=PANEL, fg=GREEN, font=(FONT, 9))
-        self.u_state.pack(side="right")
-        line = tk.Frame(version, bg=PANEL)
-        line.pack(fill="x", pady=(6, 0))
-        self.u_checked = tk.Label(line, bg=PANEL, fg=MUTED, font=(FONT, 9))
-        self.u_checked.pack(side="left")
-        self.u_button = tk.Label(line, bg=PANEL, fg=PURPLE, font=(FONT, 9), cursor="hand2")
-        self.u_button.pack(side="right")
-        self.u_button.bind("<Button-1>", lambda _e: self._update_clicked())
-        self.u_button.bind("<Enter>", lambda _e: self.u_button.config(fg=BRIGHT))
-        self.u_button.bind("<Leave>", lambda _e: self.u_button.config(fg=PURPLE))
-
-        # What's new
-        news = self.news_card = self._card(left)
-        news.grid(row=4, column=0, sticky="nsew")
-        left.rowconfigure(4, weight=1)
-        self._label(news, "whats_new", small=True).pack(anchor="w", pady=(0, 6))
-        self.news = tk.Frame(news, bg=PANEL)
-        self.news.pack(fill="both", expand=True)
-
-        # Quick actions
-        self._label(right, "actions", small=True, bg=BG).grid(row=0, column=0, sticky="w", pady=(0, 8))
-        self.b_league = Button(right, lambda: self._act("league"), icon="play", style="primary")
-        self.b_league.frame.grid(row=1, column=0, sticky="ew", pady=(0, 8))
-        appear = self._card(right, pad=(12, 8))
-        appear.grid(row=2, column=0, sticky="ew", pady=(0, 8))
-        self._label(appear, "appear", small=True).pack(anchor="w")
-        chips = tk.Frame(appear, bg=PANEL)
-        chips.pack(anchor="w", pady=(6, 0))
-        self.chips = {}
-        for value in ("online", "offline", "mobile"):
-            chip = Button(chips, lambda v=value: self._act("status", {"value": v}), style="chip", chip=True)
-            chip.frame.pack(side="left", padx=(0, 6))
-            self.chips[value] = chip
-        self.offline_hint = self._label(appear, "offline_hint", small=True)
-        self.b_mods = Button(right, lambda: self._act("mods"), icon="folder")
-        self.b_mods.frame.grid(row=3, column=0, sticky="ew", pady=(0, 8))
-        self.b_log = Button(right, lambda: self._act("log"), icon="log")
-        self.b_log.frame.grid(row=4, column=0, sticky="ew", pady=(0, 8))
-        self.b_autostart = Button(right, lambda: self._act("autostart"), icon="power")
-        self.b_autostart.frame.grid(row=5, column=0, sticky="ew", pady=(0, 8))
-        self.b_restart = Button(right, lambda: self._act("restart"), icon="restart")
-        self.b_restart.frame.grid(row=6, column=0, sticky="ew")
-        right.rowconfigure(7, weight=1)
-        self.b_quit = Button(right, self._quit_clicked, icon="close", style="danger")
-        self.b_quit.frame.grid(row=8, column=0, sticky="ew")
-
-        self.toast = tk.Label(root, bg=RAISED, fg=BRIGHT, font=(FONT, 9), padx=14, pady=8,
-                              highlightthickness=1, highlightbackground=GOLD_DIM,
-                              wraplength=int(600 * scale))
-
-        self._relabel()
         self._refresh()
         self._poll_commands()
         self._animate()
         self.reveal()
 
-    # ---- helpers ----
+    # ---- drawing helpers ----
 
-    def _card(self, parent, line: str = LINE, pad=(14, 12)):
-        return self.tk.Frame(parent, bg=PANEL, highlightthickness=1, highlightbackground=line,
-                             highlightcolor=line, padx=pad[0], pady=pad[1])
-
-    def _label(self, parent, key: str, small: bool = False, bg: str = PANEL):
-        label = self.tk.Label(parent, bg=bg, fg=MUTED if small else TEXT_COLOR,
-                              font=(FONT, 9 if small else 10), anchor="w")
-        self.texts.append((label, key))
-        return label
+    def p(self, value: float) -> int:
+        return int(value * self.s)
 
     def t(self, key: str, **values) -> str:
-        text = TEXT.get(self.lang, TEXT["en"]).get(key, key)
+        text = TEXT_STRINGS.get(self.lang, TEXT_STRINGS["en"]).get(key, key)
         for name, value in values.items():
             text = text.replace("{" + name + "}", str(value))
         return text
 
-    def _relabel(self) -> None:
-        for widget, key in self.texts:
-            widget.config(text=self.t(key))
+    def rrect(self, x1, y1, x2, y2, r, **kw):
+        r = min(r, (x2 - x1) / 2, (y2 - y1) / 2)
+        points = [x1 + r, y1, x2 - r, y1, x2, y1, x2, y1 + r, x2, y2 - r, x2, y2, x2 - r, y2,
+                  x1 + r, y2, x1, y2, x1, y2 - r, x1, y1 + r, x1, y1]
+        return self.c.create_polygon(points, smooth=True, splinesteps=24, **kw)
+
+    def _background(self) -> None:
+        # A soft vertical fade with a violet glow toward the bottom right
+        steps = 64
+        for i in range(steps):
+            y1 = self.h * i / steps
+            y2 = self.h * (i + 1) / steps + 1
+            self.c.create_rectangle(0, y1, self.w, y2, outline="", fill=_blend(BG_TOP, BG_BOTTOM, i / steps))
+
+    def text(self, x, y, value="", size=10, color=TEXT, bold=False, anchor="w", width=0, tags=()):
+        font = (FONT_BOLD[0] if bold else FONT, size)
+        return self.c.create_text(x, y, text=value, fill=color, font=font, anchor=anchor,
+                                  width=width or 0, tags=tags)
+
+    def card(self, key, x1, y1, x2, y2, clickable: Optional[Callable[[], None]] = None, radius=RADIUS) -> dict:
+        tag = f"card-{key}"
+        bg = self.rrect(x1, y1, x2, y2, self.p(radius), fill=CARD, outline=CARD_LINE, tags=(tag, f"{tag}-bg"))
+        card = {"tag": tag, "bg": bg, "box": (x1, y1, x2, y2), "fill": CARD, "hover_fill": CARD_HOVER}
+        self.cards[key] = card
+        if clickable:
+            self.clickable[key] = clickable
+            self.enabled[key] = True
+        return card
+
+    def tile(self, key, x1, y1, x2, y2, icon, clickable=None, danger=False) -> dict:
+        """An icon square, a title and a subtitle, and a status dot on the right (as in the mockup)."""
+        card = self.card(key, x1, y1, x2, y2, clickable)
+        tag = card["tag"]
+        size = self.p(36)
+        cy = (y1 + y2) / 2
+        ix1, iy1 = x1 + self.p(12), cy - size / 2
+        card["icon_bg"] = self.rrect(ix1, iy1, ix1 + size, iy1 + size, self.p(10),
+                                     fill=RED_SOFT if danger else TILE, outline="", tags=(tag,))
+        card["icon"] = self.c.create_text(ix1 + size / 2, cy, text=ICONS.get(icon, ""),
+                                          fill=RED if danger else ACCENT, font=(ICON_FONT, 13), tags=(tag,))
+        tx = ix1 + size + self.p(12)
+        card["title"] = self.text(tx, cy - self.p(9), size=10, bold=True, color=RED if danger else TEXT, tags=(tag,))
+        card["sub"] = self.text(tx, cy + self.p(10), size=8, color=SUB, tags=(tag,))
+        r = self.p(4)
+        dx = x2 - self.p(18)
+        card["dot"] = self.c.create_oval(dx - r, cy - r, dx + r, cy + r, fill=FAINT, outline="", tags=(tag,))
+        card["danger"] = danger
+        return card
+
+    def pill(self, key, x1, y1, x2, y2, label, onclick, accent=False) -> dict:
+        tag = f"card-{key}"
+        bg = self.rrect(x1, y1, x2, y2, (y2 - y1) / 2, fill=ACCENT if accent else TILE, outline="", tags=(tag,))
+        txt = self.text((x1 + x2) / 2, (y1 + y2) / 2, label, size=9, bold=True,
+                        color="#15111f" if accent else TEXT, anchor="center", tags=(tag,))
+        card = {"tag": tag, "bg": bg, "label": txt, "box": (x1, y1, x2, y2),
+                "fill": ACCENT if accent else TILE, "hover_fill": "#c4b5fd" if accent else "#2c2a3a"}
+        self.cards[key] = card
+        self.clickable[key] = onclick
+        self.enabled[key] = True
+        return card
+
+    # ---- layout ----
+
+    def _layout(self) -> None:
+        p, c = self.p, self.c
+        left, right = p(PAD), self.w - p(PAD)
+        width = right - left
+        col = (width - 2 * p(GAP)) / 3
+
+        # Header: logo, version pill, status pill
+        logo = self.text(left, p(36), "LUST", color=ACCENT)
+        c.itemconfig(logo, font=("Georgia", 19, "bold"))
+        vx = left + p(78)
+        self.rrect(vx, p(27), vx + p(64), p(45), p(9), fill=CARD, outline=CARD_LINE)
+        self.text(vx + p(32), p(36), self.version, size=8, color=SUB, anchor="center")
+        self.status_pill = self.rrect(right - p(96), p(25), right, p(47), p(11), fill=CARD, outline=CARD_LINE)
+        self.status_dot = c.create_oval(right - p(84), p(32), right - p(76), p(40), fill=AMBER, outline="")
+        self.status_text = self.text(right - p(70), p(36), "", size=9, bold=True)
+
+        # Where the game settings are
+        self.hint = self.text(left, p(74), self.t("client_hint"), size=10, color=YELLOW, bold=True, width=width)
+
+        # Row 1: Lust, League, skins
+        y = p(100)
+        h = p(62)
+        self.t_lust = self.tile("lust", left, y, left + col, y + h, "lust")
+        self.t_league = self.tile("league", left + col + p(GAP), y, left + 2 * col + p(GAP), y + h, "league")
+        self.t_skins = self.tile("skins", right - col, y, right, y + h, "skins")
+
+        # Row 2: startup progress, the update question, or the status picker (same place)
+        y2 = y + h + p(GAP)
+        h2 = p(70)
+        self.row2 = (left, y2, right, y2 + h2)
+        self._progress_items(left, y2, right, y2 + h2)
+        self._prompt_items(left, y2, right, y2 + h2)
+        self._appear_items(left, y2, right, y2 + h2)
+
+        # Rows 3 and 4: actions
+        y3 = y2 + h2 + p(GAP)
+        h3 = p(60)
+        xs = [left, left + col + p(GAP), right - col]
+        self.a_league = self.tile("a_league", xs[0], y3, xs[0] + col, y3 + h3, "play", lambda: self._act("league"))
+        self.a_mods = self.tile("a_mods", xs[1], y3, xs[1] + col, y3 + h3, "folder", lambda: self._act("mods"))
+        self.a_log = self.tile("a_log", xs[2], y3, xs[2] + col, y3 + h3, "log", lambda: self._act("log"))
+        y4 = y3 + h3 + p(GAP)
+        self.a_auto = self.tile("a_auto", xs[0], y4, xs[0] + col, y4 + h3, "power", lambda: self._act("autostart"))
+        self.a_restart = self.tile("a_restart", xs[1], y4, xs[1] + col, y4 + h3, "restart", lambda: self._act("restart"))
+        self.a_quit = self.tile("a_quit", xs[2], y4, xs[2] + col, y4 + h3, "close", self._quit_clicked, danger=True)
+
+        # Row 5: version, what's new, and the round update button
+        y5 = y4 + h3 + p(GAP)
+        bottom = self.h - p(PAD)
+        self.v_card = self.card("version", left, y5, right, bottom)
+        art = p(64)
+        ay = y5 + p(16)
+        self.rrect(left + p(16), ay, left + p(16) + art, ay + art, p(14), fill=ACCENT_SOFT, outline=ACCENT_LINE)
+        mark = self.text(left + p(16) + art / 2, ay + art / 2, "L", color=ACCENT, anchor="center")
+        c.itemconfig(mark, font=("Georgia", 24, "bold"))
+        tx = left + p(16) + art + p(16)
+        self.v_title = self.text(tx, ay + p(12), f"Lust {self.version}", size=12, bold=True)
+        self.v_sub = self.text(tx, ay + p(34), "", size=9, color=SUB)
+        self.v_news = self.text(tx, ay + p(52), "", size=8, color=SUB, anchor="nw", width=width - art - p(140))
+        bx = right - p(40)
+        by = (y5 + bottom) / 2
+        br = p(24)
+        self.v_button = self.c.create_oval(bx - br, by - br, bx + br, by + br, fill=ACCENT, outline="",
+                                           tags=("card-v_button",))
+        self.v_button_icon = self.c.create_text(bx, by, text=ICONS["sync"], fill="#15111f",
+                                                font=(ICON_FONT, 14), tags=("card-v_button",))
+        self.cards["v_button"] = {"tag": "card-v_button", "bg": self.v_button, "box": (bx - br, by - br, bx + br, by + br),
+                                  "fill": ACCENT, "hover_fill": "#c4b5fd", "oval": True}
+        self.clickable["v_button"] = self._update_clicked
+        self.enabled["v_button"] = True
+
+        # Toast, drawn last so it sits on top
+        self.toast_bg = self.rrect(0, 0, 1, 1, p(16), fill="#24212f", outline=ACCENT_LINE, state="hidden")
+        self.toast_text = self.text(0, 0, "", size=9, color=TEXT, anchor="center", width=self.w - p(120))
+        self.c.itemconfig(self.toast_text, state="hidden")
+
+    def _progress_items(self, x1, y1, x2, y2) -> None:
+        p = self.p
+        card = self.card("progress", x1, y1, x2, y2)
+        tag = card["tag"]
+        self.p_status = self.text(x1 + p(18), y1 + p(20), "", size=10, bold=True, tags=(tag,))
+        self.p_pct = self.text(x2 - p(18), y1 + p(20), "", size=10, bold=True, color=ACCENT, anchor="e", tags=(tag,))
+        self.bar = (x1 + p(18), y1 + p(38), x2 - p(18), y1 + p(44))
+        bx1, by1, bx2, by2 = self.bar
+        self.rrect(bx1, by1, bx2, by2, p(3), fill="#2a2836", outline="", tags=(tag,))
+        self.bar_fill = self.rrect(bx1, by1, bx1 + 1, by2, p(3), fill=ACCENT, outline="", tags=(tag,))
+        self.p_detail = self.text(x1 + p(18), y1 + p(56), "", size=8, color=SUB, tags=(tag,))
+
+    def _prompt_items(self, x1, y1, x2, y2) -> None:
+        p = self.p
+        card = self.card("prompt", x1, y1, x2, y2)
+        self.c.itemconfig(card["bg"], outline=ACCENT_LINE, fill=ACCENT_SOFT)
+        card["fill"] = card["hover_fill"] = ACCENT_SOFT
+        tag = card["tag"]
+        self.q_title = self.text(x1 + p(18), y1 + p(24), "", size=11, bold=True, tags=(tag,))
+        self.q_body = self.text(x1 + p(18), y1 + p(46), "", size=9, color=SUB, tags=(tag,))
+        cy = (y1 + y2) / 2
+        self.q_yes = self.pill("q_yes", x2 - p(250), cy - p(15), x2 - p(140), cy + p(15), "", lambda: self._act("prompt", {"accept": True}), accent=True)
+        self.q_no = self.pill("q_no", x2 - p(130), cy - p(15), x2 - p(18), cy + p(15), "", lambda: self._act("prompt", {"accept": False}))
+        for item in (self.q_yes, self.q_no):
+            self.c.addtag_withtag(tag, item["tag"])
+
+    def _appear_items(self, x1, y1, x2, y2) -> None:
+        p = self.p
+        card = self.card("appear", x1, y1, x2, y2)
+        tag = card["tag"]
+        cy = (y1 + y2) / 2
+        size = p(36)
+        self.rrect(x1 + p(12), cy - size / 2, x1 + p(12) + size, cy + size / 2, p(10), fill=TILE, outline="", tags=(tag,))
+        self.c.create_text(x1 + p(12) + size / 2, cy, text=ICONS["appear"], fill=ACCENT, font=(ICON_FONT, 13), tags=(tag,))
+        self.ap_title = self.text(x1 + p(60), cy - p(9), "", size=10, bold=True, tags=(tag,))
+        self.ap_sub = self.text(x1 + p(60), cy + p(10), "", size=8, color=SUB, tags=(tag,))
+        # A segmented control: one track, the chosen status lit
+        sx2 = x2 - p(16)
+        sw = p(330)
+        sx1 = sx2 - sw
+        self.rrect(sx1, cy - p(17), sx2, cy + p(17), p(17), fill="#100f17", outline=CARD_LINE, tags=(tag,))
+        self.segments = {}
+        seg_w = (sw - p(8)) / 3
+        for i, value in enumerate(("online", "offline", "mobile")):
+            a = sx1 + p(4) + i * seg_w
+            item = self.pill(f"seg_{value}", a, cy - p(13), a + seg_w, cy + p(13), "",
+                             lambda v=value: self._act("status", {"value": v}))
+            self.c.itemconfig(item["bg"], fill="#100f17")
+            item["fill"] = "#100f17"
+            item["hover_fill"] = "#1f1d2b"
+            self.c.addtag_withtag(tag, item["tag"])
+            self.segments[value] = item
+
+    # ---- interaction ----
+
+    def _key_at(self, x, y) -> Optional[str]:
+        for key in reversed(list(self.clickable)):
+            card = self.cards.get(key)
+            if not card or self.c.itemcget(card["bg"], "state") == "hidden":
+                continue
+            x1, y1, x2, y2 = card["box"]
+            if x1 <= x <= x2 and y1 <= y <= y2:
+                return key
+        return None
+
+    def _motion(self, event) -> None:
+        self._set_hover(self._key_at(event.x, event.y))
+
+    def _set_hover(self, key: Optional[str]) -> None:
+        if key == self.hover:
+            return
+        for name in (self.hover, key):
+            if name and name in self.cards:
+                card = self.cards[name]
+                hot = name == key and self.enabled.get(name, True)
+                fill = card.get("lit") or (card["hover_fill"] if hot else card["fill"])
+                self.c.itemconfig(card["bg"], fill=fill)
+        self.hover = key
+        self.c.config(cursor="hand2" if key and self.enabled.get(key, True) else "")
+
+    def _click(self, event) -> None:
+        key = self._key_at(event.x, event.y)
+        if key and self.enabled.get(key, True):
+            self.clickable[key]()
 
     def _act(self, name: str, body: Optional[dict] = None) -> None:
         def run():
@@ -442,7 +478,7 @@ class HubWindow:
         self._refresh(reschedule=False)
         self.root.after(3100, lambda: self._refresh(reschedule=False))
 
-    def _ago(self, seconds: int) -> str:
+    def _ago(self, seconds) -> str:
         if not seconds:
             return self.t("never")
         minutes = int((time.time() - seconds) // 60)
@@ -489,22 +525,38 @@ class HubWindow:
             pass
         self.root.after(100, self._poll_commands)
 
-    # ---- drawing ----
+    # ---- state ----
 
     def _animate(self) -> None:
-        width = self.bar.winfo_width()
-        if self.progress_value is None and width > 1:
-            self.busy_pos = (self.busy_pos + 0.02) % 1.3
-            start = (self.busy_pos - 0.3) * width
-            self.bar.coords("fill", start, 0, start + 0.3 * width, self.bar.winfo_height())
-        elif width > 1:
-            self.bar.coords("fill", 0, 0, width * self.progress_value / 100, self.bar.winfo_height())
+        x1, y1, x2, y2 = self.bar
+        width = x2 - x1
+        if self.c.itemcget(self.bar_fill, "state") != "hidden":
+            if self.progress_value is None:
+                self.busy_pos = (self.busy_pos + 0.015) % 1.3
+                a = x1 + (self.busy_pos - 0.3) * width
+                b = a + 0.3 * width
+                a, b = max(x1, a), min(x2, b)
+            else:
+                a, b = x1, x1 + max(self.p(6), width * self.progress_value / 100)
+            self._move_rrect(self.bar_fill, a, y1, max(a + 1, b), y2, self.p(3))
         self.root.after(30, self._animate)
 
-    def _dot(self, key: str, text: str, color: str) -> None:
-        dot, label = self.dots[key]
-        dot.itemconfig("dot", fill=color)
-        label.config(text=text)
+    def _move_rrect(self, item, x1, y1, x2, y2, r) -> None:
+        r = min(r, (x2 - x1) / 2, (y2 - y1) / 2)
+        self.c.coords(item, x1 + r, y1, x2 - r, y1, x2, y1, x2, y1 + r, x2, y2 - r, x2, y2, x2 - r, y2,
+                      x1 + r, y2, x1, y2, x1, y2 - r, x1, y1 + r, x1, y1)
+
+    def _show_card(self, key: str, on: bool) -> None:
+        self.c.itemconfig(self.cards[key]["tag"], state="normal" if on else "hidden")
+
+    def _tile_set(self, card, title, sub, dot=None, enabled=True, key=None) -> None:
+        self.c.itemconfig(card["title"], text=title,
+                          fill=(RED if card.get("danger") else TEXT) if enabled else FAINT)
+        self.c.itemconfig(card["sub"], text=sub)
+        self.c.itemconfig(card["dot"], fill=dot or "", state="normal" if dot else "hidden")
+        self.c.itemconfig(card["icon"], fill=(RED if card.get("danger") else ACCENT) if enabled else FAINT)
+        if key:
+            self.enabled[key] = enabled
 
     def _refresh(self, reschedule: bool = True) -> None:
         try:
@@ -517,72 +569,75 @@ class HubWindow:
             self.root.after(REFRESH_MS, self._refresh)
 
     def _draw(self, s: dict) -> None:
+        c = self.c
         if s.get("lang") and s["lang"] != self.lang:
             self.lang = s["lang"]
-            self._relabel()
-            self.news_key = None
+            c.itemconfig(self.hint, text=self.t("client_hint"))
         starting = s.get("phase") != "ready"
-        self._dot("run", self.t("running" if s["running"] else "starting"), GREEN if s["running"] else AMBER)
-        self._dot("league", self.t("league_on" if s["league"] else "league_off"), GREEN if s["league"] else MUTED)
-        self._dot("ready", self.t("ready" if s["ready"] else "not_ready"), GREEN if s["ready"] else AMBER)
+        ready_all = s["running"] and s["ready"]
+        c.itemconfig(self.status_dot, fill=GREEN if ready_all else AMBER)
+        c.itemconfig(self.status_text, text=self.t("status_ready" if ready_all else "status_starting"))
 
-        if starting:
-            self.progress.grid()
-            self.p_status.config(text=s.get("status") or s.get("detail") or "")
-            self.p_detail.config(text=s.get("transfer") or (s.get("detail") if s.get("status") else ""))
-            progress = s.get("progress")
-            self.progress_value = None if progress is None else int(progress)
-            self.p_pct.config(text="" if progress is None else f"%{int(progress)}")
-        else:
-            self.progress.grid_remove()
-
-        if s["update_available"]:
-            self.u_state.config(text=f"{self.t('new_version')}: {s['latest']}", fg=PURPLE)
-        else:
-            self.u_state.config(text=self.t("up_to_date"), fg=GREEN)
-        self.u_checked.config(text=f"{self.t('checked')}: {self._ago(s.get('checked_at'))}")
-        self.u_button.config(text="" if starting else self.t("update" if s["update_available"] else "check"))
-
-        news = s.get("news") or {}
-        key = (self.lang, tuple(news.get("items") or []))
-        if key != self.news_key:
-            self.news_key = key
-            for child in self.news.winfo_children():
-                child.destroy()
-            wrap = int(self.news.winfo_width() or 320 * self.scale) - 24
-            for item in (news.get("items") or [])[:3]:
-                row = self.tk.Frame(self.news, bg=PANEL)
-                row.pack(fill="x", pady=1)
-                self.tk.Label(row, text="•", bg=PANEL, fg=GOLD_DIM, font=(FONT, 10)).pack(side="left", anchor="n")
-                self.tk.Label(row, text=item, bg=PANEL, fg=TEXT_COLOR, font=(FONT, 9), justify="left",
-                              anchor="w", wraplength=max(200, wrap)).pack(side="left", padx=(6, 0), fill="x")
+        self._tile_set(self.t_lust, self.t("lust"), self.t("running" if s["running"] else "starting"),
+                       GREEN if s["running"] else AMBER)
+        self._tile_set(self.t_league, self.t("league"), self.t("league_on" if s["league"] else "league_off"),
+                       GREEN if s["league"] else FAINT)
+        self._tile_set(self.t_skins, self.t("skins"), self.t("ready" if s["ready"] else "not_ready"),
+                       GREEN if s["ready"] else AMBER)
 
         prompt = s.get("prompt")
+        self._show_card("prompt", bool(prompt))
+        self._show_card("progress", starting and not prompt)
+        self._show_card("appear", not starting and not prompt)
+        for key, on in (("q_yes", bool(prompt)), ("q_no", bool(prompt))):
+            self.enabled[key] = on
+        for value in self.segments:
+            self.enabled[f"seg_{value}"] = not starting and not prompt
         if prompt:
-            self.prompt.grid()
-            self.prompt_title.config(text=self.t("prompt_title", v=prompt["version"]))
-            self.prompt_body.config(text=self.t("prompt_body", c=prompt["current"]))
-            self.prompt_yes.set(self.t("install"))
-            self.prompt_no.set(self.t("later"))
-            self.news_card.grid_remove()  # room for the question
+            c.itemconfig(self.q_title, text=self.t("prompt_title", v=prompt["version"]))
+            c.itemconfig(self.q_body, text=self.t("prompt_body", c=prompt["current"]))
+            c.itemconfig(self.q_yes["label"], text=self.t("install"))
+            c.itemconfig(self.q_no["label"], text=self.t("later"))
+        elif starting:
+            c.itemconfig(self.p_status, text=s.get("status") or s.get("detail") or "")
+            c.itemconfig(self.p_detail, text=s.get("transfer") or (s.get("detail") if s.get("status") else ""))
+            progress = s.get("progress")
+            self.progress_value = None if progress is None else int(progress)
+            c.itemconfig(self.p_pct, text="" if progress is None else f"%{int(progress)}")
         else:
-            self.prompt.grid_remove()
-            self.news_card.grid()
+            offline = s.get("offline") or {}
+            running = bool(offline.get("running"))
+            c.itemconfig(self.ap_title, text=self.t("appear"))
+            c.itemconfig(self.ap_sub, text=self.t(offline.get("status") or "online") if running else self.t("offline_hint"))
+            for value, item in self.segments.items():
+                lit = running and offline.get("status") == value
+                item["lit"] = ACCENT if lit else None
+                c.itemconfig(item["bg"], fill=ACCENT if lit else item["fill"])
+                c.itemconfig(item["label"], text=self.t(value),
+                             fill="#15111f" if lit else (TEXT if running else FAINT))
+                self.enabled[f"seg_{value}"] = running
 
-        self.b_league.set(self.t("league_open" if s["league"] else "open_league"), enabled=not s["league"])
-        offline = s.get("offline") or {}
-        for value, chip in self.chips.items():
-            chip.set(self.t(value), enabled=bool(offline.get("running")),
-                     selected=bool(offline.get("running")) and offline.get("status") == value)
-        if offline.get("running"):
-            self.offline_hint.pack_forget()
-        elif not self.offline_hint.winfo_ismapped():
-            self.offline_hint.pack(anchor="w", pady=(6, 0))
-        self.b_mods.set(self.t("mods"))
-        self.b_log.set(self.t("log"))
-        self.b_autostart.set(self.t("autostart"), end=self.t("on" if s["autostart"] else "off"), end_on=s["autostart"])
-        self.b_restart.set(self.t("restart"), enabled=s["running"])
-        self.b_quit.set(self.t("quit_confirm" if time.time() - self.quit_armed < 3 else "quit"))
+        self._tile_set(self.a_league, self.t("league_open" if s["league"] else "open_league"),
+                       self.t("start_league"), None, enabled=not s["league"], key="a_league")
+        self._tile_set(self.a_mods, self.t("mods"), self.t("mods_sub"))
+        self._tile_set(self.a_log, self.t("log"), self.t("log_sub"))
+        self._tile_set(self.a_auto, self.t("autostart"), self.t("on" if s["autostart"] else "off"),
+                       ACCENT if s["autostart"] else FAINT)
+        self._tile_set(self.a_restart, self.t("restart"), self.t("restart_sub"), enabled=s["running"], key="a_restart")
+        armed = time.time() - self.quit_armed < 3
+        self._tile_set(self.a_quit, self.t("quit_confirm" if armed else "quit"), self.t("quit_sub"))
+
+        if s["update_available"]:
+            sub = self.t("new_version", v=s["latest"])
+            c.itemconfig(self.v_button_icon, text=ICONS["download"])
+        else:
+            sub = f"{self.t('up_to_date')} · {self.t('checked', when=self._ago(s.get('checked_at')))}"
+            c.itemconfig(self.v_button_icon, text=ICONS["sync"])
+        c.itemconfig(self.v_sub, text=sub, fill=ACCENT if s["update_available"] else SUB)
+        self.enabled["v_button"] = not starting
+        c.itemconfig(self.v_button, fill=ACCENT if not starting else "#3a3550")
+        items = (s.get("news") or {}).get("items") or []
+        c.itemconfig(self.v_news, text="\n".join(f"•  {item}" for item in items[:3]))
 
         toast = s.get("toast")
         if toast and toast.get("id") != self.toast_id:
@@ -594,9 +649,18 @@ class HubWindow:
             self.toast_id = 0
 
     def _show_toast(self, text: str) -> None:
-        self.toast.config(text=text)
-        self.toast.place(relx=0.5, rely=1.0, y=-16, anchor="s")
-        self.toast.lift()
+        c, p = self.c, self.p
+        c.itemconfig(self.toast_text, text=text, state="normal")
+        c.coords(self.toast_text, self.w / 2, self.h - p(42))
+        x1, y1, x2, y2 = c.bbox(self.toast_text)
+        self._move_rrect(self.toast_bg, x1 - p(16), y1 - p(9), x2 + p(16), y2 + p(9), p(16))
+        c.itemconfig(self.toast_bg, state="normal")
+        c.tag_raise(self.toast_bg)
+        c.tag_raise(self.toast_text)
         if self.toast_after:
             self.root.after_cancel(self.toast_after)
-        self.toast_after = self.root.after(3500, self.toast.place_forget)
+
+        def hide():
+            c.itemconfig(self.toast_bg, state="hidden")
+            c.itemconfig(self.toast_text, state="hidden")
+        self.toast_after = self.root.after(3500, hide)

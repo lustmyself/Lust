@@ -1,12 +1,14 @@
 {
-  "version": "1.4.9.17",
+  "version": "1.4.9.18",
   "en": [
+    "Wallpaper +: copy a picture or video into the folder that opens and it becomes your wallpaper, no file name to type",
     "No Kai'Sa picture on the client's loading screen anymore (at login and after a match)",
     "New look: app-style hub with an icon rail (tiles grow under the mouse) and a gradient welcome card, on the desktop and in the client",
     "The desktop hub now runs in WebView2: smooth, modern, and still no browser window",
     "Colored tabs: LoL in hextech teal, Spotify in green"
   ],
   "tr": [
+    "Duvar kağıdı +: açılan klasöre resim ya da video kopyala, dosya adı yazmadan duvar kağıdın olsun",
     "Client'ın yükleme ekranında (girişte ve maç sonunda) artık Kai'Sa resmi yok",
     "Yeni görünüm: masaüstünde ve istemcide, ikon menülü (üstüne gelince büyüyen) uygulama tarzı merkez ve gradyanlı karşılama kartı",
     "Masaüstü merkezi artık WebView2 ile çalışıyor: akıcı ve modern, yine tarayıcı penceresi yok",

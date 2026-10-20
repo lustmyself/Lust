@@ -312,8 +312,10 @@
 }
 
 #add-bg-name {
-    width: 190px;
+    width: auto;
     height: 23px;
+    line-height: 23px;
+    white-space: nowrap;
     margin-left: 7px;
     margin-top: 10px;
     padding: 0 6px;

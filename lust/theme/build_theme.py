@@ -80,61 +80,76 @@ ABOUT_US = '''async function aboutustab(panel) {
 ADD_WALLPAPER_JS = '''    const addBg = this.createElementWithId("div", "add-bg");
     addBg.textContent = "+";
     addBg.title = lustTr("Add wallpaper");
-    const addBgName = this.createElementWithId("input", "add-bg-name");
-    addBgName.type = "text";
-    addBgName.placeholder = lustTr("Paste the file, type its name");
+    // Lust: + opens the wallpapers folder and watches it; a file copied in shows up
+    // in the list and becomes the wallpaper, no file name to type
+    const addBgName = this.createElementWithId("div", "add-bg-name");
     addBgName.hidden = true;
     wallpaperControls.append(addBg, addBgName);
-    addBg.addEventListener("click", () => {
-      window.openPluginsFolder(`${ElainaData.get("Plugin-folder-name")}/assets/backgrounds/wallpapers`);
-      addBgName.hidden = false;
-      addBgName.focus();
-    });
-    addBgName.addEventListener("keydown", async (event) => {
-      event.stopPropagation();
-      if (event.key === "Escape") {
-        addBgName.hidden = true;
-        return;
-      }
-      if (event.key !== "Enter")
-        return;
-      const name = addBgName.value.trim();
-      const fail = (message) => {
-        addBgName.value = "";
-        addBgName.placeholder = message;
+    const addOption = (name) => {
+      const option = document.createElement("lol-uikit-dropdown-option");
+      option.setAttribute("slot", "lol-uikit-dropdown-option");
+      option.innerText = name;
+      option.onclick = async () => {
+        document.getElementById("elaina-bg").classList.add("webm-hidden");
+        document.getElementById("elaina-static-bg").classList.add("webm-hidden");
+        ElainaData.set("wallpaper-index", ElainaData.get("Wallpaper-list").indexOf(name));
+        await wallpaperController.changeBG(name);
       };
-      if (!fileRegex.Wallpaper.test(name.toLowerCase()) || /[\\\\/:*?"<>|]/.test(name))
-        return fail(lustTr("Not a video or image file name"));
-      const controller = new AbortController();
-      const res = await fetch(`//plugins/${getThemeName()}/assets/backgrounds/wallpapers/${encodeURIComponent(name)}`, { signal: controller.signal }).catch(() => null);
-      controller.abort();
-      if (!res || !res.ok)
-        return fail(lustTr("{name} is not in the folder", { name }));
-      const list = ElainaData.get("Wallpaper-list");
-      if (!list.includes(name)) {
-        list.push(name);
-        ElainaData.set("Wallpaper-list", list);
-        const option = document.createElement("lol-uikit-dropdown-option");
-        option.setAttribute("slot", "lol-uikit-dropdown-option");
-        option.innerText = name;
-        option.onclick = async () => {
-          document.getElementById("elaina-bg").classList.add("webm-hidden");
-          document.getElementById("elaina-static-bg").classList.add("webm-hidden");
-          ElainaData.set("wallpaper-index", ElainaData.get("Wallpaper-list").indexOf(name));
-          await wallpaperController.changeBG(name);
-        };
-        bgDropdown.appendChild(option);
-      }
+      bgDropdown.appendChild(option);
+    };
+    const useWallpaper = async (name) => {
       bgDropdown.querySelectorAll("lol-uikit-dropdown-option").forEach((option) => {
         option.toggleAttribute("selected", option.innerText === name);
       });
       document.getElementById("elaina-bg").classList.add("webm-hidden");
       document.getElementById("elaina-static-bg").classList.add("webm-hidden");
-      ElainaData.set("wallpaper-index", list.indexOf(name));
+      ElainaData.set("wallpaper-index", ElainaData.get("Wallpaper-list").indexOf(name));
       await wallpaperController.changeBG(name);
-      addBgName.value = "";
-      addBgName.placeholder = lustTr("Paste the file, type its name");
-      addBgName.hidden = true;
+    };
+    let watching = null;
+    addBg.addEventListener("click", async () => {
+      const first = await lustAssets("wallpaper", "list");
+      if (first.error) {
+        addBgName.textContent = first.error;
+        addBgName.hidden = false;
+        return;
+      }
+      lustAssets("wallpaper", "open");
+      const known = new Set(first.files || []);
+      // Files already in the folder but not in the list yet (copied in before) are added too
+      for (const name of first.files || []) {
+        const list = ElainaData.get("Wallpaper-list") || [];
+        if (!list.includes(name)) {
+          ElainaData.set("Wallpaper-list", [...list, name]);
+          addOption(name);
+        }
+      }
+      addBgName.textContent = lustTr("Copy your picture or video into the folder that opened");
+      addBgName.hidden = false;
+      clearInterval(watching);
+      const until = Date.now() + 3 * 60 * 1000;
+      watching = setInterval(async () => {
+        if (Date.now() > until) {
+          clearInterval(watching);
+          addBgName.hidden = true;
+          return;
+        }
+        const reply = await lustAssets("wallpaper", "list");
+        const added = (reply.files || []).filter((name) => !known.has(name));
+        if (!added.length) return;
+        clearInterval(watching);
+        const list = ElainaData.get("Wallpaper-list") || [];
+        for (const name of added) {
+          if (!list.includes(name)) {
+            list.push(name);
+            addOption(name);
+          }
+        }
+        ElainaData.set("Wallpaper-list", list);
+        await useWallpaper(added[added.length - 1]);
+        addBgName.textContent = lustTr("{name} is your wallpaper", { name: added[added.length - 1] });
+        setTimeout(() => { addBgName.hidden = true; }, 4000);
+      }, 2000);
     });
 '''
 
@@ -160,8 +175,10 @@ ADD_WALLPAPER_CSS = '''#add-bg {
 }
 
 #add-bg-name {
-    width: 190px;
+    width: auto;
     height: 23px;
+    line-height: 23px;
+    white-space: nowrap;
     margin-left: 7px;
     margin-top: 10px;
     padding: 0 6px;
@@ -211,6 +228,8 @@ const LUST_TR = {
   "Reload client to apply": "Uygulamak için istemciyi yenile",
   "Add wallpaper": "Duvar kağıdı ekle",
   "Paste the file, type its name": "Dosyayı yapıştır, adını yaz",
+  "Copy your picture or video into the folder that opened": "Resmini ya da videonu açılan klasöre kopyala",
+  "{name} is your wallpaper": "{name} artık duvar kağıdın",
   "Not a video or image file name": "Video ya da resim dosyası adı değil",
   "{name} is not in the folder": "{name} klasörde yok",
   "16:9 Size Preferred": "16:9 boyut önerilir",

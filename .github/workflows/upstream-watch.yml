@@ -1,0 +1,66 @@
+# LUST-Theme is built from the Elaina theme and Lust Offline from Deceive (see
+# lust/theme and lust/offline). Their new releases aren't picked up by themselves:
+# once a day this compares their latest release with the one Lust is built from
+# (lust/elaina_version.txt, lust/deceive_version.txt) and opens an issue to rebuild.
+name: Upstream watch
+
+on:
+  schedule:
+    - cron: "53 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Elaina theme
+            repo: Elaina69/Elaina-theme
+            file: lust/elaina_version.txt
+            rebuild: |
+              Download `ElainaV4.zip` from the release and the matching `elaina-theme-data` tarball from npm, then run
+              `python lust/theme/build_theme.py ElainaV4.zip elaina-theme-data-X.Y.Z.tgz`. Fix any patch the script reports as not found.
+          - name: Deceive
+            repo: molenzwiebel/Deceive
+            file: lust/deceive_version.txt
+            rebuild: |
+              Clone the release tag and run `python lust/offline/build_offline.py path/to/Deceive`. Fix any patch the script reports as not found.
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Open an issue when there is a newer release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NAME: ${{ matrix.name }}
+          UPSTREAM: ${{ matrix.repo }}
+          VERSION_FILE: ${{ matrix.file }}
+          REBUILD: ${{ matrix.rebuild }}
+        run: |
+          known=$(tr -d '[:space:]' < "$VERSION_FILE")
+          latest=$(gh release view --repo "$UPSTREAM" --json tagName --jq .tagName)
+          if [ "$known" = "$latest" ]; then
+            echo "$NAME is up to date ($latest)"
+            exit 0
+          fi
+
+          title="$NAME $latest is out: rebuild from it"
+          if [ "$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"$title\" in:title" --json number --jq length)" != "0" ]; then
+            echo "Issue already open: $title"
+            exit 0
+          fi
+
+          body=$(printf '%s\n\n%s\n\n%s\n' \
+            "[$UPSTREAM $latest](https://github.com/$UPSTREAM/releases/tag/$latest) is out; Lust is built from $known." \
+            "$REBUILD" \
+            "Then set \`$VERSION_FILE\` to \`$latest\`, raise \`lust/lust_patch.txt\`, push and run the release workflow.")
+          gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body "$body"

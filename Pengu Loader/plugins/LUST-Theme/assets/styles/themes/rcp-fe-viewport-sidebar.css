@@ -18,14 +18,6 @@ lol-social-roster-member .offline .member-name {
 	background: transparent!important
 }
 
-.availability-icon {
-	position: relative!important;
-}
-
-.availability-icon.chat {
-	background: #09a646 !important;
-}
-
 .summoner-level {
 	color:#ffe8a5!important
 }

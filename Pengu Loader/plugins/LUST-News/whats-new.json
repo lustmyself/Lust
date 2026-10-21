@@ -1,6 +1,7 @@
 {
-  "version": "1.4.9.24",
+  "version": "1.4.9.25",
   "en": [
+    "The friend list shows League's own round status icons again",
     "An outdated LTK patcher updates itself: LTK Manager is kept current silently",
     "Leftovers of older Lust versions are cleaned up by themselves",
     "Rose running next to Lust is closed so the two don't clash",
@@ -9,6 +10,7 @@
     "Lust Offline remembers your status as soon as you change it"
   ],
   "tr": [
+    "Arkadaş listesinde League'in kendi yuvarlak durum simgeleri geri geldi",
     "Eski LTK patcher kendiliğinden güncelleniyor: LTK Manager sessizce güncel tutuluyor",
     "Eski Lust sürümlerinden kalanlar kendiliğinden temizleniyor",
     "Lust ile aynı anda çalışan Rose kapatılıyor, böylece çakışmıyorlar",

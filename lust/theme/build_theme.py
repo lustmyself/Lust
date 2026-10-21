@@ -1139,6 +1139,11 @@ PATCHES = [
      '      ElainaData.set("Custom-Font", false);\n'
      '    }\n'
      '    if (!ElainaData.get("Custom-Font")) {\n'),
+    # League's own status icons in the friend list: a flat green fill turned the round
+    # masked online icon into a square, and position:relative moved it
+    ("assets/styles/themes/rcp-fe-viewport-sidebar.css",
+     ".availability-icon {\n\tposition: relative!important;\n}\n\n"
+     ".availability-icon.chat {\n\tbackground: #09a646 !important;\n}\n\n", ""),
     # Lust updates the theme itself: no Elaina changelog or update popup.
     ("index.js", "    const checkUpdate = new CheckUpdate();\n    checkUpdate.main();\n", ""),
     # ...nor the popup's styles: their bare ".message" rule also moved League's champ

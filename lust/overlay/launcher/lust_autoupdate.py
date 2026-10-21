@@ -116,6 +116,9 @@ def on_release(client, release: dict, current: str) -> None:
     version = client.get_release_version(release).lstrip("vV")
     if not enabled() or not lust_hub._version_tuple(version) > lust_hub._version_tuple(current):
         return
+    from launcher.lust_perf import resting
+    if resting():
+        return  # performance mode: no download during a match; the next check after it gets it
     asset = client.get_zip_asset(release)
     if not asset or not asset.get("browser_download_url"):
         return

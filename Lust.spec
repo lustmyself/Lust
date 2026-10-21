@@ -291,6 +291,7 @@ hiddenimports = [
     'launcher.lust_hub',
     'launcher.lust_settings',
     'launcher.lust_media',
+    'launcher.lust_perf',
     'winrt.windows.foundation',
     'winrt.windows.foundation.collections',
     'winrt.windows.media.control',

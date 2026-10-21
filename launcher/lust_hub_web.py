@@ -23,6 +23,7 @@ LOL_MARK = (
 )
 
 ICONS = {
+    "bolt": '<path d="M13 2 3 14h9l-1 8 10-12h-9z"/>',
     "prev": '<path d="M19 20 9 12l10-8z"/><path d="M5 19V5"/>',
     "next": '<path d="m5 4 10 8-10 8z"/><path d="M19 5v14"/>',
     "pause": '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>',
@@ -612,7 +613,7 @@ function ago(s) {
 }
 const STATUS = { online: "Çevrimiçi", offline: "Çevrimdışı", mobile: "Mobil" };
 const ICON = { sparkle: `__sparkle__`, plusbox: `__plusbox__`, users: `__users__`, shield: `__shield__`, power: `__power__`,
-  sync: `__sync__`, spotify: `__spotify__`, moon: `__moon__`, play: `__play__`, image: `__image__`, wind: `__wind__` };
+  sync: `__sync__`, bolt: `__bolt__`, spotify: `__spotify__`, moon: `__moon__`, play: `__play__`, image: `__image__`, wind: `__wind__` };
 
 function buildThemes() {
   $("themes").replaceChildren(...THEMES.map((t) => {
@@ -676,6 +677,7 @@ const SETTINGS = [
   ["quiet_start", "app", ICON.moon, "Sessiz başla", "Pencere açılmaz, tepside durur", "Açılışta pencere görünür"],
   ["spotify_auto", "app", ICON.spotify, "Spotify'ı otomatik güncelle", "Spotify güncellenince tema geri gelir", "Tema elle uygulanır"],
   ["launch_league", "app", ICON.play, "League'i Lust ile aç", "Lust açılınca League başlar", "League'i sen açarsın"],
+  ["performance_mode", "app", ICON.bolt, "Performans modu", "Maçta Lust dinlenir", "Maçta da her şey çalışır"],
   ["reduce_motion", "look", ICON.wind, "Animasyonları azalt", "Hareketler kapalı", "Hareketler açık"],
   ["backdrop", "look", ICON.image, "Arka plan", "", "", true, [["cinematic", "Sinematik"], ["hextech", "Sade hextech"]]],
 ];
@@ -685,7 +687,7 @@ function settingValue(s, key) {
   if (key === "auto_update") return !!s.auto_update;
   if (key === "spotify_auto") return !!(s.spotify || {}).auto;
   const values = s.settings || {};
-  const fallback = { skins: true, custom_skins: true, lobby_reveal: true, rose_guard: true, quiet_start: false,
+  const fallback = { performance_mode: true, skins: true, custom_skins: true, lobby_reveal: true, rose_guard: true, quiet_start: false,
     launch_league: true, backdrop: "cinematic", reduce_motion: false };
   return key in values ? values[key] : fallback[key];
 }
@@ -722,7 +724,9 @@ function drawSettings(s) {
 let media = {}, mediaAt = 0, coverShown = -1, level = 0, bars = [];
 const ICON_PLAY = `__play__`, ICON_PAUSE = `__pause__`, ICON_VOL = `__vol__`, ICON_VOLX = `__volx__`;
 const clock = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
-function spotifyVisible() { return $("page-spotify").classList.contains("active") && !document.hidden; }
+function spotifyVisible() {
+  return $("page-spotify").classList.contains("active") && !document.hidden && !(state && state.resting);
+}
 async function pollMedia() {
   if (spotifyVisible()) {
     try { media = await api("/api/media"); mediaAt = Date.now(); drawMedia(); } catch (e) {}
@@ -916,7 +920,7 @@ function render(s) {
   drawSettings(s);
   const st = s.settings || {};
   document.body.classList.toggle("bd-hextech", st.backdrop === "hextech");
-  document.body.classList.toggle("calm", !!st.reduce_motion);
+  document.body.classList.toggle("calm", !!st.reduce_motion || !!s.resting);
   $("sg-cache").textContent = `Hub'ın tarayıcı önbelleği${s.cache_mb ? ` · ${s.cache_mb} MB` : ""}`;
   const sp = s.spotify || {};
   const label = (THEMES.find((t) => t.key === sp.theme) || {}).label || "Orijinal";
@@ -985,8 +989,11 @@ $("w-min").addEventListener("click", () => shell() && shell().minimize());
 $("w-close").addEventListener("click", () => shell() ? shell().close() : window.close());
 document.addEventListener("contextmenu", (e) => e.preventDefault());
 buildThemes();
-poll();
-setInterval(poll, 800);
+async function pollLoop() {
+  await poll();
+  setTimeout(pollLoop, state && state.resting ? 5000 : 800);
+}
+pollLoop();
 </script>
 </body>
 </html>

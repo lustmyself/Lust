@@ -183,7 +183,11 @@ def start() -> None:
     _started = True
 
     def loop():
+        from launcher.lust_perf import resting
         while True:
+            if resting():
+                time.sleep(30)  # performance mode: the card waits for the match to end
+                continue
             try:
                 ok = refresh()
             except Exception as exc:  # noqa: BLE001

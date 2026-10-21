@@ -124,7 +124,8 @@ def keep_rose_off() -> None:
         while True:
             try:
                 from launcher.lust_settings import enabled
-                if not enabled("rose_guard"):
+                from launcher.lust_perf import resting
+                if not enabled("rose_guard") or resting():
                     time.sleep(GUARD_INTERVAL_S)
                     continue
                 closed = _close_rose()

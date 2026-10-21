@@ -134,7 +134,9 @@ def _watch(exe) -> None:
                     time.sleep(RESTART_COOLDOWN_S)
         except Exception as exc:  # keep watching whatever happens
             log.debug(f"[LustOffline] Watch failed: {exc}")
-        time.sleep(WATCH_INTERVAL_S)
+        # Performance mode: during a match nobody opens League a second time, so look less often
+        from launcher.lust_perf import resting
+        time.sleep(WATCH_INTERVAL_S * 5 if resting() else WATCH_INTERVAL_S)
 
 
 # ---- Status (Lust's tray menu) ----

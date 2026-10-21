@@ -627,7 +627,7 @@ EDITS += [
 # Spotify's own audio session (mute, sound level for the visualizer)
 EDITS += [
     ('requirements.txt', 'Pillow==10.4.0\n', 'Pillow==10.4.0\nwinrt-runtime==3.2.1\nwinrt-Windows.Foundation==3.2.1\nwinrt-Windows.Foundation.Collections==3.2.1\nwinrt-Windows.Media.Control==3.2.1\nwinrt-Windows.Storage.Streams==3.2.1\ncomtypes==1.4.17\npycaw==20260927\n'),
-    ('Lust.spec', "    'launcher.lust_settings',\n", "    'launcher.lust_settings',\n    'launcher.lust_media',\n    'winrt.windows.foundation',\n    'winrt.windows.foundation.collections',\n    'winrt.windows.media.control',\n    'winrt.windows.storage.streams',\n    'comtypes',\n    'pycaw.pycaw',\n"),
+    ('Lust.spec', "    'launcher.lust_settings',\n", "    'launcher.lust_settings',\n    'launcher.lust_media',\n    'launcher.lust_perf',\n    'winrt.windows.foundation',\n    'winrt.windows.foundation.collections',\n    'winrt.windows.media.control',\n    'winrt.windows.storage.streams',\n    'comtypes',\n    'pycaw.pycaw',\n"),
 ]
 
 

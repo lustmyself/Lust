@@ -23,6 +23,7 @@ DEFAULTS = {
     "launch_league": True,   # open League through Lust Offline when Lust starts
     "backdrop": "cinematic", # the hub's background
     "reduce_motion": False,  # the hub without animations
+    "performance_mode": True,  # background work rests during a match (launcher/lust_perf.py)
 }
 CHOICES = {"backdrop": ("cinematic", "hextech")}
 FILE = "hub-settings.json"

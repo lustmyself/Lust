@@ -163,6 +163,11 @@ def _news():
     return {"version": data.get("version", ""), "items": data.get(LANG) or data.get("en") or []}
 
 
+def _resting() -> bool:
+    from launcher.lust_perf import resting
+    return resting()
+
+
 def _settings() -> dict:
     from launcher import lust_settings
     return lust_settings.all_settings()
@@ -308,6 +313,7 @@ def snapshot() -> dict:
         pending=_auto_update_pending(),
         hero=_hero(),
         settings=_settings(),
+        resting=_resting(),
         cache_mb=_cached("cache_mb", 60, _cache_mb),
     )
     state["detail"] = _translate(state["detail"])
@@ -425,9 +431,15 @@ def _check_release() -> None:
 
 
 def _release_watch() -> None:
+    from launcher.lust_perf import resting
     while True:
+        # Performance mode: checks and Spotify's theme wait for the match to end
+        while resting():
+            time.sleep(60)
         _check_release()
         time.sleep(UPDATE_CHECK_INTERVAL_S)
+        while resting():
+            time.sleep(60)
         _spotify_reapply()
 
 
@@ -596,6 +608,10 @@ def _watch_shell() -> None:
     while True:
         time.sleep(WATCH_EVERY_S)
         try:
+            from launcher.lust_perf import resting
+            if resting():
+                strikes = 0
+                continue
             strikes = strikes + 1 if _window_hung() else 0
             if strikes < HUNG_STRIKES:
                 continue

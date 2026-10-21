@@ -22,6 +22,7 @@ from utils.core.logging import get_logger
 log = get_logger()
 
 REFRESH_S = 120
+HISTORY_END = 19  # the client's own match history range (20 games)
 RETRY_S = 10  # until the client answers the first time
 QUEUES = {420: "Dereceli Tek/Çift", 440: "Dereceli Esnek", 400: "Normal", 430: "Normal", 490: "Hızlı Oyun",
           480: "Hızlı Oyun", 450: "ARAM", 1700: "Arena", 1900: "URF", 900: "URF"}
@@ -144,8 +145,11 @@ def refresh() -> bool:
             data["cutoff"] = cutoffs_for(get_json("/riotclient/region-locale").json().get("region") or "")
         except (requests.RequestException, ValueError):
             pass
-        games = ((get_json("/lol-match-history/v1/products/lol/current-summoner/matches?begIndex=0&endIndex=1")
+        # The client caches match history by whatever range was asked last and shows that in its
+        # own Match History: asking for its usual 20 keeps that list whole (asking for 2 cut it to 2)
+        games = ((get_json(f"/lol-match-history/v1/products/lol/current-summoner/matches?begIndex=0&endIndex={HISTORY_END}")
                   .json().get("games") or {}).get("games") or [])
+        games = sorted(games, key=lambda g: g.get("gameCreation") or 0, reverse=True)
         if games:
             game = games[0]
             player = game["participants"][0]

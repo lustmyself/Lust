@@ -42,11 +42,19 @@ class HubDialogTests(unittest.TestCase):
 
     def test_update_prompt_falls_back_without_a_window(self):
         with patch.object(lust_hub, "take_update_acceptance", return_value=False), \
+             patch("launcher.lust_autoupdate.enabled", return_value=False), \
              patch.object(lust_hub, "open_window", return_value=False), \
              patch.object(lust_hub, "WINDOW_WAIT_S", 0.2), \
              patch.object(lust_hub, "window_visible", return_value=False):
             self.assertIsNone(self.dialog.confirm_update("9.9.9", "1.0.0"))
         self.assertIsNone(lust_hub._state["prompt"])
+
+    def test_auto_update_installs_without_asking(self):
+        with patch.object(lust_hub, "take_update_acceptance", return_value=False), \
+             patch("launcher.lust_autoupdate.enabled", return_value=True), \
+             patch.object(lust_hub, "open_window") as open_window:
+            self.assertTrue(self.dialog.confirm_update("9.9.9", "1.0.0"))
+        open_window.assert_not_called()
 
     def test_update_accepted_in_the_hub_skips_the_prompt(self):
         with patch.object(lust_hub, "take_update_acceptance", return_value=True):

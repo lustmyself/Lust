@@ -103,5 +103,14 @@ class UpdateScriptTests(unittest.TestCase):
         self.assertIn("Stop-Process", APPLY_UPDATE_SCRIPT)
 
 
+class UpdateScriptOfflineTests(unittest.TestCase):
+    def test_a_running_lust_offline_is_left_alone_and_a_failure_restarts_lust(self):
+        from launcher.update.update_installer import APPLY_UPDATE_SCRIPT
+        self.assertIn("%KEEP_OFFLINE%", APPLY_UPDATE_SCRIPT)
+        self.assertLess(APPLY_UPDATE_SCRIPT.index('set "KEEP_OFFLINE='), APPLY_UPDATE_SCRIPT.index("robocopy"))
+        failure = APPLY_UPDATE_SCRIPT[APPLY_UPDATE_SCRIPT.index(":robofail"):]
+        self.assertNotIn("pause", failure)
+        self.assertIn('start "" /D "%DEST%"', failure)
+
 if __name__ == "__main__":
     unittest.main()

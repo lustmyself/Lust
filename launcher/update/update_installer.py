@@ -44,7 +44,13 @@ if defined PID (
 echo [%date% %time%] Closing Lust windows left open >> "%LOG%"
 powershell -NoProfile -NonInteractive -Command "Get-Process -Name Lust -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path.StartsWith($env:DEST, [StringComparison]::OrdinalIgnoreCase) } | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 800" >nul 2>&1
 echo [%date% %time%] Mirroring files >> "%LOG%"
-robocopy "%SOURCE%" "%DEST%" /MIR /R:5 /W:2 /NFL /NDL /NJH /NJS /XD __pycache__ "%SOURCE%\Pengu Loader\plugins" /XF config.ini ltk_patcher_host.exe ltk_patcher_dll.dll hashes.game.txt >> "%LOG%" 2>&1
+set "KEEP_OFFLINE="
+powershell -NoProfile -NonInteractive -Command "if (Get-Process -Name LustOffline -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path.StartsWith($env:DEST, [StringComparison]::OrdinalIgnoreCase) }) { exit 1 }" >nul 2>&1
+if errorlevel 1 (
+    set "KEEP_OFFLINE=LustOffline.exe"
+    echo [%date% %time%] Lust Offline is running ^(League chat goes through it^): its file stays as it is >> "%LOG%"
+)
+robocopy "%SOURCE%" "%DEST%" /MIR /R:5 /W:2 /NFL /NDL /NJH /NJS /XD __pycache__ "%SOURCE%\Pengu Loader\plugins" /XF config.ini ltk_patcher_host.exe ltk_patcher_dll.dll hashes.game.txt %KEEP_OFFLINE% >> "%LOG%" 2>&1
 set "RC=%ERRORLEVEL%"
 echo [%date% %time%] robocopy exit code %RC% >> "%LOG%"
 if %RC% GEQ 8 goto :robofail
@@ -66,10 +72,8 @@ echo [%date% %time%] Update done >> "%LOG%"
 exit
 
 :robofail
-echo [%date% %time%] Update failed >> "%LOG%"
-echo Update failed, details in "%LOG%"
-echo Press any key to close.
-pause >nul
+echo [%date% %time%] Update failed; starting Lust again >> "%LOG%"
+start "" /D "%DEST%" "%DEST%\%EXE%"
 exit 1
 """
 

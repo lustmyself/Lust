@@ -630,6 +630,19 @@ EDITS += [
     ('Lust.spec', "    'launcher.lust_settings',\n", "    'launcher.lust_settings',\n    'launcher.lust_media',\n    'winrt.windows.foundation',\n    'winrt.windows.foundation.collections',\n    'winrt.windows.media.control',\n    'winrt.windows.storage.streams',\n    'comtypes',\n    'pycaw.pycaw',\n"),
 ]
 
+
+# Updates: Lust Offline keeps running while the Riot Client is open, so its exe was locked and
+# the copy failed; that file is left alone while it runs. A failed copy no longer waits on a
+# "press any key" window with Lust closed: it starts Lust again.
+EDITS += [
+    ('launcher/update/update_installer.py',
+     'robocopy "%SOURCE%" "%DEST%" /MIR /R:5 /W:2 /NFL /NDL /NJH /NJS /XD __pycache__ "%SOURCE%\\Pengu Loader\\plugins" /XF config.ini ltk_patcher_host.exe ltk_patcher_dll.dll hashes.game.txt >> "%LOG%" 2>&1\n',
+     'set "KEEP_OFFLINE="\npowershell -NoProfile -NonInteractive -Command "if (Get-Process -Name LustOffline -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path.StartsWith($env:DEST, [StringComparison]::OrdinalIgnoreCase) }) { exit 1 }" >nul 2>&1\nif errorlevel 1 (\n    set "KEEP_OFFLINE=LustOffline.exe"\n    echo [%date% %time%] Lust Offline is running ^(League chat goes through it^): its file stays as it is >> "%LOG%"\n)\nrobocopy "%SOURCE%" "%DEST%" /MIR /R:5 /W:2 /NFL /NDL /NJH /NJS /XD __pycache__ "%SOURCE%\\Pengu Loader\\plugins" /XF config.ini ltk_patcher_host.exe ltk_patcher_dll.dll hashes.game.txt %KEEP_OFFLINE% >> "%LOG%" 2>&1\n'),
+    ('launcher/update/update_installer.py',
+     'echo [%date% %time%] Update failed >> "%LOG%"\necho Update failed, details in "%LOG%"\necho Press any key to close.\npause >nul\nexit 1\n',
+     'echo [%date% %time%] Update failed; starting Lust again >> "%LOG%"\nstart "" /D "%DEST%" "%DEST%\\%EXE%"\nexit 1\n'),
+]
+
 # Custom skins (pengu/communication/lust_custom_skins.py): the Lust hub's Custom skins tab
 # replaces champ select's Custom mods button; a switched-on skin plays on its champion's default skin
 EDITS += [

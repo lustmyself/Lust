@@ -1,6 +1,7 @@
 {
-  "version": "1.4.9.42",
+  "version": "1.4.9.43",
   "en": [
+    "Restarting or updating Lust while League is open keeps the LUST tab in the client",
     "Performance mode: during a match Lust's background work rests (card refresh, Rose guard, update checks and downloads, Spotify), switchable in Settings",
     "Updates no longer fail while Lust Offline runs, and never leave a \"press any key\" window behind",
     "Now playing on the Spotify tab: the song, its cover and progress, with play, skip and mute",
@@ -11,6 +12,7 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "LoL açıkken Lust'ı yeniden başlatmak ya da güncellemek artık LUST sekmesini istemciden kaldırmıyor",
     "Performans modu: maç sırasında Lust'ın arka plan işleri dinleniyor (kart yenileme, Rose koruması, güncelleme kontrolü ve indirme, Spotify); Ayarlar'dan açılıp kapanır",
     "Lust Offline açıkken güncelleme artık başarısız olmuyor ve hiçbir zaman \"bir tuşa bas\" penceresi bırakmıyor",
     "Spotify sekmesinde şimdi çalan: şarkı, kapağı ve süresi; oynat, geç ve sessize al tuşlarıyla",

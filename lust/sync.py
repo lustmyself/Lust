@@ -643,6 +643,17 @@ EDITS += [
      'echo [%date% %time%] Update failed; starting Lust again >> "%LOG%"\nstart "" /D "%DEST%" "%DEST%\\%EXE%"\nexit 1\n'),
 ]
 
+
+# Restarts keep Pengu on (utils/integration/pengu_loader.py, main/__init__.py)
+EDITS += [
+    ('utils/integration/pengu_loader.py',
+     'def restore_after_lust() -> bool:\n    with _operation_lock:\n        session = _read_session()\n',
+     '# Lust: a restart (the hub\'s Restart or an update) keeps Pengu on. Switching it off made the\n# next Lust unable to switch it back on while League was open ("close the running League\n# Client"), and the LUST tab was gone until League restarted. The next Lust adopts it.\nRESTART_KEEP_S = 120\n\n\ndef _keep_flag() -> Path:\n    return get_user_data_dir() / "pengu_keep_for_restart"\n\n\ndef keep_on_for_restart() -> None:\n    """Lust is about to restart: leave Pengu on when this process exits."""\n    import time\n    try:\n        _keep_flag().write_text(str(time.time()), encoding="utf-8")\n    except OSError as exc:\n        log.debug("Could not mark the restart for Pengu: %s", exc)\n\n\ndef _restarting() -> bool:\n    import time\n    flag = _keep_flag()\n    try:\n        fresh = time.time() - flag.stat().st_mtime < RESTART_KEEP_S\n        flag.unlink()\n        return fresh\n    except OSError:\n        return False\n\n\ndef restore_after_lust() -> bool:\n    if _restarting():\n        log.info("Lust is restarting: Pengu stays on and the next Lust adopts it.")\n        return True\n    with _operation_lock:\n        session = _read_session()\n'),
+    ('main/__init__.py',
+     '        log.info(f"Restart scheduled via {batch_path}")\n        return True\n',
+     '        log.info(f"Restart scheduled via {batch_path}")\n        try:\n            pengu_loader.keep_on_for_restart()\n        except Exception as e:\n            log.debug(f"Could not keep Pengu on for the restart: {e}")\n        return True\n'),
+]
+
 # Custom skins (pengu/communication/lust_custom_skins.py): the Lust hub's Custom skins tab
 # replaces champ select's Custom mods button; a switched-on skin plays on its champion's default skin
 EDITS += [

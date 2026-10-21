@@ -960,7 +960,40 @@ def activate_on_start(league_path: Optional[str] = None) -> bool:
         return True
 
 
+# Lust: a restart (the hub's Restart or an update) keeps Pengu on. Switching it off made the
+# next Lust unable to switch it back on while League was open ("close the running League
+# Client"), and the LUST tab was gone until League restarted. The next Lust adopts it.
+RESTART_KEEP_S = 120
+
+
+def _keep_flag() -> Path:
+    return get_user_data_dir() / "pengu_keep_for_restart"
+
+
+def keep_on_for_restart() -> None:
+    """Lust is about to restart: leave Pengu on when this process exits."""
+    import time
+    try:
+        _keep_flag().write_text(str(time.time()), encoding="utf-8")
+    except OSError as exc:
+        log.debug("Could not mark the restart for Pengu: %s", exc)
+
+
+def _restarting() -> bool:
+    import time
+    flag = _keep_flag()
+    try:
+        fresh = time.time() - flag.stat().st_mtime < RESTART_KEEP_S
+        flag.unlink()
+        return fresh
+    except OSError:
+        return False
+
+
 def restore_after_lust() -> bool:
+    if _restarting():
+        log.info("Lust is restarting: Pengu stays on and the next Lust adopts it.")
+        return True
     with _operation_lock:
         session = _read_session()
         legacy = _ACTIVE_FLAG.exists()

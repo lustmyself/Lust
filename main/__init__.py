@@ -534,6 +534,10 @@ def _schedule_restart() -> bool:
             creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
         )
         log.info(f"Restart scheduled via {batch_path}")
+        try:
+            pengu_loader.keep_on_for_restart()
+        except Exception as e:
+            log.debug(f"Could not keep Pengu on for the restart: {e}")
         return True
     except Exception as e:
         log.error(f"Failed to schedule restart: {e}")

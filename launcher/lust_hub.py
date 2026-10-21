@@ -392,6 +392,37 @@ def _release_watch() -> None:
     while True:
         _check_release()
         time.sleep(UPDATE_CHECK_INTERVAL_S)
+        _spotify_reapply()
+
+
+QUIET_FLAG = "hub_quiet_restart"
+QUIET_FOR_S = 180
+
+
+def mark_quiet_restart() -> None:
+    """The next start (a silent update) keeps the hub window closed unless it was open."""
+    if window_visible():
+        return
+    try:
+        from utils.core.paths import get_user_data_dir
+        (get_user_data_dir() / QUIET_FLAG).write_text("1", encoding="utf-8")
+    except OSError:
+        pass
+
+
+def _take_quiet_restart() -> bool:
+    try:
+        from utils.core.paths import get_user_data_dir
+        flag = get_user_data_dir() / QUIET_FLAG
+        if not flag.exists():
+            return False
+        # An update starts Lust twice (to install, then the new version): both stay quiet
+        if time.time() - flag.stat().st_mtime < QUIET_FOR_S:
+            return True
+        flag.unlink()
+    except OSError:
+        pass
+    return False
 
 
 def take_update_acceptance() -> bool:
@@ -649,8 +680,9 @@ def make_launcher_dialog():
         try:
             from launcher import lust_hub_window
             if lust_hub_window.available():
-                # Started with Windows or during a match: stay in the tray until needed
-                return HubDialog(show=not _started_quietly() and not lust_hub_window._in_game())
+                # Started with Windows, during a match or by a silent update: stay in the tray
+                quiet = _take_quiet_restart()
+                return HubDialog(show=not quiet and not _started_quietly() and not lust_hub_window._in_game())
         except Exception as exc:  # noqa: BLE001
             log.warning(f"[Hub] Window unavailable: {exc}")
     from launcher.ui.update_dialog import UpdateDialog

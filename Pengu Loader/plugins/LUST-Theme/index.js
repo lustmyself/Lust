@@ -1012,7 +1012,6 @@ class ui {
     loadingDiv.id = "settings-loading";
     const loadingImage = document.createElement("img");
     loadingImage.classList.add("settings-loading-image");
-    loadingImage.style.content = "var(--Loading)";
     const loadingText = this.createLabel(text, "settings-loading-text");
     loadingDiv.appendChild(loadingImage);
     loadingDiv.appendChild(loadingText);
@@ -3564,8 +3563,8 @@ class AddCss {
         },
         {
           key: "animate-loading",
-          css: "animate-loading-screen.css",
-          altCss: "static-loading-screen.css"
+          css: "null.css",
+          altCss: "null.css"
         },
         {
           key: "custom-navbar-css",
@@ -3631,7 +3630,7 @@ class AddCss {
         },
         {
           key: "Custom-Loading-Icon",
-          css: "loadingIcon.css",
+          css: "null.css",
           altCss: "null.css"
         }
       ]
@@ -8209,7 +8208,7 @@ class CustomLoadingIcon {
         let storeIframe = element.querySelector("iframe");
         if (storeIframe) {
           let storeDoc = storeIframe.contentDocument || storeIframe.contentWindow.document;
-          let loadingIcon = storeDoc.querySelector(".store-app-wrapper > .loading-spinner");
+          let loadingIcon = null;
           if (loadingIcon) {
             loadingIcon.style.cssText = `
 							width: 190px;

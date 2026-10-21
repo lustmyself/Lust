@@ -41,6 +41,7 @@ _cutoffs: dict = {}
 _cutoffs_at = 0.0
 _lock = threading.Lock()
 _data: Optional[dict] = None
+_miss_logged = False
 _started = False
 
 
@@ -57,14 +58,16 @@ def image_path() -> Path:
 
 def get() -> Optional[dict]:
     """The card's data, from the client or as last seen."""
-    global _data
+    global _data, _miss_logged
     with _lock:
         if not _data:
             # Read again until it works: a miss at startup left the card empty until the client answered
             try:
                 _data = json.loads((_dir() / "hero.json").read_text(encoding="utf-8")) or None
             except (OSError, ValueError) as exc:
-                log.debug(f"[Hero] No saved card yet: {exc}")
+                if not _miss_logged:
+                    _miss_logged = True
+                    log.debug(f"[Hero] No saved card yet: {exc}")
         return dict(_data) if _data else None
 
 
@@ -157,10 +160,11 @@ def refresh() -> bool:
             }
             skins = champion.get("skins") or []
             splash = (skins[0].get("uncenteredSplashPath") or skins[0].get("splashPath")) if skins else None
-            if splash and champion.get("name") != (get() or {}).get("last", {}).get("champion"):
+            if splash and (champion.get("name") != (get() or {}).get("last", {}).get("champion")
+                           or not image_path().exists()):
                 image_path().write_bytes(get_json(splash).content)
             data["image"] = int(image_path().stat().st_mtime) if image_path().exists() else 0
-    except (requests.RequestException, KeyError, ValueError, OSError) as exc:
+    except (requests.RequestException, KeyError, IndexError, TypeError, ValueError, OSError) as exc:
         log.debug(f"[Hero] Could not read the card from the client: {exc}")
         return False
     with _lock:
@@ -180,6 +184,11 @@ def start() -> None:
 
     def loop():
         while True:
-            time.sleep(REFRESH_S if refresh() else RETRY_S)
+            try:
+                ok = refresh()
+            except Exception as exc:  # noqa: BLE001
+                log.debug(f"[Hero] Refresh failed: {exc}")
+                ok = False
+            time.sleep(REFRESH_S if ok else RETRY_S)
 
     threading.Thread(target=loop, daemon=True, name="LustHero").start()

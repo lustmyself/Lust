@@ -47,5 +47,34 @@ class SavedCardTests(unittest.TestCase):
             self.assertEqual(lust_hero.get(), {"name": "Lust"})
 
 
+class QuietRestartTests(unittest.TestCase):
+    def test_both_update_starts_stay_quiet_then_it_expires(self):
+        import os
+        import tempfile
+        import time
+        from pathlib import Path
+        from unittest import mock
+        from launcher import lust_hub
+        with tempfile.TemporaryDirectory() as folder,                 mock.patch("utils.core.paths.get_user_data_dir", return_value=Path(folder)),                 mock.patch.object(lust_hub, "window_visible", return_value=False):
+            self.assertFalse(lust_hub._take_quiet_restart())
+            lust_hub.mark_quiet_restart()
+            self.assertTrue(lust_hub._take_quiet_restart())
+            self.assertTrue(lust_hub._take_quiet_restart())
+            flag = Path(folder) / lust_hub.QUIET_FLAG
+            old = time.time() - lust_hub.QUIET_FOR_S - 5
+            os.utime(flag, (old, old))
+            self.assertFalse(lust_hub._take_quiet_restart())
+            self.assertFalse(flag.exists())
+
+    def test_an_open_window_is_not_hidden(self):
+        import tempfile
+        from pathlib import Path
+        from unittest import mock
+        from launcher import lust_hub
+        with tempfile.TemporaryDirectory() as folder,                 mock.patch("utils.core.paths.get_user_data_dir", return_value=Path(folder)),                 mock.patch.object(lust_hub, "window_visible", return_value=True):
+            lust_hub.mark_quiet_restart()
+            self.assertFalse(lust_hub._take_quiet_restart())
+
+
 if __name__ == "__main__":
     unittest.main()

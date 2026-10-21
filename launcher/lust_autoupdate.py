@@ -102,6 +102,7 @@ def _install_when_idle(version: str) -> None:
             from launcher import lust_hub
             log.info(f"[AutoUpdate] League is closed; restarting Lust to install {version}")
             lust_hub.toast(f"Lust {version} kuruluyor, birkaç saniye sürecek")
+            lust_hub.mark_quiet_restart()
             time.sleep(3)
             lust_hub.run_action("update")
             return

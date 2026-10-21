@@ -181,6 +181,14 @@ class InjectionTrigger:
             log.error("=" * LOG_SEPARATOR_WIDTH)
             return
         
+        # Lust: skins switched off in the hub's settings: the game starts without mods
+        try:
+            from launcher.lust_settings import enabled as _lust_setting
+            if not _lust_setting("skins"):
+                log.info("[Settings] Skins are off in the hub: nothing is injected")
+                return
+        except Exception as e:
+            log.debug(f"[Settings] Could not read the skins switch: {e}")
         # Check if custom mod is selected for this skin (before logging)
         ui_skin_id = self.state.last_hovered_skin_id
         locked_champ_id = self.state.locked_champ_id or self.state.hovered_champ_id

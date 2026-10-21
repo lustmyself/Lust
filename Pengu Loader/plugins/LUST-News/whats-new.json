@@ -1,17 +1,17 @@
 {
-  "version": "1.4.9.38",
+  "version": "1.4.9.39",
   "en": [
+    "New Settings tab under Spotify: big gold switches for skins, custom skins, Lobby Reveal, Rose guard, start with Windows, silent updates, quiet start and opening League",
+    "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off",
+    "Clear the hub's cache and open Lust's folder from Settings",
     "Cinematic backdrop: your last champion's splash fills the top of the window, side menu included, and fades into black",
-    "The welcome card shows the splash in its own colours; the rank chip takes the champion's colour",
-    "Your Riot ID and tag are the same, calmer size",
-    "New desktop hub look: your last champion's splash glows behind everything, in its own colours",
-    "League's big play card, coloured quick actions and a real Start with Windows switch"
+    "The welcome card shows the splash in its own colours; the rank chip takes the champion's colour"
   ],
   "tr": [
+    "Spotify'ın altında yeni Ayarlar sekmesi: skinler, özel skinler, Lobby Reveal, Rose koruması, Windows ile başlat, sessiz güncelleme, sessiz başla ve League'i açma için büyük altın anahtarlar",
+    "Hub'ın arka planını seç (sinematik ya da sade hextech) ve animasyonları kapat",
+    "Ayarlardan hub önbelleğini temizle ve Lust klasörünü aç",
     "Sinematik arka plan: son oynadığın şampiyonun splash'ı sol menü dahil pencerenin üstünü kaplıyor ve siyaha eriyor",
-    "Karşılama kartı splash'ı kendi renkleriyle gösteriyor; rank kapsülü şampiyonun rengini alıyor",
-    "Riot ID ve etiket aynı, daha sakin boyutta",
-    "Masaüstü hub'a yeni görünüm: son oynadığın şampiyonun splash'ı arkada, kendi renkleriyle parlıyor",
-    "Büyük LoL kartı, renkli hızlı işlemler ve gerçek bir Windows ile başlat anahtarı"
+    "Karşılama kartı splash'ı kendi renkleriyle gösteriyor; rank kapsülü şampiyonun rengini alıyor"
   ]
 }

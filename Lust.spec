@@ -289,6 +289,7 @@ hiddenimports = [
     'clr_loader',
     'pengu.communication.lust_custom_skins',
     'launcher.lust_hub',
+    'launcher.lust_settings',
     'launcher.lust_hub_window',
     'launcher.lust_spotify',
     'tkinter',

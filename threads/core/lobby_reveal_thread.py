@@ -58,7 +58,8 @@ class LobbyRevealThread(threading.Thread):
                 log.debug(f"[Reveal] Poll failed: {e}")
 
     def _tick(self) -> None:
-        if getattr(self.state, "phase", None) not in CHAMP_SELECT_PHASES:
+        from launcher.lust_settings import enabled
+        if getattr(self.state, "phase", None) not in CHAMP_SELECT_PHASES or not enabled("lobby_reveal"):
             if self._last_payload is not None and self._last_payload.get("active"):
                 self._send({"active": False, "players": [], "region": "", "multiUrl": "", "poroUrl": "", "uggUrl": ""})
             self._region = ""

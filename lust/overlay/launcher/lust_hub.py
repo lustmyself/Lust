@@ -163,6 +163,63 @@ def _news():
     return {"version": data.get("version", ""), "items": data.get(LANG) or data.get("en") or []}
 
 
+def _settings() -> dict:
+    from launcher import lust_settings
+    return lust_settings.all_settings()
+
+
+def _set_setting(body: dict) -> str:
+    from launcher import lust_settings
+    key, value = str(body.get("key") or ""), body.get("value")
+    if not lust_settings.set_value(key, value):
+        return "Bu ayar değiştirilemedi"
+    return {
+        "skins": "Skinler açık" if value else "Skinler kapalı: League modsuz açılır",
+        "custom_skins": "" if value else "Özel skinler kapalı",
+        "lobby_reveal": "" if value else "Lobby Reveal kapalı",
+        "rose_guard": "" if value else "Rose koruması kapalı",
+        "quiet_start": "Lust bir sonraki açılışta tepside başlar" if value else "",
+        "launch_league": "",
+    }.get(key, "")
+
+
+def _webview_dir():
+    from utils.core.paths import get_user_data_dir
+    return get_user_data_dir() / "hub-webview"
+
+
+def _cache_mb() -> int:
+    folder = _webview_dir()
+    if not folder.exists():
+        return 0
+    return int(sum(p.stat().st_size for p in folder.rglob("*") if p.is_file()) / (1024 * 1024))
+
+
+def _clear_cache() -> str:
+    """Close the window (WebView2 holds its cache), empty the cache folders, open it again."""
+    import shutil
+    was_open = _shell is not None and _shell.poll() is None
+    if was_open:
+        _kill_shell(_shell)
+    default = _webview_dir() / "EBWebView" / "Default"
+    for name in ("Cache", "Code Cache", "GPUCache", "DawnGraphiteCache", "DawnWebGPUCache", "Service Worker"):
+        shutil.rmtree(default / name, ignore_errors=True)
+    shutil.rmtree(_webview_dir() / "EBWebView" / "GrShaderCache", ignore_errors=True)
+    shutil.rmtree(_webview_dir() / "EBWebView" / "ShaderCache", ignore_errors=True)
+    _cache.pop("cache_mb", None)
+    log.info("[Hub] Cleared the hub window's cache")
+    if was_open:
+        time.sleep(1)
+        open_window()
+    return "Önbellek temizlendi"
+
+
+def _open_data() -> str:
+    from utils.core.paths import get_user_data_dir, open_folder_in_explorer
+    open_folder_in_explorer(get_user_data_dir())
+    return ""
+
+
 def _hero():
     from launcher import lust_hero
     return lust_hero.get()
@@ -250,6 +307,8 @@ def snapshot() -> dict:
         auto_update=_cached("auto_update", 5, _auto_update_on),
         pending=_auto_update_pending(),
         hero=_hero(),
+        settings=_settings(),
+        cache_mb=_cached("cache_mb", 60, _cache_mb),
     )
     state["detail"] = _translate(state["detail"])
     state["status"] = _translate(state["status"])
@@ -344,6 +403,9 @@ ACTIONS: dict[str, Callable[[dict], str]] = {
     "spotify_auto": lambda body: _spotify_auto(),
     "rose_uninstall": lambda body: _rose_uninstall(),
     "auto_update": lambda body: _toggle_auto_update(),
+    "setting": lambda body: _set_setting(body),
+    "clear_cache": lambda body: _clear_cache(),
+    "open_data": lambda body: _open_data(),
 }
 
 
@@ -717,7 +779,8 @@ def make_launcher_dialog():
             from launcher import lust_hub_window
             if lust_hub_window.available():
                 # Started with Windows, during a match or by a silent update: stay in the tray
-                quiet = _take_quiet_restart()
+                from launcher.lust_settings import enabled
+                quiet = _take_quiet_restart() or enabled("quiet_start")
                 return HubDialog(show=not quiet and not _started_quietly() and not lust_hub_window._in_game())
         except Exception as exc:  # noqa: BLE001
             log.warning(f"[Hub] Window unavailable: {exc}")

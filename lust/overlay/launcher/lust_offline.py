@@ -246,6 +246,10 @@ def start_league_through_lust_offline() -> None:
     if uptime() < BOOT_GRACE_MS or _started_at_logon():
         log.info("[LustOffline] Started with Windows; leaving League closed")
         return
+    from launcher.lust_settings import enabled
+    if not enabled("launch_league"):
+        log.info("[LustOffline] Opening League with Lust is off in the hub's settings")
+        return
     games = _processes(GAME_PROCESSES)
     if games:
         log.info(f"[LustOffline] {games[0].info['name']} is already running; not restarting it")

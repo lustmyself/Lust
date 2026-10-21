@@ -209,6 +209,9 @@ def custom_mod_for(champion_id, skin_id) -> Optional[dict]:
         return None
     if champion_id <= 0 or skin_id != champion_id * 1000:
         return None
+    from launcher.lust_settings import enabled
+    if not enabled("custom_skins"):
+        return None
     with _lock:
         state = _load()
     for name, entry in state.items():

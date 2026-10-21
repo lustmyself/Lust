@@ -123,6 +123,10 @@ def keep_rose_off() -> None:
         told = False
         while True:
             try:
+                from launcher.lust_settings import enabled
+                if not enabled("rose_guard"):
+                    time.sleep(GUARD_INTERVAL_S)
+                    continue
                 closed = _close_rose()
                 took = _take_back_hook()
                 if (closed or took) and not told:

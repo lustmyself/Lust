@@ -23,6 +23,15 @@ LOL_MARK = (
 )
 
 ICONS = {
+    "gear": '<path d="M12.2 2h-.4a2 2 0 0 0-2 2v.2a2 2 0 0 1-1 1.7l-.4.3a2 2 0 0 1-2 0l-.2-.1a2 2 0 0 0-2.7.7l-.2.4a2 2 0 0 0 .7 2.7l.2.1a2 2 0 0 1 1 1.7v.6a2 2 0 0 1-1 1.7l-.2.1a2 2 0 0 0-.7 2.7l.2.4a2 2 0 0 0 2.7.7l.2-.1a2 2 0 0 1 2 0l.4.3a2 2 0 0 1 1 1.7v.2a2 2 0 0 0 2 2h.4a2 2 0 0 0 2-2v-.2a2 2 0 0 1 1-1.7l.4-.3a2 2 0 0 1 2 0l.2.1a2 2 0 0 0 2.7-.7l.2-.4a2 2 0 0 0-.7-2.7l-.2-.1a2 2 0 0 1-1-1.7v-.6a2 2 0 0 1 1-1.7l.2-.1a2 2 0 0 0 .7-2.7l-.2-.4a2 2 0 0 0-2.7-.7l-.2.1a2 2 0 0 1-2 0l-.4-.3a2 2 0 0 1-1-1.7V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+    "sparkle": '<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
+    "plusbox": '<rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/>',
+    "users": '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6"/>',
+    "shield": '<path d="M12 22s8-3.5 8-10V5l-8-3-8 3v7c0 6.5 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>',
+    "moon": '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+    "image": '<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/>',
+    "wind": '<path d="M3 8h10a3 3 0 1 0-3-3M3 12h15a3 3 0 1 1-3 3M3 16h7"/>',
+    "trash": '<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/>',
     "spotify": '<circle cx="12" cy="12" r="10"/><path d="M7.5 10c3-1 6.5-.8 9 .8M8 13.3c2.4-.7 5-.5 7 .7M8.6 16.3c1.8-.4 3.7-.3 5.3.5"/>',
     "play": '<polygon points="7 4 20 12 7 20 7 4"/>',
     "folder": '<path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9l-.8-1.2A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>',
@@ -82,6 +91,12 @@ PAGE = r"""<!doctype html>
   .tab[data-page="lol"] { background: #0a1428; box-shadow: inset 0 0 0 1px rgba(200, 170, 110, .35); }
   .lol-mark { width: 26px; height: 26px; filter: drop-shadow(0 0 4px rgba(10, 200, 185, .25)); }
   .tab[data-page="spotify"] { color: #1db954; background: rgba(29, 185, 84, .12); }
+  .tab[data-page="settings"] { color: #c8aa6e; background: rgba(200, 170, 110, .1); }
+  .tab[data-page="settings"]:hover { background: rgba(200, 170, 110, .2); color: #f0e6d2; }
+  .tab[data-page="settings"].active { background: linear-gradient(135deg, #785a28, #c8aa6e); color: #1e2328;
+    box-shadow: 0 6px 16px rgba(200, 170, 110, .35); }
+  .tab[data-page="settings"]:hover svg { animation: spin 1.2s ease; }
+  @keyframes spin { to { transform: rotate(180deg); } }
   .tab[data-page="lol"]:hover { background: #0e1f36; box-shadow: inset 0 0 0 1px rgba(200, 170, 110, .6); }
   .tab[data-page="spotify"]:hover { background: rgba(29, 185, 84, .22); color: #4ade80; }
   .tab[data-page="lol"].active { background: radial-gradient(circle at 50% 40%, #0a323c, #091428 75%);
@@ -345,6 +360,44 @@ PAGE = r"""<!doctype html>
     background: #2a2540; border: 1px solid #4b3f73; color: var(--text); padding: 10px 18px; border-radius: 99px; max-width: 80%; pointer-events: none; }
   #toast.show { opacity: 1; transform: translate(-50%, 0); }
   #lost { position: fixed; inset: 0; display: none; place-items: center; background: rgba(16, 14, 23, .9); color: var(--sub); }
+  /* Settings: big toggle tiles, gold when on */
+  .sg-head { display: flex; align-items: center; margin: 4px 0 14px; }
+  .sg-tabs { display: flex; gap: 4px; padding: 4px; border-radius: 99px; background: rgba(14, 15, 22, .6);
+    border: 1px solid rgba(255, 255, 255, .06); }
+  .sg-tabs button { border: 0; background: none; color: var(--sub); font: 600 12.5px inherit; padding: 6px 16px; border-radius: 99px;
+    cursor: pointer; transition: background .2s, color .2s; }
+  .sg-tabs button:hover { color: var(--text); }
+  .sg-tabs button.on { background: rgba(200, 170, 110, .18); color: #f0e6d2; box-shadow: inset 0 0 0 1px rgba(200, 170, 110, .35); }
+  .sg-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .sg { position: relative; display: flex; align-items: center; gap: 12px; min-height: 62px; padding: 10px 14px; border-radius: 16px;
+    cursor: pointer; background: rgba(14, 15, 22, .6); border: 1px solid rgba(255, 255, 255, .06);
+    transition: background .25s, border-color .25s, transform .15s cubic-bezier(.3, 1.4, .5, 1), box-shadow .25s;
+    animation: rise .4s cubic-bezier(.2, .8, .2, 1) both; }
+  .sg:hover { transform: translateY(-2px); border-color: rgba(200, 170, 110, .35); }
+  .sg:active { transform: scale(.97); }
+  .sg.wide { grid-column: 1 / -1; }
+  .sg .si { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; flex: none;
+    background: rgba(255, 255, 255, .07); color: var(--sub); transition: background .25s, color .25s; }
+  .sg .si svg { width: 17px; height: 17px; }
+  .sg b { display: block; font-size: 13px; font-weight: 600; transition: color .25s; }
+  .sg span { color: var(--faint); font-size: 11.5px; transition: color .25s; }
+  .sg.on { background: linear-gradient(135deg, #d9bd84, #c8aa6e 55%, #a8884e); border-color: rgba(240, 230, 210, .5);
+    box-shadow: 0 8px 24px rgba(200, 170, 110, .25), inset 0 1px 0 rgba(255, 255, 255, .35); }
+  .sg.on .si { background: rgba(30, 35, 40, .22); color: #1e2328; }
+  .sg.on b { color: #1e2328; } .sg.on span { color: rgba(30, 35, 40, .7); }
+  .sg .opt { margin-left: auto; display: flex; gap: 4px; padding: 3px; border-radius: 99px; background: rgba(0, 0, 0, .25); }
+  .sg .opt i { font-style: normal; font-size: 11.5px; font-weight: 600; padding: 4px 10px; border-radius: 99px; color: var(--sub); }
+  .sg .opt i.on { background: #c8aa6e; color: #1e2328; }
+  .sg-grid .sg:nth-child(2) { animation-delay: .03s; } .sg-grid .sg:nth-child(3) { animation-delay: .06s; }
+  .sg-grid .sg:nth-child(4) { animation-delay: .09s; } .sg-grid .sg:nth-child(5) { animation-delay: .12s; }
+  .sg-grid .sg:nth-child(6) { animation-delay: .15s; } .sg-grid .sg:nth-child(7) { animation-delay: .18s; }
+  .sg-grid .sg:nth-child(n+8) { animation-delay: .21s; }
+  .sg-foot { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+  .sg-mini { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; cursor: pointer;
+    background: rgba(14, 15, 22, .45); border: 1px dashed rgba(255, 255, 255, .1); color: var(--sub); transition: border-color .2s, color .2s; }
+  .sg-mini:hover { border-color: rgba(200, 170, 110, .45); color: var(--text); }
+  .sg-mini b { display: block; font-size: 12.5px; color: var(--text); } .sg-mini span { font-size: 11px; color: var(--faint); }
+
   /* Cinematic backdrop (over the ambient styles above) */
   .ambient { background: #07080d; }
   .blob { display: none; }
@@ -353,6 +406,18 @@ PAGE = r"""<!doctype html>
   .ambient::after { background: linear-gradient(180deg, rgba(7, 8, 13, .1) 0%, rgba(7, 8, 13, .65) 45%, #07080d 70%); }
   .rail { background: transparent; backdrop-filter: none; border-right: 1px solid rgba(255, 255, 255, .05); }
   .card, .act { background: rgba(14, 15, 22, .6); }
+  /* Settings: the plain hextech backdrop */
+  .bd-hextech .amb-art { display: none; }
+  .bd-hextech .ambient { background:
+      radial-gradient(60% 50% at 0% 0%, rgba(200, 170, 110, .12), transparent 70%),
+      radial-gradient(55% 60% at 100% 100%, rgba(10, 200, 185, .11), transparent 70%),
+      linear-gradient(160deg, #0b1324 0%, #080d18 55%, #05070d 100%); }
+  .bd-hextech .ambient::after { background:
+      repeating-linear-gradient(60deg, rgba(200, 170, 110, .03) 0 1px, transparent 1px 26px),
+      repeating-linear-gradient(-60deg, rgba(200, 170, 110, .03) 0 1px, transparent 1px 26px); }
+  .bd-hextech .card, .bd-hextech .act { background: rgba(16, 24, 40, .6); }
+  /* Settings: no animations */
+  .calm *, .calm *::before, .calm *::after { animation: none !important; transition: none !important; }
 </style>
 </head>
 <body>
@@ -365,6 +430,7 @@ PAGE = r"""<!doctype html>
 <nav class="rail">
   <div class="tab active" data-page="lol" data-label="LoL">__lol__</div>
   <div class="tab" data-page="spotify" data-label="Spotify">__spotify__</div>
+  <div class="tab" data-page="settings" data-label="Ayarlar">__gear__</div>
   <div class="spacer"></div>
   <div class="dot" id="dot" title=""></div>
 </nav>
@@ -439,6 +505,20 @@ PAGE = r"""<!doctype html>
     </div>
   </section>
 
+  <section class="page" id="page-settings">
+    <div class="sg-head">
+      <div class="sg-tabs" id="sg-tabs">
+        <button class="on" data-sg="all">Hepsi</button><button data-sg="game">Oyun</button>
+        <button data-sg="app">Uygulama</button><button data-sg="look">Görünüm</button>
+      </div>
+    </div>
+    <div class="sg-grid" id="sg-grid"></div>
+    <div class="sg-foot">
+      <div class="sg-mini" data-act="clear_cache">__trash__<div><b>Önbelleği temizle</b><span id="sg-cache">Hub'ın tarayıcı önbelleği</span></div></div>
+      <div class="sg-mini" data-act="open_data">__folder__<div><b>Lust klasörü</b><span>Ayarlar, skinler, loglar</span></div></div>
+    </div>
+  </section>
+
   <section class="page" id="page-spotify">
     <div class="grid g2">
       <div class="card tile" style="cursor:default"><div class="ico">__spotify__</div><div class="t"><b>Spotify</b><span id="sp-sub"></span></div><i class="end" id="sp-dot"></i></div>
@@ -479,6 +559,8 @@ function ago(s) {
   return m < 1 ? "az önce" : `${m} dk önce`;
 }
 const STATUS = { online: "Çevrimiçi", offline: "Çevrimdışı", mobile: "Mobil" };
+const ICON = { sparkle: `__sparkle__`, plusbox: `__plusbox__`, users: `__users__`, shield: `__shield__`, power: `__power__`,
+  sync: `__sync__`, moon: `__moon__`, play: `__play__`, image: `__image__`, wind: `__wind__` };
 
 function buildThemes() {
   $("themes").replaceChildren(...THEMES.map((t) => {
@@ -529,6 +611,57 @@ function splashTint(img) {
   } catch (error) {
     return "";
   }
+}
+
+// The settings page: [key, group, icon, title, on text, off text, wide, options]
+const SETTINGS = [
+  ["skins", "game", ICON.sparkle, "Skinler", "Oyunda uygulanır", "Kapalı: League normal açılır"],
+  ["custom_skins", "game", ICON.plusbox, "Özel skinler", "Açık olanlar oynar", "Hepsi kapalı"],
+  ["lobby_reveal", "game", ICON.users, "Lobby Reveal", "Takım arkadaşları görünür", "Kapalı"],
+  ["rose_guard", "game", ICON.shield, "Rose koruması", "Rose açılırsa kapatılır", "Kapalı"],
+  ["autostart", "app", ICON.power, "Windows ile başlat", "Açık", "Kapalı"],
+  ["auto_update", "app", ICON.sync, "Otomatik güncelleme", "League kapalıyken kurulur", "Yeni sürümde sorulur"],
+  ["quiet_start", "app", ICON.moon, "Sessiz başla", "Pencere açılmaz, tepside durur", "Açılışta pencere görünür"],
+  ["launch_league", "app", ICON.play, "League'i Lust ile aç", "Lust açılınca League başlar", "League'i sen açarsın"],
+  ["reduce_motion", "look", ICON.wind, "Animasyonları azalt", "Hareketler kapalı", "Hareketler açık"],
+  ["backdrop", "look", ICON.image, "Arka plan", "", "", true, [["cinematic", "Sinematik"], ["hextech", "Sade hextech"]]],
+];
+let sgGroup = "all", sgKey = "";
+function settingValue(s, key) {
+  if (key === "autostart") return !!s.autostart;
+  if (key === "auto_update") return !!s.auto_update;
+  const values = s.settings || {};
+  const fallback = { skins: true, custom_skins: true, lobby_reveal: true, rose_guard: true, quiet_start: false,
+    launch_league: true, backdrop: "cinematic", reduce_motion: false };
+  return key in values ? values[key] : fallback[key];
+}
+function drawSettings(s) {
+  const key = sgGroup + JSON.stringify(SETTINGS.map(([k]) => settingValue(s, k)));
+  if (key === sgKey) return;
+  sgKey = key;
+  $("sg-grid").replaceChildren(...SETTINGS.filter((x) => sgGroup === "all" || x[1] === sgGroup).map(
+    ([k, , icon, title, onText, offText, wide, options]) => {
+      const value = settingValue(s, k);
+      const tile = document.createElement("div");
+      tile.className = "sg" + (options ? "" : (value ? " on" : "")) + (wide ? " wide" : "");
+      tile.innerHTML = `<div class="si">${icon}</div><div><b></b><span></span></div>`;
+      tile.querySelector("b").textContent = title;
+      tile.querySelector("span").textContent = options ? "Hub'ın arkasındaki görüntü" : (value ? onText : offText);
+      if (options) {
+        const opt = document.createElement("div");
+        opt.className = "opt";
+        options.forEach(([v, label]) => {
+          const i = Object.assign(document.createElement("i"), { textContent: label, className: v === value ? "on" : "" });
+          i.addEventListener("click", (e) => { e.stopPropagation(); act("setting", { key: k, value: v }); });
+          opt.appendChild(i);
+        });
+        tile.appendChild(opt);
+      } else {
+        tile.addEventListener("click", () => act(k === "autostart" ? "autostart" : k === "auto_update" ? "auto_update" : "setting",
+          { key: k, value: !value }));
+      }
+      return tile;
+    }));
 }
 
 function render(s) {
@@ -654,6 +787,11 @@ function render(s) {
     $("news").replaceChildren(...items.map((x) => { const li = document.createElement("li"); li.textContent = x; return li; }));
   }
 
+  drawSettings(s);
+  const st = s.settings || {};
+  document.body.classList.toggle("bd-hextech", st.backdrop === "hextech");
+  document.body.classList.toggle("calm", !!st.reduce_motion);
+  $("sg-cache").textContent = `Hub'ın tarayıcı önbelleği${s.cache_mb ? ` · ${s.cache_mb} MB` : ""}`;
   const sp = s.spotify || {};
   const label = (THEMES.find((t) => t.key === sp.theme) || {}).label || "Orijinal";
   $("sp-sub").textContent = sp.installed ? `${sp.version || ""} · ${sp.busy ? "Uygulanıyor…" : "Tema: " + label}` :
@@ -678,7 +816,7 @@ async function poll() {
 function showPage(name) {
   document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t.dataset.page === name));
   document.querySelectorAll(".page").forEach((p) => p.classList.toggle("active", p.id === `page-${name}`));
-  $("title").textContent = name === "lol" ? "LoL" : "Spotify";
+  $("title").textContent = name === "lol" ? "LoL" : name === "spotify" ? "Spotify" : "Ayarlar";
   $("tip").hidden = name !== "lol";
 }
 
@@ -694,6 +832,12 @@ $("a-quit").addEventListener("click", () => {
   quitArmed = Date.now(); state && render(state); setTimeout(() => state && render(state), 3100);
 });
 $("v-btn").addEventListener("click", () => act(state && state.update_available ? "update" : "check"));
+document.querySelectorAll("#sg-tabs button").forEach((b) => b.addEventListener("click", () => {
+  sgGroup = b.dataset.sg;
+  document.querySelectorAll("#sg-tabs button").forEach((x) => x.classList.toggle("on", x === b));
+  sgKey = "";
+  state && drawSettings(state);
+}));
 // The version panel opens from the pill and closes on a click elsewhere or Escape
 function setVpop(open) {
   $("vpop").hidden = !open;

@@ -613,6 +613,15 @@ EDITS += [
      '        # Lust plugins a newer Lust no longer ships stay here otherwise (the copy keeps extras)\n        try:\n            from launcher.lust_cleanup import clean_retired_plugins\n            clean_retired_plugins(runtime_dir / "plugins")\n        except Exception as exc:\n            log.debug("Could not remove retired Lust plugins: %s", exc)\n        log.info("Synced Pengu Loader to runtime directory (preserving user files): %s", runtime_dir)\n'),
 ]
 
+
+# The hub's Settings page: the skins master switch
+EDITS += [
+    ('threads/handlers/injection_trigger.py',
+     '            log.error(f"   Loadout Timer: #{ticker_id}")\n            log.error("=" * LOG_SEPARATOR_WIDTH)\n            return\n        \n        # Check if custom mod is selected for this skin (before logging)\n',
+     '            log.error(f"   Loadout Timer: #{ticker_id}")\n            log.error("=" * LOG_SEPARATOR_WIDTH)\n            return\n        \n        # Lust: skins switched off in the hub\'s settings: the game starts without mods\n        try:\n            from launcher.lust_settings import enabled as _lust_setting\n            if not _lust_setting("skins"):\n                log.info("[Settings] Skins are off in the hub: nothing is injected")\n                return\n        except Exception as e:\n            log.debug(f"[Settings] Could not read the skins switch: {e}")\n        # Check if custom mod is selected for this skin (before logging)\n'),
+    ('Lust.spec', "    'launcher.lust_hub',\n", "    'launcher.lust_hub',\n    'launcher.lust_settings',\n"),
+]
+
 # Custom skins (pengu/communication/lust_custom_skins.py): the Lust hub's Custom skins tab
 # replaces champ select's Custom mods button; a switched-on skin plays on its champion's default skin
 EDITS += [

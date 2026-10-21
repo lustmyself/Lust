@@ -13,7 +13,7 @@ class BridgePortRangeTests(unittest.TestCase):
 
     def test_plugins_search_every_port_the_bridge_can_take(self):
         last_port = skin_monitor.BRIDGE_FIRST_PORT + skin_monitor.BRIDGE_PORT_COUNT - 1
-        for plugin in ('LUST-SkinMonitor', 'LUST-PartyMode'):
+        for plugin in ('LUST-SkinMonitor',):
             source = (PLUGINS / plugin / 'index.js').read_text(encoding='utf-8')
             with self.subTest(plugin=plugin):
                 start = re.search(r'DISCOVERY_START_PORT = (\d+);', source)

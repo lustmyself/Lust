@@ -535,6 +535,76 @@ EDITS += [
      'echo [%date% %time%] Mirroring files >> "%LOG%"\n'),
 ]
 
+
+# Privacy: Rose's analytics sent a heartbeat with this PC's machine and install IDs to Rose's
+# server every 15 minutes. Lust sends nothing of the kind.
+EDITS += [
+    ('config.py',
+     "ANALYTICS_SERVER_URL = 'https://analytics.rosekeys.site/'  # Analytics server endpoint\n",
+     "ANALYTICS_SERVER_URL = ''  # Lust has no analytics server\n"),
+    ('config.py',
+     "ANALYTICS_ENABLED = True  # Enable/disable analytics tracking\n",
+     "ANALYTICS_ENABLED = False  # Lust sends no usage data anywhere\n"),
+    ('analytics/tests/test_analytics.py',
+     '    def test_missing_config_option_keeps_analytics_enabled(self, post, get_install_id):\n'
+     '        post.return_value = Mock(status_code=204)\n'
+     '        with patch("analytics.core.analytics_client.get_config_option", return_value=None):\n'
+     '            self.assertTrue(AnalyticsClient().send_ping("1.2.14"))\n',
+     '    def test_lust_sends_nothing_by_default(self, post, get_install_id):\n'
+     '        post.return_value = Mock(status_code=204)\n'
+     '        with patch("analytics.core.analytics_client.get_config_option", return_value=None):\n'
+     '            self.assertFalse(AnalyticsClient().send_ping("1.2.14"))\n'
+     '        post.assert_not_called()\n'),
+]
+
+
+# README: Lust's own features, privacy and links (no Rose analytics, donation or Discord)
+EDITS += [
+    ('README.md',
+     '[issue forms](https://github.com/lustmyself/Lust/issues/new/choose), and ask\nfor installation help on [Discord](https://discord.com/invite/roseskins).\n',
+     '[issue forms](https://github.com/lustmyself/Lust/issues/new/choose); installation\nquestions are welcome there too.\n'),
+    ('README.md',
+     '- **Party Mode**: Enables skin sharing between friends in the same lobby via a Cloudflare WebSocket relay\n',
+     '- **Party Mode**: Skin sharing between friends through a WebSocket relay (off in Lust: no relay server)\n'),
+    ('README.md',
+     '# 🌹 Lust - Effortless Skin Changer for LoL\n',
+     '# 💜 Lust - Effortless Skin Changer for LoL\n'),
+    ('README.md',
+     '[![Installer](https://img.shields.io/badge/Installer-Windows-32A832)](https://github.com/lustmyself/Lust/releases/latest) [![Ko-Fi](https://img.shields.io/badge/KoFi-Donate-C03030?logo=ko-fi&logoColor=white)](https://ko-fi.com/roseapp) [![Discord](https://img.shields.io/discord/1490473857075642621?color=32A832&logo=discord&logoColor=white&label=Discord)](https://discord.com/invite/roseskins) [![License](https://img.shields.io/badge/License-MIT-C03030)](LICENSE) [![Downloads](https://img.shields.io/github/downloads/lustmyself/Lust/total?color=32A832&label=Downloads&cacheSeconds=86400)](https://github.com/lustmyself/Lust/releases/latest)\n',
+     '[![Installer](https://img.shields.io/badge/Installer-Windows-32A832)](https://github.com/lustmyself/Lust/releases/latest) [![License](https://img.shields.io/badge/License-MIT-C03030)](LICENSE) [![Downloads](https://img.shields.io/github/downloads/lustmyself/Lust/total?color=32A832&label=Downloads&cacheSeconds=86400)](https://github.com/lustmyself/Lust/releases/latest)\n'),
+    ('README.md',
+     '### Analytics and privacy\n\nLust sends a pseudonymous, randomly generated installation ID and the app version\nto `https://analytics.rosekeys.site/` when analytics are enabled. The ID is not derived\nfrom the Windows Machine GUID. Analytics can be disabled with\n`ANALYTICS_ENABLED = False` in `config.py`.\n\nThe analytics API and dashboard are maintained separately from this public\nclient repository. Only aggregate usage metrics are exposed through the\ndashboard; raw activity and server credentials remain private.\n\n',
+     '### Privacy\n\nLust sends no usage data anywhere: the analytics Rose has are switched off.\nIt talks to GitHub (updates, skins), the League client on your PC, and replays.lol for\nthe LP cutoffs on the welcome card.\n\n'),
+    ('README.md',
+     '### Cloudflare Workers\n\n- **lust-party-relay**: Durable Object-backed WebSocket relay that manages party rooms (max 10 members per room) for real-time skin selection broadcasting between friends. It refuses Lust versions older than 1.4.4\n\n',
+     '<!-- Rose\'s party relay server is not part of Lust -->\n\n'),
+    ('README.md',
+     "- **Party Mode**: Friends running Lust 1.4.4 or newer see each other's skins and custom mods in game\n",
+     "- **Desktop hub**: Startup progress, updates, your Riot ID, rank, last match and your server's\n  Grandmaster and Challenger LP cutoffs, quick actions and Lust Offline's status\n- **Lust Offline**: Appear offline or on mobile to your friends while you play\n- **Custom skins tab**: Drop your own `.fantome`, `.zip` or `.modpkg` skins in and switch them\n  on per champion; they play on the champion's default skin\n- **Spotify themes**: 22 Spicetify themes for the Spotify desktop app, re-applied after\n  Spotify updates\n- **Silent updates**: New versions download in the background and install while League is closed\n- **Lobby Reveal**: Your teammates' names and op.gg links in champion select\n- **Party Mode**: Needs a party relay server; Lust doesn't run one, so it is off\n"),
+    ('README.md',
+     '## Support\n\nIf you enjoy Lust and want to support its development:\n\n[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/roseapp)\n\nYour support helps keep the project alive and motivates continued development!\n\n',
+     '## Support\n\nFound a bug or have an idea? Open an [issue](https://github.com/lustmyself/Lust/issues/new/choose).\n\n'),
+]
+
+
+# Rose's Discord and Ko-fi links led Lust players to Rose's community and donations
+EDITS += [
+    ('Pengu Loader/plugins/LUST-SettingsPanel/index.js',
+     '    const discordLink = document.createElement("a");\n    discordLink.className = "settings-link";\n    discordLink.href = DISCORD_INVITE_URL;\n    discordLink.target = "_blank";\n    discordLink.textContent = "Discord";\n    linksSection.appendChild(discordLink);\n\n    const kofiLink = document.createElement("a");\n    kofiLink.className = "settings-link";\n    kofiLink.href = KOFI_URL;\n    kofiLink.target = "_blank";\n    kofiLink.textContent = "Ko-Fi";\n    linksSection.appendChild(kofiLink);\n\n',
+     '    // Lust: the GitHub link only\n'),
+    ('CONTRIBUTING.md',
+     ', submit pull requests, or join our [Discord](https://discord.com/invite/roseskins) for discussions and installation help.',
+     ', or submit pull requests.'),
+]
+
+
+# Party Mode's plugin is gone (see REMOVE): only the skin monitor's ports are checked
+EDITS += [
+    ('pengu/tests/test_bridge_port_range.py',
+     "        for plugin in ('LUST-SkinMonitor', 'LUST-PartyMode'):\n",
+     "        for plugin in ('LUST-SkinMonitor',):\n"),
+]
+
 # Custom skins (pengu/communication/lust_custom_skins.py): the Lust hub's Custom skins tab
 # replaces champ select's Custom mods button; a switched-on skin plays on its champion's default skin
 EDITS += [
@@ -714,6 +784,23 @@ EDITS += [
 ]
 
 
+# Rose's files that Lust doesn't use: dropped from the tree on every sync
+REMOVE = [
+    "relay-worker",  # Rose's party relay server (Cloudflare worker); Lust runs no relay
+    # Party Mode needs that relay: its lobby button opened a panel that could never connect
+    "Pengu Loader/plugins/LUST-PartyMode",
+]
+
+
+def remove_unused(tree):
+    for rel in REMOVE:
+        path = tree / rel
+        if path.is_dir():
+            shutil.rmtree(path)
+        elif path.exists():
+            path.unlink()
+
+
 def apply_edits(tree):
     failures = []
     for rel, old, new in EDITS:
@@ -724,7 +811,9 @@ def apply_edits(tree):
         raw = read_text(path)
         crlf = "\r\n" in raw
         text = raw.replace("\r\n", "\n")
-        if new in text:
+        # Already applied. An empty replacement is "in" every text, so it counts as applied
+        # only once its old text is gone
+        if (new and new in text) or (not new and old not in text):
             continue
         if text.count(old) != 1:
             failures.append(f"{rel}: expected text found {text.count(old)} times:\n{old[:200]}")
@@ -805,6 +894,7 @@ def main():
         extract_rose(ref, tree)
         rebrand_tree(tree)
         patch_core_dll(tree)
+        remove_unused(tree)
         copy_overlay(tree)
         apply_edits(tree)
         apply_lust_version(tree)

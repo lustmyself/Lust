@@ -2,6 +2,8 @@
 
 - Update packages, their `.ready` marks and the staging folder in Lust's updates folder,
   except a newer package still waiting to be installed.
+- Lust plugins a newer Lust no longer ships (updates only copy the plugins they have, so
+  a retired one stayed in the client).
 - Uninstall entries left by older installers (Lust once had Rose's AppId): an entry named
   Lust whose folder is this install is only a duplicate, so the entry goes; a Lust copy
   in another folder goes with its entry when that folder holds Lust.exe and no Rose.exe.
@@ -23,6 +25,7 @@ from utils.core.logging import get_logger
 log = get_logger()
 
 OLD_APP_IDS = ("{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}_is1",)
+RETIRED_PLUGINS = ("LUST-PartyMode",)
 UNINSTALL = r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
 
 
@@ -44,6 +47,19 @@ def clean_updates(updates_dir: Path, current: str) -> int:
         if match and _version(match.group(1)) <= _version(current):
             path.unlink(missing_ok=True)
             removed += 1
+    return removed
+
+
+def clean_retired_plugins(plugins_dir: Path) -> int:
+    """Remove Lust's own plugins that Lust no longer ships."""
+    removed = 0
+    for name in RETIRED_PLUGINS:
+        folder = plugins_dir / name
+        if folder.is_dir():
+            shutil.rmtree(folder, ignore_errors=True)
+            if not folder.exists():
+                removed += 1
+                log.info(f"[Cleanup] Removed the retired plugin {name}")
     return removed
 
 
@@ -98,7 +114,9 @@ def run() -> None:
     try:
         from config import APP_VERSION, get_config_file_path
         removed = clean_updates(get_config_file_path().parent / "updates", APP_VERSION)
-        removed += clean_old_installs(Path(sys.executable).resolve().parent)
+        install_dir = Path(sys.executable).resolve().parent
+        removed += clean_retired_plugins(install_dir / "Pengu Loader" / "plugins")
+        removed += clean_old_installs(install_dir)
         if removed:
             log.info(f"[Cleanup] Removed {removed} leftover(s) of older Lust versions")
     except Exception as exc:  # noqa: BLE001 - never in the way of Lust

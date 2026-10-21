@@ -23,7 +23,7 @@ log = logging.getLogger(__name__)
 # APPLICATION METADATA
 # =============================================================================
 
-APP_VERSION = "1.4.9.32"                           # Application version
+APP_VERSION = "1.4.9.33"                           # Application version
 APP_USER_AGENT = f"Lust/{APP_VERSION}"  # User-Agent header for HTTP requests
 GAME_EXECUTABLE_NAMES = ("League of Legends.exe", "League of Legends (TM) Client.exe")
 
@@ -388,9 +388,9 @@ INTERESTING_PHASES = {
 # ANALYTICS CONSTANTS
 # =============================================================================
 
-ANALYTICS_SERVER_URL = 'https://analytics.rosekeys.site/'  # Analytics server endpoint
+ANALYTICS_SERVER_URL = ''  # Lust has no analytics server
 ANALYTICS_PING_INTERVAL_S = 900  # Seconds between presence heartbeats (15 minutes)
-ANALYTICS_ENABLED = True  # Enable/disable analytics tracking
+ANALYTICS_ENABLED = False  # Lust sends no usage data anywhere
 ANALYTICS_TIMEOUT_S = 5  # Request timeout in seconds
 
 # =============================================================================

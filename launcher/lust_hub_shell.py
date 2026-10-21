@@ -21,14 +21,18 @@ SIZE = (1000, 660)
 
 
 class _Api:
+    """What the page may call. pywebview hands the page every public attribute, walking into
+    objects: a public window here made it read WebView2's controls from its own thread, which
+    flooded the log and locked the window up. The window stays private."""
+
     def __init__(self) -> None:
-        self.window = None
+        self._window = None
 
     def minimize(self) -> None:
-        self.window.minimize()
+        self._window.minimize()
 
     def close(self) -> None:
-        self.window.destroy()
+        self._window.destroy()
 
 
 def _close_with(pid: int, api: "_Api") -> None:
@@ -37,12 +41,13 @@ def _close_with(pid: int, api: "_Api") -> None:
     kernel32 = ctypes.windll.kernel32
     kernel32.OpenProcess.restype = ctypes.c_void_p
     handle = kernel32.OpenProcess(0x00100000, False, pid)  # SYNCHRONIZE
-    if handle:
-        kernel32.WaitForSingleObject(ctypes.c_void_p(handle), 0xFFFFFFFF)
-        kernel32.CloseHandle(ctypes.c_void_p(handle))
+    if not handle:
+        return  # can't watch it: the window stays until it is closed
+    kernel32.WaitForSingleObject(ctypes.c_void_p(handle), 0xFFFFFFFF)
+    kernel32.CloseHandle(ctypes.c_void_p(handle))
     threading.Timer(1.0, lambda: os._exit(0)).start()
     try:
-        api.window.destroy()
+        api._window.destroy()
     except Exception:  # noqa: BLE001
         pass
 
@@ -74,7 +79,7 @@ def run(url: str, parent: int = 0) -> None:
     from utils.core.paths import get_user_data_dir
 
     api = _Api()
-    api.window = webview.create_window(
+    api._window = webview.create_window(
         "Lust", url, js_api=api, width=SIZE[0], height=SIZE[1], min_size=(860, 600),
         frameless=True, easy_drag=False, background_color="#16141f",
     )

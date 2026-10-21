@@ -77,5 +77,21 @@ class RoseGuardTests(unittest.TestCase):
             activate.assert_not_called()
 
 
+
+class RetiredPluginTests(unittest.TestCase):
+    def test_only_retired_lust_plugins_go(self):
+        import tempfile
+        from launcher import lust_cleanup
+        with tempfile.TemporaryDirectory() as folder:
+            plugins = Path(folder)
+            (plugins / "LUST-PartyMode").mkdir()
+            (plugins / "LUST-PartyMode" / "index.js").write_text("x", encoding="utf-8")
+            (plugins / "LUST-Theme").mkdir()
+            (plugins / "my-own-plugin").mkdir()
+            self.assertEqual(lust_cleanup.clean_retired_plugins(plugins), 1)
+            self.assertFalse((plugins / "LUST-PartyMode").exists())
+            self.assertTrue((plugins / "LUST-Theme").exists())
+            self.assertTrue((plugins / "my-own-plugin").exists())
+
 if __name__ == "__main__":
     unittest.main()

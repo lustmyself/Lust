@@ -21,11 +21,11 @@ class CloseWithParentTests(unittest.TestCase):
     def test_window_closes_when_lust_exits(self):
         parent = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(1)"])
         api = lust_hub_shell._Api()
-        api.window = _Window()
+        api._window = _Window()
         with mock.patch.object(lust_hub_shell.threading, "Timer") as timer:
             started = time.time()
             lust_hub_shell._close_with(parent.pid, api)
-        self.assertTrue(api.window.destroyed.is_set())
+        self.assertTrue(api._window.destroyed.is_set())
         self.assertGreater(time.time() - started, 0.5)
         timer.assert_called_once()
         parent.wait()
@@ -85,6 +85,14 @@ class HungWindowTests(unittest.TestCase):
                 mock.patch("time.sleep") as sleep:
             lust_hub_shell._wait_for_old_webview(r"C:\Lust\hub-webview")
         self.assertEqual(sleep.call_count, 2)
+
+
+class ApiTests(unittest.TestCase):
+    def test_the_page_sees_no_window_object(self):
+        api = lust_hub_shell._Api()
+        api._window = object()
+        public = [name for name in vars(api) if not name.startswith("_")]
+        self.assertEqual(public, [])
 
 
 class UpdateScriptTests(unittest.TestCase):

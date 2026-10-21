@@ -1,10 +1,10 @@
-# 🌹 Lust - Effortless Skin Changer for LoL
+# 💜 Lust - Effortless Skin Changer for LoL
 
 <div align="center">
 
   <img src="./assets/icon.png" alt="Lust Icon" width="128" height="128">
 
-[![Installer](https://img.shields.io/badge/Installer-Windows-32A832)](https://github.com/lustmyself/Lust/releases/latest) [![Ko-Fi](https://img.shields.io/badge/KoFi-Donate-C03030?logo=ko-fi&logoColor=white)](https://ko-fi.com/roseapp) [![Discord](https://img.shields.io/discord/1490473857075642621?color=32A832&logo=discord&logoColor=white&label=Discord)](https://discord.com/invite/roseskins) [![License](https://img.shields.io/badge/License-MIT-C03030)](LICENSE) [![Downloads](https://img.shields.io/github/downloads/lustmyself/Lust/total?color=32A832&label=Downloads&cacheSeconds=86400)](https://github.com/lustmyself/Lust/releases/latest)
+[![Installer](https://img.shields.io/badge/Installer-Windows-32A832)](https://github.com/lustmyself/Lust/releases/latest) [![License](https://img.shields.io/badge/License-MIT-C03030)](LICENSE) [![Downloads](https://img.shields.io/github/downloads/lustmyself/Lust/total?color=32A832&label=Downloads&cacheSeconds=86400)](https://github.com/lustmyself/Lust/releases/latest)
 
 
 </div>
@@ -27,25 +27,18 @@ Lust consists of three main components:
 - **Skin Injection**: Handles skin injection compatible with Riot Vanguard
 - **WebSocket Bridge**: Operates a WebSocket server for real-time communication with frontend plugins
 - **Skin Management**: Downloads and manages skin files from the [LeagueSkins repository](https://github.com/Alban1911/LeagueSkins)
-- **Party Mode**: Enables skin sharing between friends in the same lobby via a Cloudflare WebSocket relay
+- **Party Mode**: Skin sharing between friends through a WebSocket relay (off in Lust: no relay server)
 - **Game Monitoring**: Tracks game state, champion select phases, and loadout countdowns
 - **Auto-Updater**: Checks GitHub for new releases and prompts users to install updates
 - **Analytics**: Sends a startup ping, a 15-minute presence heartbeat, and a best-effort close ping (configurable, runs in a background thread)
 
-### Analytics and privacy
+### Privacy
 
-Lust sends a pseudonymous, randomly generated installation ID and the app version
-to `https://analytics.rosekeys.site/` when analytics are enabled. The ID is not derived
-from the Windows Machine GUID. Analytics can be disabled with
-`ANALYTICS_ENABLED = False` in `config.py`.
+Lust sends no usage data anywhere: the analytics Rose has are switched off.
+It talks to GitHub (updates, skins), the League client on your PC, and replays.lol for
+the LP cutoffs on the welcome card.
 
-The analytics API and dashboard are maintained separately from this public
-client repository. Only aggregate usage metrics are exposed through the
-dashboard; raw activity and server credentials remain private.
-
-### Cloudflare Workers
-
-- **lust-party-relay**: Durable Object-backed WebSocket relay that manages party rooms (max 10 members per room) for real-time skin selection broadcasting between friends. It refuses Lust versions older than 1.4.4
+<!-- Rose's party relay server is not part of Lust -->
 
 ### Pengu Loader Plugins
 
@@ -76,7 +69,16 @@ Lust includes a suite of JavaScript plugins that extend the League Client UI:
 
 - **Smart Injection**: Never injects skins you already own
 - **Custom Mods**: Custom skins, maps, fonts and announcers (`.fantome`, `.zip` and `.modpkg`)
-- **Party Mode**: Friends running Lust 1.4.4 or newer see each other's skins and custom mods in game
+- **Desktop hub**: Startup progress, updates, your Riot ID, rank, last match and your server's
+  Grandmaster and Challenger LP cutoffs, quick actions and Lust Offline's status
+- **Lust Offline**: Appear offline or on mobile to your friends while you play
+- **Custom skins tab**: Drop your own `.fantome`, `.zip` or `.modpkg` skins in and switch them
+  on per champion; they play on the champion's default skin
+- **Spotify themes**: 22 Spicetify themes for the Spotify desktop app, re-applied after
+  Spotify updates
+- **Silent updates**: New versions download in the background and install while League is closed
+- **Lobby Reveal**: Your teammates' names and op.gg links in champion select
+- **Party Mode**: Needs a party relay server; Lust doesn't run one, so it is off
 - **Loading Screen Name**: The loading screen shows the injected skin's name; the chat and the name over your champion keep the champion's
 - **Multi-Language Support**: Works with any client language, with Lust's menus in 22 languages
 - **Open Source**: Fully open source and extensible
@@ -170,8 +172,8 @@ and credit the Pengu Loader contributors.
 ## Contributing
 
 Contributions are welcome. Report bugs and suggest features through the
-[issue forms](https://github.com/lustmyself/Lust/issues/new/choose), and ask
-for installation help on [Discord](https://discord.com/invite/roseskins).
+[issue forms](https://github.com/lustmyself/Lust/issues/new/choose); installation
+questions are welcome there too.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, the tests and
 checks that CI runs on every pull request, and the project structure.
@@ -184,11 +186,7 @@ Riot Games does not allow custom skins that reproduce its real skins, which is w
 
 ## Support
 
-If you enjoy Lust and want to support its development:
-
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/roseapp)
-
-Your support helps keep the project alive and motivates continued development!
+Found a bug or have an idea? Open an [issue](https://github.com/lustmyself/Lust/issues/new/choose).
 
 ---
 

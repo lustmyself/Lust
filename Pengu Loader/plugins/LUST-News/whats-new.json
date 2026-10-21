@@ -1,23 +1,21 @@
 {
-  "version": "1.4.9.32",
+  "version": "1.4.9.33",
   "en": [
+    "Fixed the desktop hub locking up a few seconds after it opened",
+    "Privacy: Lust no longer sends a usage heartbeat to Rose's analytics server",
+    "Removed Party Mode's lobby button: it needs a server Lust doesn't have and could never connect",
+    "Settings show the GitHub link only (Rose's Discord and Ko-fi links are gone)",
     "The desktop hub no longer gets stuck on \"not responding\": a locked-up window is closed and opened again",
     "League's own loading icons and loading screens everywhere: no Kai'Sa picture after matches or anywhere else",
-    "A silent update no longer pops the desktop hub open after you close League",
-    "The Spotify theme comes back by itself when Spotify updates while Lust runs",
-    "The welcome card keeps refreshing even after an unexpected client answer",
-    "The welcome card fills in right after League opens instead of minutes later",
-    "Fixed updates hanging on \"Lust is restarting\" while the desktop hub was open",
-    "The welcome card shows your server's Grandmaster and Challenger LP cutoffs (from replays.lol) and how much LP you need"
+    "A silent update no longer pops the desktop hub open after you close League"
   ],
   "tr": [
+    "Masaüstü hub'ın açıldıktan birkaç saniye sonra donması düzeltildi",
+    "Gizlilik: Lust artık Rose'un analiz sunucusuna kullanım bilgisi göndermiyor",
+    "Party Mode'un lobi butonu kaldırıldı: Lust'ta olmayan bir sunucuya ihtiyaç duyuyordu ve hiç bağlanamıyordu",
+    "Ayarlarda sadece GitHub bağlantısı var (Rose'un Discord ve Ko-fi bağlantıları kaldırıldı)",
     "Masaüstü hub artık \"yanıt vermiyor\"da kalmıyor: donan pencere kapatılıp yeniden açılıyor",
     "Her yerde LoL'ün kendi yükleme simgeleri ve ekranları: maç sonrası ve başka hiçbir yerde Kai'Sa resmi yok",
-    "Sessiz güncelleme LoL'ü kapattıktan sonra masaüstü hub'ı açıp önüne çıkarmıyor",
-    "Lust açıkken Spotify güncellenirse tema kendiliğinden geri geliyor",
-    "Karşılama kartı istemciden beklenmedik bir cevap gelse de yenilenmeye devam ediyor",
-    "Karşılama kartı LoL açılır açılmaz doluyor, dakikalarca beklemiyor",
-    "Masaüstü hub açıkken güncellemenin \"Lust yeniden başlıyor\"da takılması düzeltildi",
-    "Karşılama kartı sunucunun Üstatlık ve Şampiyonluk LP sınırlarını (replays.lol'dan) ve kaç LP'ye ihtiyacın olduğunu gösteriyor"
+    "Sessiz güncelleme LoL'ü kapattıktan sonra masaüstü hub'ı açıp önüne çıkarmıyor"
   ]
 }

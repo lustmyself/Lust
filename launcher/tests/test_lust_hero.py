@@ -31,7 +31,8 @@ class CutoffTests(unittest.TestCase):
 
     def test_client_region_maps_to_server(self):
         from unittest import mock
-        with mock.patch.object(lust_hero, "_cutoffs", {"TR1": {"challenger": 1256, "grandmaster": 784}}),                 mock.patch.object(lust_hero, "_cutoffs_at", 1e18):
+        with mock.patch.object(lust_hero, "_cutoffs", {"TR1": {"challenger": 1256, "grandmaster": 784}}), \
+                mock.patch.object(lust_hero, "_cutoffs_at", 1e18):
             self.assertEqual(lust_hero.cutoffs_for("TR"), {"challenger": 1256, "grandmaster": 784, "region": "TR"})
             self.assertIsNone(lust_hero.cutoffs_for("EUW"))
 
@@ -41,7 +42,8 @@ class SavedCardTests(unittest.TestCase):
         import tempfile
         from pathlib import Path
         from unittest import mock
-        with tempfile.TemporaryDirectory() as folder, mock.patch.object(lust_hero, "_dir", return_value=Path(folder)),                 mock.patch.object(lust_hero, "_data", None):
+        with tempfile.TemporaryDirectory() as folder, mock.patch.object(lust_hero, "_dir", return_value=Path(folder)), \
+                mock.patch.object(lust_hero, "_data", None):
             self.assertIsNone(lust_hero.get())
             (Path(folder) / "hero.json").write_text('{"name": "Lust"}', encoding="utf-8")
             self.assertEqual(lust_hero.get(), {"name": "Lust"})
@@ -55,7 +57,9 @@ class QuietRestartTests(unittest.TestCase):
         from pathlib import Path
         from unittest import mock
         from launcher import lust_hub
-        with tempfile.TemporaryDirectory() as folder,                 mock.patch("utils.core.paths.get_user_data_dir", return_value=Path(folder)),                 mock.patch.object(lust_hub, "window_visible", return_value=False):
+        with tempfile.TemporaryDirectory() as folder, \
+                mock.patch("utils.core.paths.get_user_data_dir", return_value=Path(folder)), \
+                mock.patch.object(lust_hub, "window_visible", return_value=False):
             self.assertFalse(lust_hub._take_quiet_restart())
             lust_hub.mark_quiet_restart()
             self.assertTrue(lust_hub._take_quiet_restart())
@@ -71,7 +75,9 @@ class QuietRestartTests(unittest.TestCase):
         from pathlib import Path
         from unittest import mock
         from launcher import lust_hub
-        with tempfile.TemporaryDirectory() as folder,                 mock.patch("utils.core.paths.get_user_data_dir", return_value=Path(folder)),                 mock.patch.object(lust_hub, "window_visible", return_value=True):
+        with tempfile.TemporaryDirectory() as folder, \
+                mock.patch("utils.core.paths.get_user_data_dir", return_value=Path(folder)), \
+                mock.patch.object(lust_hub, "window_visible", return_value=True):
             lust_hub.mark_quiet_restart()
             self.assertFalse(lust_hub._take_quiet_restart())
 

@@ -457,6 +457,13 @@ def run_action(name: str, body: Optional[dict] = None) -> str:
 
 _shell: Optional[subprocess.Popen] = None
 SHELL_START_S = 12.0
+# A hub window Windows calls "not responding" this long is closed and opened again
+WATCH_EVERY_S = 5.0
+HUNG_STRIKES = 3
+MAX_REOPENS = 2
+_watchdog_started = False
+_reopens = 0
+_use_basic_window = False
 
 
 def _shell_window() -> int:
@@ -506,6 +513,7 @@ def _open_web() -> bool:
     except OSError as exc:
         log.warning(f"[Hub] Could not start the hub window: {exc}")
         return False
+    _start_watchdog()
     deadline = time.time() + SHELL_START_S
     while time.time() < deadline:
         if lust_hub_server.page_open():
@@ -522,6 +530,60 @@ def _close_shell() -> None:
         _shell.terminate()
 
 
+def _kill_shell(shell: subprocess.Popen) -> None:
+    """End the window process and its WebView2 processes, which hold its browser folder."""
+    try:
+        import psutil
+        parent = psutil.Process(shell.pid)
+        procs = parent.children(recursive=True) + [parent]
+        for proc in procs:
+            try:
+                proc.kill()
+            except psutil.Error:
+                pass
+        psutil.wait_procs(procs, timeout=5)
+    except Exception as exc:  # noqa: BLE001
+        log.debug(f"[Hub] Could not end the hub window: {exc}")
+
+
+def _window_hung() -> bool:
+    hwnd = _shell_window()
+    return bool(hwnd) and bool(ctypes.windll.user32.IsHungAppWindow(hwnd))
+
+
+def _watch_shell() -> None:
+    """The WebView2 window can lock up while it starts (seen right after a restart, when the
+    previous window's WebView2 was still closing). Close it and open it again; after a few
+    tries the basic window is used instead."""
+    global _reopens, _use_basic_window
+    strikes = 0
+    while True:
+        time.sleep(WATCH_EVERY_S)
+        try:
+            strikes = strikes + 1 if _window_hung() else 0
+            if strikes < HUNG_STRIKES:
+                continue
+            strikes = 0
+            shell = _shell
+            log.warning("[Hub] The hub window stopped responding; closing it")
+            _kill_shell(shell)
+            _reopens += 1
+            if _reopens > MAX_REOPENS:
+                log.warning("[Hub] The hub window keeps locking up; using the basic window")
+                _use_basic_window = True
+            time.sleep(1)
+            open_window()
+        except Exception as exc:  # noqa: BLE001
+            log.debug(f"[Hub] Window watch failed: {exc}")
+
+
+def _start_watchdog() -> None:
+    global _watchdog_started
+    if not _watchdog_started:
+        _watchdog_started = True
+        threading.Thread(target=_watch_shell, daemon=True, name="LustHubWatch").start()
+
+
 atexit.register(_close_shell)
 
 
@@ -533,7 +595,7 @@ def open_window() -> bool:
     if sys.platform != "win32":
         return False
     try:
-        if _open_web():
+        if not _use_basic_window and _open_web():
             return True
     except Exception as exc:  # noqa: BLE001
         log.warning(f"[Hub] Hub window failed: {exc}")

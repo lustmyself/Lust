@@ -1,6 +1,7 @@
 {
-  "version": "1.4.9.31",
+  "version": "1.4.9.32",
   "en": [
+    "The desktop hub no longer gets stuck on \"not responding\": a locked-up window is closed and opened again",
     "League's own loading icons and loading screens everywhere: no Kai'Sa picture after matches or anywhere else",
     "A silent update no longer pops the desktop hub open after you close League",
     "The Spotify theme comes back by itself when Spotify updates while Lust runs",
@@ -10,6 +11,7 @@
     "The welcome card shows your server's Grandmaster and Challenger LP cutoffs (from replays.lol) and how much LP you need"
   ],
   "tr": [
+    "Masaüstü hub artık \"yanıt vermiyor\"da kalmıyor: donan pencere kapatılıp yeniden açılıyor",
     "Her yerde LoL'ün kendi yükleme simgeleri ve ekranları: maç sonrası ve başka hiçbir yerde Kai'Sa resmi yok",
     "Sessiz güncelleme LoL'ü kapattıktan sonra masaüstü hub'ı açıp önüne çıkarmıyor",
     "Lust açıkken Spotify güncellenirse tema kendiliğinden geri geliyor",

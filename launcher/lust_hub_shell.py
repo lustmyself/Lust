@@ -47,6 +47,28 @@ def _close_with(pid: int, api: "_Api") -> None:
         pass
 
 
+def _wait_for_old_webview(storage, timeout: float = 8.0) -> None:
+    """A window that just closed may still have WebView2 running on the same browser folder;
+    starting another one on it then can lock the new window up."""
+    import time
+    import psutil
+    folder = str(storage).lower()
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        busy = False
+        for proc in psutil.process_iter(["name", "cmdline"]):
+            try:
+                if (proc.info.get("name") or "").lower() == "msedgewebview2.exe" \
+                        and folder in " ".join(proc.info.get("cmdline") or []).lower():
+                    busy = True
+                    break
+            except psutil.Error:
+                continue
+        if not busy:
+            return
+        time.sleep(0.3)
+
+
 def run(url: str, parent: int = 0) -> None:
     import webview
     from utils.core.paths import get_user_data_dir
@@ -60,6 +82,10 @@ def run(url: str, parent: int = 0) -> None:
         threading.Thread(target=_close_with, args=(parent, api), daemon=True, name="LustHubParent").start()
     storage = get_user_data_dir() / "hub-webview"
     storage.mkdir(parents=True, exist_ok=True)
+    try:
+        _wait_for_old_webview(storage)
+    except Exception:  # noqa: BLE001
+        pass
     webview.start(gui="edgechromium", private_mode=False, storage_path=str(storage))
 
 

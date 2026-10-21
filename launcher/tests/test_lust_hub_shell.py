@@ -42,6 +42,51 @@ class CloseWithParentTests(unittest.TestCase):
         run.assert_called_once_with("http://127.0.0.1:47823/", 0)
 
 
+class _Stop(Exception):
+    pass
+
+
+class HungWindowTests(unittest.TestCase):
+    def _run_watch(self, hung_answers):
+        from launcher import lust_hub
+        sleeps = iter(range(len(hung_answers) + 2))
+
+        def sleep(_seconds):
+            if next(sleeps) >= len(hung_answers) + 1:
+                raise _Stop
+
+        with mock.patch.object(lust_hub.time, "sleep", side_effect=sleep), \
+                mock.patch.object(lust_hub, "_window_hung", side_effect=hung_answers + [False] * 5), \
+                mock.patch.object(lust_hub, "_kill_shell") as kill, \
+                mock.patch.object(lust_hub, "open_window") as reopen, \
+                mock.patch.object(lust_hub, "_reopens", 0), mock.patch.object(lust_hub, "_use_basic_window", False):
+            with self.assertRaises(_Stop):
+                lust_hub._watch_shell()
+        return kill, reopen
+
+    def test_a_locked_up_window_is_closed_and_opened_again(self):
+        kill, reopen = self._run_watch([True, True, True])
+        kill.assert_called_once()
+        reopen.assert_called_once()
+
+    def test_a_short_hiccup_is_left_alone(self):
+        kill, reopen = self._run_watch([True, True, False, True])
+        kill.assert_not_called()
+        reopen.assert_not_called()
+
+    def test_waits_for_the_previous_webview_on_the_same_folder(self):
+        class Proc:
+            def __init__(self, cmdline):
+                self.info = {"name": "msedgewebview2.exe", "cmdline": cmdline}
+
+        busy = [Proc(["msedgewebview2.exe", r"--user-data-dir=C:\Lust\hub-webview\EBWebView"])]
+        answers = iter([busy, busy, []])
+        with mock.patch("psutil.process_iter", side_effect=lambda *_: next(answers)), \
+                mock.patch("time.sleep") as sleep:
+            lust_hub_shell._wait_for_old_webview(r"C:\Lust\hub-webview")
+        self.assertEqual(sleep.call_count, 2)
+
+
 class UpdateScriptTests(unittest.TestCase):
     def test_update_closes_leftover_lust_windows_before_copying(self):
         from launcher.update.update_installer import APPLY_UPDATE_SCRIPT

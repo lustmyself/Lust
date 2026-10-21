@@ -24,7 +24,7 @@ REFRESH_S = 120
 QUEUES = {420: "Dereceli Tek/Çift", 440: "Dereceli Esnek", 400: "Normal", 430: "Normal", 490: "Hızlı Oyun",
           480: "Hızlı Oyun", 450: "ARAM", 1700: "Arena", 1900: "URF", 900: "URF"}
 TIERS = {"IRON": "Demir", "BRONZE": "Bronz", "SILVER": "Gümüş", "GOLD": "Altın", "PLATINUM": "Platin",
-         "EMERALD": "Zümrüt", "DIAMOND": "Elmas", "MASTER": "Ustalık", "GRANDMASTER": "Büyük Usta",
+         "EMERALD": "Zümrüt", "DIAMOND": "Elmas", "MASTER": "Ustalık", "GRANDMASTER": "Üstatlık",
          "CHALLENGER": "Şampiyonluk"}
 _lock = threading.Lock()
 _data: Optional[dict] = None

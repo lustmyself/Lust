@@ -1,13 +1,15 @@
 {
-  "version": "1.4.9.26",
+  "version": "1.4.9.27",
   "en": [
     "The hub's welcome card shows you: Riot ID, rank, win rate and your last match on that champion's splash art",
     "New Lust icon set with a purple-pink gradient",
-    "Smooth little animations: cards rise in, buttons answer a press, switches spring"
+    "Smooth little animations: cards rise in, buttons answer a press, switches spring",
+    "Grandmaster shows as Üstatlık in Turkish, as in League"
   ],
   "tr": [
     "Hub'ın karşılama kartı artık seni gösteriyor: Riot ID, rank, kazanma oranı ve son maçın, o şampiyonun splash art'ı üzerinde",
     "Mor-pembe geçişli yeni Lust simge seti",
-    "Akıcı küçük animasyonlar: kartlar sırayla belirir, butonlar basınca tepki verir, anahtarlar yaylanır"
+    "Akıcı küçük animasyonlar: kartlar sırayla belirir, butonlar basınca tepki verir, anahtarlar yaylanır",
+    "Grandmaster artık LoL'deki gibi Üstatlık yazıyor"
   ]
 }

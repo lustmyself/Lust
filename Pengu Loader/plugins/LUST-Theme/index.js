@@ -4883,7 +4883,7 @@ const LUST_TR = {
   "Welcome": "Hoş geldin",
   "Unranked": "Derecesiz",
   "Iron": "Demir", "Bronze": "Bronz", "Silver": "Gümüş", "Gold": "Altın", "Platinum": "Platin", "Emerald": "Zümrüt",
-  "Diamond": "Elmas", "Master": "Ustalık", "Grandmaster": "Büyük Usta", "Challenger": "Şampiyonluk",
+  "Diamond": "Elmas", "Master": "Ustalık", "Grandmaster": "Üstatlık", "Challenger": "Şampiyonluk",
   "Ranked Solo/Duo": "Dereceli Tek/Çift", "Ranked Flex": "Dereceli Esnek", "Normal": "Normal", "Quickplay": "Hızlı Oyun",
   "Match": "Maç", "Last match": "Son maç", "Victory": "Galibiyet", "Defeat": "Mağlubiyet", "W": "G", "L": "M",
   "Level {level}": "Seviye {level}",

@@ -23,6 +23,11 @@ LOL_MARK = (
 )
 
 ICONS = {
+    "prev": '<path d="M19 20 9 12l10-8z"/><path d="M5 19V5"/>',
+    "next": '<path d="m5 4 10 8-10 8z"/><path d="M19 5v14"/>',
+    "pause": '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>',
+    "vol": '<path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/>',
+    "volx": '<path d="M11 5 6 9H2v6h4l5 4z"/><path d="m22 9-6 6M16 9l6 6"/>',
     "gear": '<path d="M12.2 2h-.4a2 2 0 0 0-2 2v.2a2 2 0 0 1-1 1.7l-.4.3a2 2 0 0 1-2 0l-.2-.1a2 2 0 0 0-2.7.7l-.2.4a2 2 0 0 0 .7 2.7l.2.1a2 2 0 0 1 1 1.7v.6a2 2 0 0 1-1 1.7l-.2.1a2 2 0 0 0-.7 2.7l.2.4a2 2 0 0 0 2.7.7l.2-.1a2 2 0 0 1 2 0l.4.3a2 2 0 0 1 1 1.7v.2a2 2 0 0 0 2 2h.4a2 2 0 0 0 2-2v-.2a2 2 0 0 1 1-1.7l.4-.3a2 2 0 0 1 2 0l.2.1a2 2 0 0 0 2.7-.7l.2-.4a2 2 0 0 0-.7-2.7l-.2-.1a2 2 0 0 1-1-1.7v-.6a2 2 0 0 1 1-1.7l.2-.1a2 2 0 0 0 .7-2.7l-.2-.4a2 2 0 0 0-2.7-.7l-.2.1a2 2 0 0 1-2 0l-.4-.3a2 2 0 0 1-1-1.7V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
     "sparkle": '<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
     "plusbox": '<rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/>',
@@ -123,7 +128,8 @@ PAGE = r"""<!doctype html>
   #page-lol.active { display: flex; flex-direction: column; }
   #page-lol > * { flex: none; }
   /* Extra height goes mostly to the splash card, the rest to the quick actions */
-  #page-lol > .hero { flex: 2 1 auto; max-height: 48vh; }
+  #page-lol > .hero { flex: 2 0 auto; max-height: 48vh; }
+  .hero small { display: block; line-height: 1.5; }
   #page-lol > .acts { flex: 1 1 auto; min-height: 194px; max-height: 380px; }
   @keyframes rise { from { opacity: 0; transform: translateY(10px) scale(.985); } }
   .page::-webkit-scrollbar { width: 8px; } .page::-webkit-scrollbar-thumb { background: #2e2a3d; border-radius: 8px; }
@@ -398,6 +404,39 @@ PAGE = r"""<!doctype html>
   .sg-mini:hover { border-color: rgba(200, 170, 110, .45); color: var(--text); }
   .sg-mini b { display: block; font-size: 12.5px; color: var(--text); } .sg-mini span { font-size: 11px; color: var(--faint); }
 
+  /* Spotify: now playing */
+  .np { position: relative; overflow: hidden; display: flex; align-items: center; gap: 16px; padding: 16px 18px;
+    border-radius: 20px; background: rgba(14, 15, 22, .6); border: 1px solid rgba(255, 255, 255, .07); margin: 4px 0 6px; }
+  .np-bg { position: absolute; inset: -30%; background-size: cover; background-position: center; filter: blur(40px) saturate(1.4);
+    opacity: 0; transition: opacity .8s ease; }
+  .np-bg.on { opacity: .45; }
+  .np::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(10, 10, 16, .55), rgba(10, 10, 16, .75)); }
+  .np > :not(.np-bg) { position: relative; z-index: 1; }
+  .np-art { width: 88px; height: 88px; border-radius: 12px; flex: none; display: grid; place-items: center; color: #1db954;
+    background: #121218 center/cover; box-shadow: 0 10px 28px rgba(0, 0, 0, .45); }
+  .np-art svg { width: 34px; height: 34px; }
+  .np-art.has svg { display: none; }
+  .np-main { flex: 1; min-width: 0; }
+  .np-k { display: flex; align-items: center; gap: 6px; font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase; color: #1db954; }
+  .np-main b { display: block; margin: 3px 0 1px; font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .np-main > span { display: block; color: var(--sub); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .np-time { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 11px; color: var(--faint); font-variant-numeric: tabular-nums; }
+  .np-bar { flex: 1; height: 4px; border-radius: 99px; background: rgba(255, 255, 255, .14); overflow: hidden; }
+  .np-bar i { display: block; height: 100%; width: 0; border-radius: inherit; background: #1db954; }
+  .np-viz { display: flex; align-items: flex-end; gap: 3px; height: 44px; flex: none; }
+  .np-viz i { width: 4px; height: 3px; border-radius: 2px; background: linear-gradient(0deg, #1db954, #6ee7a0); opacity: .9; }
+  .np-ctl { display: flex; align-items: center; gap: 6px; flex: none; }
+  .np-b { width: 36px; height: 36px; border-radius: 50%; border: 0; display: grid; place-items: center; cursor: pointer;
+    background: rgba(255, 255, 255, .08); color: var(--text); transition: background .15s, transform .15s; }
+  .np-b:hover { background: rgba(255, 255, 255, .16); transform: scale(1.06); }
+  .np-b:active { transform: scale(.94); }
+  .np-b svg { width: 16px; height: 16px; }
+  .np-play { width: 46px; height: 46px; background: #1db954; color: #0b1a10; }
+  .np-play:hover { background: #22d063; }
+  .np-play svg { width: 18px; height: 18px; fill: currentColor; }
+  .np-b.muted { background: rgba(248, 113, 113, .22); color: #fca5a5; }
+  .np.idle .np-ctl, .np.idle .np-viz, .np.idle .np-time { opacity: .35; pointer-events: none; }
+
   /* Cinematic backdrop (over the ambient styles above) */
   .ambient { background: #07080d; }
   .blob { display: none; }
@@ -520,9 +559,22 @@ PAGE = r"""<!doctype html>
   </section>
 
   <section class="page" id="page-spotify">
-    <div class="grid g2">
-      <div class="card tile" style="cursor:default"><div class="ico">__spotify__</div><div class="t"><b>Spotify</b><span id="sp-sub"></span></div><i class="end" id="sp-dot"></i></div>
-      <div class="card tile" data-act="spotify_auto"><div class="ico">__sync__</div><div class="t"><b>Otomatik uygula</b><span>Spotify güncellenince</span></div><i class="end" id="sp-auto"></i></div>
+    <div class="np" id="np">
+      <div class="np-bg" id="np-bg"></div>
+      <div class="np-art" id="np-art">__spotify__</div>
+      <div class="np-main">
+        <small class="np-k" id="np-k">Şimdi çalan</small>
+        <b id="np-title">Spotify'da bir şey çalmıyor</b>
+        <span id="np-artist">Spotify'ı açıp bir şarkı başlat</span>
+        <div class="np-time"><span id="np-pos">0:00</span><div class="np-bar"><i id="np-fill"></i></div><span id="np-dur">0:00</span></div>
+      </div>
+      <div class="np-viz" id="np-viz" aria-hidden="true"></div>
+      <div class="np-ctl">
+        <button class="np-b" id="np-prev" title="Önceki">__prev__</button>
+        <button class="np-b np-play" id="np-play" title="Oynat / duraklat">__play__</button>
+        <button class="np-b" id="np-next" title="Sonraki">__next__</button>
+        <button class="np-b" id="np-mute" title="Spotify'ı sessize al">__vol__</button>
+      </div>
     </div>
     <div class="section">Tema</div>
     <div class="themes" id="themes"></div>
@@ -560,7 +612,7 @@ function ago(s) {
 }
 const STATUS = { online: "Çevrimiçi", offline: "Çevrimdışı", mobile: "Mobil" };
 const ICON = { sparkle: `__sparkle__`, plusbox: `__plusbox__`, users: `__users__`, shield: `__shield__`, power: `__power__`,
-  sync: `__sync__`, moon: `__moon__`, play: `__play__`, image: `__image__`, wind: `__wind__` };
+  sync: `__sync__`, spotify: `__spotify__`, moon: `__moon__`, play: `__play__`, image: `__image__`, wind: `__wind__` };
 
 function buildThemes() {
   $("themes").replaceChildren(...THEMES.map((t) => {
@@ -622,6 +674,7 @@ const SETTINGS = [
   ["autostart", "app", ICON.power, "Windows ile başlat", "Açık", "Kapalı"],
   ["auto_update", "app", ICON.sync, "Otomatik güncelleme", "League kapalıyken kurulur", "Yeni sürümde sorulur"],
   ["quiet_start", "app", ICON.moon, "Sessiz başla", "Pencere açılmaz, tepside durur", "Açılışta pencere görünür"],
+  ["spotify_auto", "app", ICON.spotify, "Spotify'ı otomatik güncelle", "Spotify güncellenince tema geri gelir", "Tema elle uygulanır"],
   ["launch_league", "app", ICON.play, "League'i Lust ile aç", "Lust açılınca League başlar", "League'i sen açarsın"],
   ["reduce_motion", "look", ICON.wind, "Animasyonları azalt", "Hareketler kapalı", "Hareketler açık"],
   ["backdrop", "look", ICON.image, "Arka plan", "", "", true, [["cinematic", "Sinematik"], ["hextech", "Sade hextech"]]],
@@ -630,6 +683,7 @@ let sgGroup = "all", sgKey = "";
 function settingValue(s, key) {
   if (key === "autostart") return !!s.autostart;
   if (key === "auto_update") return !!s.auto_update;
+  if (key === "spotify_auto") return !!(s.spotify || {}).auto;
   const values = s.settings || {};
   const fallback = { skins: true, custom_skins: true, lobby_reveal: true, rose_guard: true, quiet_start: false,
     launch_league: true, backdrop: "cinematic", reduce_motion: false };
@@ -657,12 +711,84 @@ function drawSettings(s) {
         });
         tile.appendChild(opt);
       } else {
-        tile.addEventListener("click", () => act(k === "autostart" ? "autostart" : k === "auto_update" ? "auto_update" : "setting",
+        tile.addEventListener("click", () => act(["autostart", "auto_update", "spotify_auto"].includes(k) ? k : "setting",
           { key: k, value: !value }));
       }
       return tile;
     }));
 }
+
+// ---- Spotify: now playing ----
+let media = {}, mediaAt = 0, coverShown = -1, level = 0, bars = [];
+const ICON_PLAY = `__play__`, ICON_PAUSE = `__pause__`, ICON_VOL = `__vol__`, ICON_VOLX = `__volx__`;
+const clock = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+function spotifyVisible() { return $("page-spotify").classList.contains("active") && !document.hidden; }
+async function pollMedia() {
+  if (spotifyVisible()) {
+    try { media = await api("/api/media"); mediaAt = Date.now(); drawMedia(); } catch (e) {}
+  }
+  setTimeout(pollMedia, 1000);
+}
+async function pollLevel() {
+  if (spotifyVisible() && media.playing) {
+    try { level = (await api("/api/level")).level || 0; } catch (e) { level = 0; }
+  } else {
+    level = 0;
+  }
+  setTimeout(pollLevel, 100);
+}
+function drawMedia() {
+  const on = !!media.available;
+  $("np").classList.toggle("idle", !on);
+  $("np-k").textContent = !on ? "Şimdi çalan" : media.playing ? "Şimdi çalan" : "Duraklatıldı";
+  $("np-title").textContent = on ? media.title || "Bilinmeyen şarkı" : "Spotify'da bir şey çalmıyor";
+  $("np-artist").textContent = on ? media.artist || "" : "Spotify'ı açıp bir şarkı başlat";
+  $("np-play").innerHTML = media.playing ? ICON_PAUSE : ICON_PLAY;
+  $("np-mute").innerHTML = media.muted ? ICON_VOLX : ICON_VOL;
+  $("np-mute").classList.toggle("muted", !!media.muted);
+  $("np-mute").title = media.muted ? "Sesi aç" : "Spotify'ı sessize al";
+  if (on && media.cover !== coverShown) {
+    coverShown = media.cover;
+    const url = `/cover.jpg?v=${media.cover}`;
+    const img = new Image();
+    img.onload = () => {
+      $("np-art").style.backgroundImage = $("np-bg").style.backgroundImage = `url(${url})`;
+      $("np-art").classList.add("has");
+      $("np-bg").classList.add("on");
+    };
+    img.src = url;
+  }
+}
+function tickMedia() {
+  if (media.available) {
+    const pos = Math.min(media.duration || 0, (media.position || 0) + (media.playing ? (Date.now() - mediaAt) / 1000 : 0));
+    $("np-pos").textContent = clock(pos);
+    $("np-dur").textContent = clock(media.duration || 0);
+    $("np-fill").style.width = media.duration ? `${(pos * 100) / media.duration}%` : "0%";
+  }
+  // Bars follow Spotify's sound level, each at its own pace so they move like a spectrum
+  const t = Date.now() / 1000;
+  bars.forEach((bar, i) => {
+    const wave = 0.55 + 0.45 * Math.sin(t * (3 + (i % 5) * 1.3) + i * 1.7);
+    const target = media.playing ? Math.min(1, level * 1.6) * wave : 0.04;
+    bar.h = bar.h + (target - bar.h) * 0.35;
+    bar.el.style.height = `${Math.max(3, Math.round(bar.h * 44))}px`;
+  });
+  requestAnimationFrame(tickMedia);
+}
+for (let i = 0; i < 16; i++) {
+  const el = document.createElement("i");
+  $("np-viz").appendChild(el);
+  bars.push({ el, h: 0.04 });
+}
+const mediaAct = (action) => fetch(`/api/media/${action}`, { method: "POST", headers: { "X-Lust-Hub": TOKEN } })
+  .then(() => setTimeout(async () => { try { media = await api("/api/media"); mediaAt = Date.now(); drawMedia(); } catch (e) {} }, 350))
+  .catch(() => {});
+$("np-prev").addEventListener("click", () => mediaAct("previous"));
+$("np-play").addEventListener("click", () => mediaAct("play_pause"));
+$("np-next").addEventListener("click", () => mediaAct("next"));
+$("np-mute").addEventListener("click", () => mediaAct("mute"));
+pollMedia(); pollLevel(); requestAnimationFrame(tickMedia);
 
 function render(s) {
   state = s;
@@ -794,10 +920,6 @@ function render(s) {
   $("sg-cache").textContent = `Hub'ın tarayıcı önbelleği${s.cache_mb ? ` · ${s.cache_mb} MB` : ""}`;
   const sp = s.spotify || {};
   const label = (THEMES.find((t) => t.key === sp.theme) || {}).label || "Orijinal";
-  $("sp-sub").textContent = sp.installed ? `${sp.version || ""} · ${sp.busy ? "Uygulanıyor…" : "Tema: " + label}` :
-    (sp.store ? "Store sürümü desteklenmez" : "Bulunamadı");
-  $("sp-dot").style.background = !sp.installed ? "var(--red)" : sp.busy ? "var(--amber)" : "var(--green)";
-  $("sp-auto").style.background = sp.auto ? "var(--accent)" : "var(--faint)";
   if (!choice) { choice = sp.theme || "luminous"; drawThemes(); }
   $("sp-apply").disabled = $("sp-restore").disabled = !sp.installed || !!sp.busy;
 

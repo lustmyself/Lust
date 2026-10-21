@@ -2,8 +2,8 @@
 ; This creates a proper Windows installer that registers the app
 
 #define MyAppName "Lust"
-#define MyAppVersion "1.4.9.39"
-#define MyAppVersionInfo "1.4.9.39"
+#define MyAppVersion "1.4.9.40"
+#define MyAppVersionInfo "1.4.9.40"
 #define MyAppPublisher "Lust Team"
 #define MyAppURL "https://github.com/lustmyself/Lust"
 #define MyAppExeName "Lust.exe"

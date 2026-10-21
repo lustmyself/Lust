@@ -1,17 +1,19 @@
 {
-  "version": "1.4.9.39",
+  "version": "1.4.9.40",
   "en": [
+    "Now playing on the Spotify tab: the song, its cover and progress, with play, skip and mute",
+    "A small visualizer that moves with Spotify's sound",
+    "Spotify's auto re-apply moved to Settings as \"Update Spotify automatically\"",
+    "The welcome card's top line no longer sits squeezed against its edge",
     "New Settings tab under Spotify: big gold switches for skins, custom skins, Lobby Reveal, Rose guard, start with Windows, silent updates, quiet start and opening League",
-    "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off",
-    "Clear the hub's cache and open Lust's folder from Settings",
-    "Cinematic backdrop: your last champion's splash fills the top of the window, side menu included, and fades into black",
-    "The welcome card shows the splash in its own colours; the rank chip takes the champion's colour"
+    "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "Spotify sekmesinde şimdi çalan: şarkı, kapağı ve süresi; oynat, geç ve sessize al tuşlarıyla",
+    "Spotify'ın sesine göre hareket eden mini görselleştirici",
+    "Spotify'ın otomatik uygulaması Ayarlar'a \"Spotify'ı otomatik güncelle\" olarak taşındı",
+    "Karşılama kartının üst satırı artık kenara sıkışmıyor",
     "Spotify'ın altında yeni Ayarlar sekmesi: skinler, özel skinler, Lobby Reveal, Rose koruması, Windows ile başlat, sessiz güncelleme, sessiz başla ve League'i açma için büyük altın anahtarlar",
-    "Hub'ın arka planını seç (sinematik ya da sade hextech) ve animasyonları kapat",
-    "Ayarlardan hub önbelleğini temizle ve Lust klasörünü aç",
-    "Sinematik arka plan: son oynadığın şampiyonun splash'ı sol menü dahil pencerenin üstünü kaplıyor ve siyaha eriyor",
-    "Karşılama kartı splash'ı kendi renkleriyle gösteriyor; rank kapsülü şampiyonun rengini alıyor"
+    "Hub'ın arka planını seç (sinematik ya da sade hextech) ve animasyonları kapat"
   ]
 }

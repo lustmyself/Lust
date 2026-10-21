@@ -94,6 +94,22 @@ class _Handler(BaseHTTPRequestHandler):
                 return self._send(200, lust_hero.image_path().read_bytes(), "image/jpeg")
             except OSError:
                 return self._send(404)
+        if path == "/api/media":
+            if not self._authorized():
+                return self._send(403)
+            from launcher import lust_media
+            return self._send(200, json.dumps(lust_media.state()).encode("utf-8"), "application/json")
+        if path == "/api/level":
+            if not self._authorized():
+                return self._send(403)
+            from launcher import lust_media
+            return self._send(200, json.dumps({"level": round(lust_media.level(), 3)}).encode("utf-8"), "application/json")
+        if path == "/cover.jpg":
+            from launcher import lust_media
+            try:
+                return self._send(200, lust_media.cover_path().read_bytes(), "image/jpeg")
+            except OSError:
+                return self._send(404)
         if path == "/icon.png":
             try:
                 from utils.core.paths import get_asset_path
@@ -103,6 +119,10 @@ class _Handler(BaseHTTPRequestHandler):
         return self._send(404)
 
     def do_POST(self) -> None:  # noqa: N802
+        if self._authorized() and self.path.startswith("/api/media/"):
+            from launcher import lust_media
+            ok = lust_media.control(self.path.rsplit("/", 1)[-1])
+            return self._send(200 if ok else 404, b'{"ok": true}' if ok else b"", "application/json")
         if not self._authorized() or not self.path.startswith("/api/action/"):
             return self._send(403)
         name = self.path.rsplit("/", 1)[-1]

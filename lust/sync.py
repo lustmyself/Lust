@@ -622,6 +622,14 @@ EDITS += [
     ('Lust.spec', "    'launcher.lust_hub',\n", "    'launcher.lust_hub',\n    'launcher.lust_settings',\n"),
 ]
 
+
+# Spotify's now playing in the hub (launcher/lust_media.py): Windows' media controls and
+# Spotify's own audio session (mute, sound level for the visualizer)
+EDITS += [
+    ('requirements.txt', 'Pillow==10.4.0\n', 'Pillow==10.4.0\nwinrt-runtime==3.2.1\nwinrt-Windows.Foundation==3.2.1\nwinrt-Windows.Foundation.Collections==3.2.1\nwinrt-Windows.Media.Control==3.2.1\nwinrt-Windows.Storage.Streams==3.2.1\ncomtypes==1.4.17\npycaw==20260927\n'),
+    ('Lust.spec', "    'launcher.lust_settings',\n", "    'launcher.lust_settings',\n    'launcher.lust_media',\n    'winrt.windows.foundation',\n    'winrt.windows.foundation.collections',\n    'winrt.windows.media.control',\n    'winrt.windows.storage.streams',\n    'comtypes',\n    'pycaw.pycaw',\n"),
+]
+
 # Custom skins (pengu/communication/lust_custom_skins.py): the Lust hub's Custom skins tab
 # replaces champ select's Custom mods button; a switched-on skin plays on its champion's default skin
 EDITS += [

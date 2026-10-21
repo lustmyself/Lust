@@ -682,7 +682,7 @@ EDITS += [
      "        else:\n"
      "            status_callback(f\"Downloading update {remote_version or ''}\")\n"
      "        if not predownloaded and not self.downloader.download_update(\n"),
-    ("Lust.spec", "    'launcher.core',\n", "    'launcher.core',\n    'launcher.lust_autoupdate',\n    'launcher.lust_cleanup',\n"),
+    ("Lust.spec", "    'launcher.core',\n", "    'launcher.core',\n    'launcher.lust_autoupdate',\n    'launcher.lust_cleanup',\n    'launcher.lust_hero',\n"),
 ]
 
 

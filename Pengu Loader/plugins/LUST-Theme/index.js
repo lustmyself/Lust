@@ -4881,6 +4881,12 @@ const LUST_TR = {
   "Pick the champion": "Şampiyonu seç",
   "Change the champion": "Şampiyonu değiştir",
   "Welcome": "Hoş geldin",
+  "Unranked": "Derecesiz",
+  "Iron": "Demir", "Bronze": "Bronz", "Silver": "Gümüş", "Gold": "Altın", "Platinum": "Platin", "Emerald": "Zümrüt",
+  "Diamond": "Elmas", "Master": "Ustalık", "Grandmaster": "Büyük Usta", "Challenger": "Şampiyonluk",
+  "Ranked Solo/Duo": "Dereceli Tek/Çift", "Ranked Flex": "Dereceli Esnek", "Normal": "Normal", "Quickplay": "Hızlı Oyun",
+  "Match": "Maç", "Last match": "Son maç", "Victory": "Galibiyet", "Defeat": "Mağlubiyet", "W": "G", "L": "M",
+  "Level {level}": "Seviye {level}",
   "Lust is ready": "Lust hazır",
   "Your status, look, skins and plugins, all in one place.": "Durumun, görünümün, skinlerin ve eklentilerin tek yerde.",
   "On": "Açık",
@@ -5143,18 +5149,85 @@ async function customSkinsTab(page) {
   });
   await refresh();
 }
-// The welcome card on top of the Status tab
+// The welcome card on top of the Status tab: the player, their rank and their
+// last match, on that champion's splash art. Read from the client, kept for next time.
+const LUST_TIERS = { IRON: "Iron", BRONZE: "Bronze", SILVER: "Silver", GOLD: "Gold", PLATINUM: "Platinum",
+  EMERALD: "Emerald", DIAMOND: "Diamond", MASTER: "Master", GRANDMASTER: "Grandmaster", CHALLENGER: "Challenger" };
+const LUST_QUEUES = { 420: "Ranked Solo/Duo", 440: "Ranked Flex", 400: "Normal", 430: "Normal", 490: "Quickplay",
+  480: "Quickplay", 450: "ARAM", 1700: "Arena", 1900: "URF", 900: "URF" };
+async function lustHeroData() {
+  const get = async (path) => {
+    const response = await fetch(path);
+    if (!response.ok) throw new Error(path);
+    return response.json();
+  };
+  const summoner = await get("/lol-summoner/v1/current-summoner");
+  const data = { name: summoner.gameName || summoner.displayName || "", tag: summoner.tagLine || "",
+    level: summoner.summonerLevel || 0 };
+  try {
+    const solo = ((await get("/lol-ranked/v1/current-ranked-stats")).queueMap || {}).RANKED_SOLO_5x5 || {};
+    const tier = solo.tier && solo.tier !== "NONE" ? solo.tier : "";
+    let rank = tier ? lustTr(LUST_TIERS[tier] || tier) : lustTr("Unranked");
+    if (tier && solo.division && solo.division !== "NA" && !["MASTER", "GRANDMASTER", "CHALLENGER"].includes(tier)) rank += ` ${solo.division}`;
+    if (tier) rank += ` · ${solo.leaguePoints || 0} LP`;
+    Object.assign(data, { rank, wins: solo.wins || 0, losses: solo.losses || 0 });
+  } catch (error) {}
+  try {
+    const games = ((await get("/lol-match-history/v1/products/lol/current-summoner/matches?begIndex=0&endIndex=1")).games || {}).games || [];
+    if (games.length) {
+      const player = games[0].participants[0];
+      const stats = player.stats || {};
+      const champion = await get(`/lol-game-data/assets/v1/champions/${player.championId}.json`);
+      const skin = (champion.skins || [])[0] || {};
+      data.last = { champion: champion.name || "", win: !!stats.win, kda: `${stats.kills || 0}/${stats.deaths || 0}/${stats.assists || 0}`,
+        queue: lustTr(LUST_QUEUES[games[0].queueId] || "Match"), splash: skin.uncenteredSplashPath || skin.splashPath || "" };
+    }
+  } catch (error) {}
+  return data;
+}
+function lustHeroFill(hero, data) {
+  const make = (tag, cls, text) => Object.assign(document.createElement(tag), { className: cls, textContent: text });
+  const body = make("div", "lust-hero-body", "");
+  body.appendChild(make("small", "", lustTr("Lust is ready") + " · " + lustTr("Welcome")));
+  const title = make("b", "", data && data.name ? data.name : lustTr("Lust is ready"));
+  if (data && data.tag) title.appendChild(make("i", "", ` #${data.tag}`));
+  body.appendChild(title);
+  const chips = make("div", "lust-hero-chips", "");
+  if (data && data.rank) chips.appendChild(make("span", "lust-chip rank", data.rank));
+  if (data && (data.wins || data.losses)) {
+    const total = data.wins + data.losses;
+    chips.appendChild(make("span", "lust-chip", `${data.wins}${lustTr("W")} ${data.losses}${lustTr("L")} · %${Math.round(data.wins * 100 / total)}`));
+  }
+  if (data && data.level) chips.appendChild(make("span", "lust-chip", lustTr("Level {level}", { level: data.level })));
+  if (chips.childElementCount) body.appendChild(chips);
+  else body.appendChild(make("span", "", lustTr("Your status, look, skins and plugins, all in one place.")));
+  const parts = [body];
+  if (data && data.last) {
+    const last = make("div", "lust-hero-last", "");
+    last.append(make("small", "", lustTr("Last match")), make("b", "", data.last.champion),
+      make("span", "lust-hero-result " + (data.last.win ? "win" : "loss"), lustTr(data.last.win ? "Victory" : "Defeat")),
+      make("span", "", `${data.last.kda} · ${data.last.queue}`));
+    parts.push(last);
+  }
+  const art = make("div", "lust-hero-art", "");
+  if (data && data.last && data.last.splash) {
+    const img = new Image();
+    img.onload = () => { art.style.backgroundImage = `url("${img.src}")`; art.classList.add("on"); };
+    img.src = data.last.splash;
+  }
+  hero.replaceChildren(art, ...parts);
+}
 function lustHero(page) {
   const hero = document.createElement("div");
   hero.className = "lust-hero";
-  const small = document.createElement("small");
-  small.textContent = lustTr("Welcome");
-  const title = document.createElement("b");
-  title.textContent = lustTr("Lust is ready");
-  const sub = document.createElement("span");
-  sub.textContent = lustTr("Your status, look, skins and plugins, all in one place.");
-  hero.append(small, title, sub);
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem("lust-hero") || "null"); } catch (error) {}
+  lustHeroFill(hero, saved);
   page.appendChild(hero);
+  lustHeroData().then((data) => {
+    try { localStorage.setItem("lust-hero", JSON.stringify(data)); } catch (error) {}
+    if (document.body.contains(hero) && JSON.stringify(data) !== JSON.stringify(saved)) lustHeroFill(hero, data);
+  }).catch(() => {});
 }
 // Rose's own settings (injection, game path, mods) keep their panel.
 function coreTab(section) {
@@ -5537,13 +5610,42 @@ const LUST_PANEL_CSS = `
   .lust-hub-version { margin: 0; padding: 3px 10px; border-radius: 99px; background: #211e2d; border: 1px solid #2e2a3d; color: #a3a0ad; font-size: 11px; font-weight: 400; }
   .lust-hub-close { top: 16px; right: 18px; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; }
   .lust-hub-close:hover { background: #c42b4a; color: #fff; }
-  .lust-hero { position: relative; overflow: hidden; margin-bottom: 14px; padding: 18px 20px; border-radius: 18px; color: #fff;
+  .lust-hero { position: relative; overflow: hidden; margin-bottom: 14px; padding: 18px 20px; min-height: 120px; border-radius: 18px;
+    color: #fff; display: flex; align-items: flex-end; gap: 14px;
     background: linear-gradient(120deg, #7c3aed 0%, #a21caf 55%, #db2777 100%); }
-  .lust-hero::after { content: ""; position: absolute; width: 220px; height: 220px; right: -60px; top: -90px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(255, 255, 255, .25), transparent 70%); }
-  .lust-hero small { display: block; opacity: .85; font-size: 12px; }
-  .lust-hero b { display: block; margin: 2px 0 4px; font: 600 22px "Spiegel", "Arial", sans-serif; }
+  .lust-hero-art { position: absolute; inset: 0; background-size: cover; background-position: center 22%; opacity: 0;
+    transition: opacity .8s ease; animation: lust-drift 24s ease-in-out infinite alternate; }
+  .lust-hero-art.on { opacity: 1; }
+  .lust-hero::before { content: ""; position: absolute; inset: 0; z-index: 1;
+    background: linear-gradient(90deg, rgba(22, 14, 40, .92) 0%, rgba(60, 20, 90, .55) 55%, rgba(219, 39, 119, .25) 100%); }
+  @keyframes lust-drift { from { transform: scale(1.08); } to { transform: scale(1.14) translateX(-2%); } }
+  .lust-hero-body, .lust-hero-last { position: relative; z-index: 2; }
+  .lust-hero-body { flex: 1; min-width: 0; }
+  .lust-hero small { display: block; opacity: .8; font-size: 12px; }
+  .lust-hero b { display: block; margin: 2px 0 8px; font: 700 24px "Spiegel", "Arial", sans-serif; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; }
+  .lust-hero b i { font-style: normal; font-weight: 400; opacity: .6; font-size: 17px; }
   .lust-hero span { opacity: .9; font-size: 12px; }
+  .lust-hero-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .lust-chip { padding: 4px 10px; border-radius: 99px; font-size: 11.5px; font-weight: 600; opacity: 1 !important;
+    background: rgba(255, 255, 255, .14); border: 1px solid rgba(255, 255, 255, .18); }
+  .lust-chip.rank { background: linear-gradient(135deg, rgba(167, 139, 250, .5), rgba(219, 39, 119, .45)); }
+  .lust-hero-last { flex: none; text-align: right; padding: 10px 14px; border-radius: 14px; background: rgba(10, 8, 18, .5);
+    border: 1px solid rgba(255, 255, 255, .12); }
+  .lust-hero-last b { font-size: 16px; margin: 2px 0; }
+  .lust-hero-last span { display: block; font-size: 11.5px; }
+  .lust-hero-result { font-weight: 700; } .lust-hero-result.win { color: #4ade80; } .lust-hero-result.loss { color: #f87171; }
+  /* Lust's icons: a purple-to-pink gradient line */
+  .lust-hub-tab:not(.active) svg { stroke: url(#lust-grad); filter: drop-shadow(0 0 5px rgba(167, 139, 250, .35)); }
+  .lust-hub-tab:active { transform: scale(.92); transition-duration: .06s; }
+  /* Motion: cards rise in turn */
+  @keyframes lust-rise { from { opacity: 0; transform: translateY(10px) scale(.985); } }
+  .lust-hub-page.active > * { animation: lust-rise .45s cubic-bezier(.2, .8, .2, 1) both; }
+  .lust-hub-page.active > *:nth-child(2) { animation-delay: .05s; } .lust-hub-page.active > *:nth-child(3) { animation-delay: .1s; }
+  .lust-hub-page.active > *:nth-child(4) { animation-delay: .15s; } .lust-hub-page.active > *:nth-child(5) { animation-delay: .2s; }
+  .lust-hub-page.active > *:nth-child(n+6) { animation-delay: .25s; }
+  .lust-skin-toggle::after { transition: left .3s cubic-bezier(.3, 1.6, .5, 1), background .15s; }
+  #lust-hub lol-uikit-flat-button:active { transform: scale(.96); }
   .lust-hub-section, #lust-hub .theme-settings-section { margin: 0 0 12px; padding: 14px 16px; border-radius: 14px;
     background: #211e2d; border: 1px solid transparent; }
   .lust-hub-title, #lust-hub .theme-settings-section-title { border-bottom: 0; padding-bottom: 0; margin-bottom: 10px;
@@ -5654,6 +5756,12 @@ function mountLustHub() {
   const style = document.createElement("style");
   style.textContent = LUST_PANEL_CSS;
   document.head.appendChild(style);
+  const defs = document.createElement("div");
+  defs.style.cssText = "position:absolute;width:0;height:0;overflow:hidden";
+  defs.innerHTML = '<svg width="0" height="0" aria-hidden="true"><defs><linearGradient id="lust-grad" x1="0" y1="0" x2="1" y2="1">'
+    + '<stop offset="0" stop-color="#c4b5fd"/><stop offset=".55" stop-color="#a78bfa"/><stop offset="1" stop-color="#f472b6"/>'
+    + '</linearGradient></defs></svg>';
+  document.body.appendChild(defs);
   // A click on LUST opens the hub. Caught on the way down, before LUST-UI's own
   // listener on the nav item; with Rose's panel open the click goes through to close it.
   document.addEventListener("click", (event) => {

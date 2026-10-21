@@ -88,6 +88,12 @@ class _Handler(BaseHTTPRequestHandler):
             if preview:
                 return self._send(200, preview.read_bytes(), "image/png")
             return self._send(404)
+        if path == "/hero.jpg":
+            from launcher import lust_hero
+            try:
+                return self._send(200, lust_hero.image_path().read_bytes(), "image/jpeg")
+            except OSError:
+                return self._send(404)
         if path == "/icon.png":
             try:
                 from utils.core.paths import get_asset_path

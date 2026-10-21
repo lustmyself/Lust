@@ -163,6 +163,11 @@ def _news():
     return {"version": data.get("version", ""), "items": data.get(LANG) or data.get("en") or []}
 
 
+def _hero():
+    from launcher import lust_hero
+    return lust_hero.get()
+
+
 def _auto_update_on() -> bool:
     from launcher import lust_autoupdate
     return lust_autoupdate.enabled()
@@ -244,6 +249,7 @@ def snapshot() -> dict:
         rose=_cached("rose", 20, _rose_status) or {},
         auto_update=_cached("auto_update", 5, _auto_update_on),
         pending=_auto_update_pending(),
+        hero=_hero(),
     )
     state["detail"] = _translate(state["detail"])
     state["status"] = _translate(state["status"])
@@ -516,6 +522,8 @@ def attach(tray_manager) -> None:
     from launcher import lust_cleanup, lust_rose
     threading.Thread(target=lust_cleanup.run, daemon=True, name="LustCleanup").start()
     lust_rose.keep_rose_off()
+    from launcher import lust_hero
+    lust_hero.start()
 
 
 def _spotify_reapply() -> None:

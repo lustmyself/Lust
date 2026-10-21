@@ -74,16 +74,58 @@ PAGE = r"""<!doctype html>
   .win svg { width: 16px; height: 16px; }
   .page { flex: 1; overflow-y: auto; padding: 4px 26px 22px; display: none; }
   .page.active { display: block; animation: rise .25s ease; }
-  @keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px) scale(.985); } }
   .page::-webkit-scrollbar { width: 8px; } .page::-webkit-scrollbar-thumb { background: #2e2a3d; border-radius: 8px; }
 
-  .hero { border-radius: 18px; padding: 20px 22px; color: #fff; position: relative; overflow: hidden;
+  .hero { border-radius: 20px; min-height: 150px; color: #fff; position: relative; overflow: hidden; display: flex;
+    align-items: flex-end; gap: 16px; padding: 20px 22px;
     background: linear-gradient(120deg, #7c3aed 0%, #a21caf 55%, #db2777 100%); }
-  .hero::after { content: ""; position: absolute; width: 240px; height: 240px; right: -60px; top: -90px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(255, 255, 255, .25), transparent 70%); }
-  .hero small { opacity: .85; font-size: 12px; }
-  .hero h2 { margin: 2px 0 4px; font-size: 24px; font-weight: 600; }
-  .hero p { margin: 0; opacity: .9; font-size: 12px; }
+  .hero-art { position: absolute; inset: 0; background-size: cover; background-position: center 22%; opacity: 0;
+    transform: scale(1.08); transition: opacity .8s ease; animation: drift 24s ease-in-out infinite alternate; }
+  .hero-art.on { opacity: 1; }
+  .hero::before { content: ""; position: absolute; inset: 0; z-index: 1;
+    background: linear-gradient(90deg, rgba(22, 14, 40, .92) 0%, rgba(60, 20, 90, .55) 55%, rgba(219, 39, 119, .25) 100%); }
+  @keyframes drift { from { transform: scale(1.08) translateX(0); } to { transform: scale(1.14) translateX(-2%); } }
+  .hero-body, .hero-last { position: relative; z-index: 2; }
+  .hero-body { flex: 1; min-width: 0; }
+  .hero small { opacity: .8; font-size: 12px; }
+  .hero h2 { margin: 2px 0 8px; font-size: 26px; font-weight: 700; letter-spacing: -.3px; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; }
+  .hero h2 i { font-style: normal; font-weight: 400; opacity: .6; font-size: 18px; }
+  .hero p { margin: 8px 0 0; opacity: .85; font-size: 12px; }
+  .hero-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { padding: 4px 10px; border-radius: 99px; font-size: 11.5px; font-weight: 600; background: rgba(255, 255, 255, .14);
+    border: 1px solid rgba(255, 255, 255, .18); backdrop-filter: blur(8px); }
+  .chip.rank { background: linear-gradient(135deg, rgba(167, 139, 250, .5), rgba(219, 39, 119, .45)); }
+  .hero-last { flex: none; text-align: right; padding: 12px 14px; border-radius: 14px; background: rgba(10, 8, 18, .45);
+    border: 1px solid rgba(255, 255, 255, .12); backdrop-filter: blur(10px); }
+  .hero-last b { display: block; font-size: 16px; margin: 2px 0; }
+  .hero-last span { display: block; font-size: 11.5px; opacity: .85; }
+  .hl-result { font-weight: 700; opacity: 1 !important; }
+  .hl-result.win { color: #4ade80; } .hl-result.loss { color: #f87171; }
+
+  /* Lust's icons: a purple-to-pink gradient line on a soft tinted tile */
+  .ico { background: linear-gradient(135deg, rgba(124, 58, 237, .22), rgba(219, 39, 119, .16)) !important;
+    border: 1px solid rgba(167, 139, 250, .22); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06); }
+  .ico svg { stroke: url(#lust-grad); filter: drop-shadow(0 0 6px rgba(167, 139, 250, .35)); }
+  .tile.danger .ico svg { stroke: var(--red); filter: none; }
+
+  /* Motion: cards rise in turn, everything answers a press */
+  .page.active > * { animation: rise .45s cubic-bezier(.2, .8, .2, 1) both; }
+  .page.active > *:nth-child(2) { animation-delay: .05s; } .page.active > *:nth-child(3) { animation-delay: .1s; }
+  .page.active > *:nth-child(4) { animation-delay: .15s; } .page.active > *:nth-child(5) { animation-delay: .2s; }
+  .page.active > *:nth-child(6) { animation-delay: .25s; } .page.active > *:nth-child(7) { animation-delay: .3s; }
+  .grid > .tile { animation: rise .45s cubic-bezier(.2, .8, .2, 1) both; }
+  .grid > .tile:nth-child(2) { animation-delay: .06s; } .grid > .tile:nth-child(3) { animation-delay: .12s; }
+  .grid > .tile:nth-child(4) { animation-delay: .18s; } .grid > .tile:nth-child(5) { animation-delay: .24s; }
+  .grid > .tile:nth-child(6) { animation-delay: .3s; }
+  .tile:active, .btn:active, .seg button:active, .theme:active, .auto:active { transform: scale(.96); transition-duration: .06s; }
+  .round:active { transform: scale(.9); }
+  .tile .ico { transition: transform .25s cubic-bezier(.3, 1.6, .5, 1); }
+  .tile:hover .ico { transform: rotate(-6deg) scale(1.08); }
+  .switch::after { transition: left .3s cubic-bezier(.3, 1.6, .5, 1), background .15s !important; }
+  .seg button { transition: background .2s, color .2s, transform .1s; }
+  #toast { transition: opacity .25s, transform .4s cubic-bezier(.3, 1.6, .5, 1) !important; }
   .bar { margin-top: 14px; height: 8px; border-radius: 9px; background: rgba(255, 255, 255, .22); overflow: hidden; }
   .bar > i { display: block; height: 100%; width: 0; border-radius: 9px; background: #fff; transition: width .4s; }
   .bar.busy > i { width: 30%; animation: busy 1.3s ease-in-out infinite; }
@@ -165,6 +207,11 @@ PAGE = r"""<!doctype html>
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs><linearGradient id="lust-grad" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#c4b5fd"/><stop offset=".55" stop-color="#a78bfa"/><stop offset="1" stop-color="#f472b6"/>
+  </linearGradient></defs>
+</svg>
 <nav class="rail">
   <div class="logo">L</div>
   <div class="tab active" data-page="lol" data-label="LoL">__lol__</div>
@@ -181,11 +228,21 @@ PAGE = r"""<!doctype html>
   </header>
 
   <section class="page active" id="page-lol">
-    <div class="hero">
-      <small id="h-small">Hoş geldin</small>
-      <h2 id="h-title">Lust başlıyor</h2>
-      <p id="h-sub"></p>
-      <div class="bar busy" id="h-bar"><i></i></div>
+    <div class="hero" id="hero">
+      <div class="hero-art" id="h-art"></div>
+      <div class="hero-body">
+        <small id="h-small">Hoş geldin</small>
+        <h2 id="h-title">Lust başlıyor</h2>
+        <div class="hero-chips" id="h-chips"></div>
+        <p id="h-sub"></p>
+        <div class="bar busy" id="h-bar"><i></i></div>
+      </div>
+      <div class="hero-last" id="h-last" hidden>
+        <small>Son maç</small>
+        <b id="hl-champ"></b>
+        <span class="hl-result" id="hl-result"></span>
+        <span id="hl-meta"></span>
+      </div>
     </div>
     <div class="hint">Oyun ayarlarınızı LoL istemcisindeki LUST sekmesine tıklayarak ayarlayabilirsiniz.</div>
     <div class="card rose" id="rose" hidden>
@@ -302,9 +359,40 @@ function render(s) {
   const off = s.offline || {};
   const bits = [s.league ? "League açık" : "League kapalı", s.ready ? "Skinler hazır" : "Skinler hazırlanıyor"];
   if (off.running) bits.push(STATUS[off.status] || "Çevrimiçi");
-  $("h-small").textContent = starting ? (s.detail || "Hazırlanıyor") : "Hoş geldin";
-  $("h-title").textContent = starting ? (s.status || "Lust başlıyor") : (ready ? "Lust hazır" : "Lust hazırlanıyor");
+  const hero = s.hero || {};
+  $("h-small").textContent = starting ? (s.detail || "Hazırlanıyor") : (ready ? "Lust hazır · hoş geldin" : "Lust hazırlanıyor");
+  if (starting || !hero.name) {
+    $("h-title").textContent = starting ? (s.status || "Lust başlıyor") : (ready ? "Lust hazır" : "Lust hazırlanıyor");
+  } else {
+    $("h-title").replaceChildren(document.createTextNode(hero.name), Object.assign(document.createElement("i"), { textContent: hero.tag ? ` #${hero.tag}` : "" }));
+  }
+  const chips = [];
+  if (!starting && hero.rank) chips.push(["chip rank", hero.rank]);
+  if (!starting && (hero.wins || hero.losses)) {
+    const total = hero.wins + hero.losses;
+    chips.push(["chip", `${hero.wins}G ${hero.losses}M · %${Math.round(hero.wins * 100 / total)}`]);
+  }
+  if (!starting && hero.level) chips.push(["chip", `Seviye ${hero.level}`]);
+  const chipKey = JSON.stringify(chips);
+  if ($("h-chips").dataset.key !== chipKey) {
+    $("h-chips").dataset.key = chipKey;
+    $("h-chips").replaceChildren(...chips.map(([cls, text]) => Object.assign(document.createElement("span"), { className: cls, textContent: text })));
+  }
   $("h-sub").textContent = starting ? (s.transfer || bits.join(" · ")) : bits.join(" · ");
+  const last = hero.last;
+  $("h-last").hidden = starting || !last;
+  if (last) {
+    $("hl-champ").textContent = last.champion;
+    $("hl-result").textContent = last.win ? "Galibiyet" : "Mağlubiyet";
+    $("hl-result").className = "hl-result " + (last.win ? "win" : "loss");
+    $("hl-meta").textContent = `${last.kda} · ${last.queue}`;
+  }
+  if (hero.image && $("h-art").dataset.image !== String(hero.image)) {
+    $("h-art").dataset.image = String(hero.image);
+    const img = new Image();
+    img.onload = () => { $("h-art").style.backgroundImage = `url(${img.src})`; $("h-art").classList.add("on"); };
+    img.src = `/hero.jpg?v=${hero.image}`;
+  }
   const busy = s.progress === null || s.progress === undefined;
   $("h-bar").hidden = !starting;
   $("h-bar").classList.toggle("busy", busy);

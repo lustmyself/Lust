@@ -1,0 +1,138 @@
+"""The desktop hub's welcome card: the player, their rank and their last match.
+
+While the League client runs, its local API gives the Riot ID, solo queue rank and the
+last match (champion, result, KDA); the card shows that champion's splash art behind
+it. Both are kept in Lust's data folder, so the card still shows them while the client
+is closed.
+"""
+
+from __future__ import annotations
+
+import json
+import threading
+import time
+from pathlib import Path
+from typing import Optional
+
+import requests
+
+from utils.core.logging import get_logger
+
+log = get_logger()
+
+REFRESH_S = 120
+QUEUES = {420: "Dereceli Tek/Çift", 440: "Dereceli Esnek", 400: "Normal", 430: "Normal", 490: "Hızlı Oyun",
+          480: "Hızlı Oyun", 450: "ARAM", 1700: "Arena", 1900: "URF", 900: "URF"}
+TIERS = {"IRON": "Demir", "BRONZE": "Bronz", "SILVER": "Gümüş", "GOLD": "Altın", "PLATINUM": "Platin",
+         "EMERALD": "Zümrüt", "DIAMOND": "Elmas", "MASTER": "Ustalık", "GRANDMASTER": "Büyük Usta",
+         "CHALLENGER": "Şampiyonluk"}
+_lock = threading.Lock()
+_data: Optional[dict] = None
+_started = False
+
+
+def _dir() -> Path:
+    from utils.core.paths import get_user_data_dir
+    path = get_user_data_dir() / "hero"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def image_path() -> Path:
+    return _dir() / "splash.jpg"
+
+
+def get() -> Optional[dict]:
+    """The card's data, from the client or as last seen."""
+    global _data
+    with _lock:
+        if _data is None:
+            try:
+                _data = json.loads((_dir() / "hero.json").read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                _data = {}
+        return dict(_data) if _data else None
+
+
+def _rank_text(solo: dict) -> str:
+    tier = solo.get("tier") or ""
+    if not tier or tier == "NONE":
+        return "Derecesiz"
+    division = solo.get("division") or ""
+    name = TIERS.get(tier, tier.title())
+    if division and division != "NA" and tier not in ("MASTER", "GRANDMASTER", "CHALLENGER"):
+        name += f" {division}"
+    return f"{name} · {solo.get('leaguePoints', 0)} LP"
+
+
+def refresh() -> bool:
+    """Read the card from the client. False when the client isn't reachable."""
+    global _data
+    from launcher.lust_offline import _lcu_credentials
+    creds = _lcu_credentials()
+    if not creds:
+        return False
+    port, token = creds
+
+    def get_json(path):
+        response = requests.get(f"https://127.0.0.1:{port}{path}", auth=("riot", token), verify=False,
+                                timeout=5, proxies={"http": None, "https": None})
+        response.raise_for_status()
+        return response
+
+    try:
+        summoner = get_json("/lol-summoner/v1/current-summoner").json()
+        solo = (get_json("/lol-ranked/v1/current-ranked-stats").json().get("queueMap") or {}).get("RANKED_SOLO_5x5") or {}
+        data = {
+            "name": summoner.get("gameName") or summoner.get("displayName") or "",
+            "tag": summoner.get("tagLine") or "",
+            "level": summoner.get("summonerLevel") or 0,
+            "rank": _rank_text(solo),
+            "tier": (solo.get("tier") or "").lower(),
+            "wins": solo.get("wins") or 0,
+            "losses": solo.get("losses") or 0,
+            "updated": int(time.time()),
+        }
+        games = ((get_json("/lol-match-history/v1/products/lol/current-summoner/matches?begIndex=0&endIndex=1")
+                  .json().get("games") or {}).get("games") or [])
+        if games:
+            game = games[0]
+            player = game["participants"][0]
+            stats = player.get("stats") or {}
+            champion = get_json(f"/lol-game-data/assets/v1/champions/{int(player['championId'])}.json").json()
+            data["last"] = {
+                "champion": champion.get("name") or "",
+                "win": bool(stats.get("win")),
+                "kda": f"{stats.get('kills', 0)}/{stats.get('deaths', 0)}/{stats.get('assists', 0)}",
+                "queue": QUEUES.get(game.get("queueId"), "Maç"),
+                "when": game.get("gameCreationDate") or "",
+            }
+            skins = champion.get("skins") or []
+            splash = (skins[0].get("uncenteredSplashPath") or skins[0].get("splashPath")) if skins else None
+            if splash and champion.get("name") != (get() or {}).get("last", {}).get("champion"):
+                image_path().write_bytes(get_json(splash).content)
+            data["image"] = int(image_path().stat().st_mtime) if image_path().exists() else 0
+    except (requests.RequestException, KeyError, ValueError, OSError) as exc:
+        log.debug(f"[Hero] Could not read the card from the client: {exc}")
+        return False
+    with _lock:
+        _data = data
+        try:
+            (_dir() / "hero.json").write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+        except OSError:
+            pass
+    return True
+
+
+def start() -> None:
+    global _started
+    if _started:
+        return
+    _started = True
+
+    def loop():
+        while True:
+            refresh()
+            time.sleep(REFRESH_S)
+
+    threading.Thread(target=loop, daemon=True, name="LustHero").start()

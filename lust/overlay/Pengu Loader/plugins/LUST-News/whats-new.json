@@ -1,21 +1,19 @@
 {
-  "version": "1.4.9.23",
+  "version": "1.4.9.24",
   "en": [
+    "An outdated LTK patcher updates itself: LTK Manager is kept current silently",
+    "Leftovers of older Lust versions are cleaned up by themselves",
+    "Rose running next to Lust is closed so the two don't clash",
     "Silent updates: new versions download in the background and install by themselves while League is closed (switch it off in the desktop hub)",
     "Updates are found even when GitHub's hourly limit is used up",
-    "Lust Offline remembers your status as soon as you change it",
-    "Spotify themes ask before Spotify restarts",
-    "The client uses League's own fonts again (the theme's font is off; turn it on under Appearance if you like it)",
-    "Lust installs as its own app, no longer mixed up with Rose on a PC that has both",
-    "With Rose installed too, the desktop hub says so and opens Rose's uninstaller in one click"
+    "Lust Offline remembers your status as soon as you change it"
   ],
   "tr": [
+    "Eski LTK patcher kendiliğinden güncelleniyor: LTK Manager sessizce güncel tutuluyor",
+    "Eski Lust sürümlerinden kalanlar kendiliğinden temizleniyor",
+    "Lust ile aynı anda çalışan Rose kapatılıyor, böylece çakışmıyorlar",
     "Sessiz güncelleme: yeni sürümler arka planda iner, League kapalıyken kendiliğinden kurulur (masaüstü merkezinden kapatılabilir)",
     "GitHub'ın saatlik sınırı dolsa bile güncellemeler bulunuyor",
-    "Lust Offline durumunu değiştirdiğin an hatırlıyor",
-    "Spotify teması uygulanırken Spotify'ı yeniden başlatmadan önce soruyor",
-    "Client yine League'in kendi fontlarını kullanıyor (temanın fontu kapalı; istersen Görünüm'den açabilirsin)",
-    "Lust artık kendi uygulaması olarak kuruluyor; Rose da kurulu olan bilgisayarlarda karışmıyor",
-    "Rose da kuruluysa masaüstü merkezi bunu söylüyor ve tek tıkla Rose'un kaldırıcısını açıyor"
+    "Lust Offline durumunu değiştirdiğin an hatırlıyor"
   ]
 }

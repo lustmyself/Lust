@@ -1,14 +1,18 @@
 """Rose installed next to Lust: both register their Pengu Loader for League in the same
 place, so with Rose running the client loads Rose's plugins too (its rose icon beside LUST).
 
-The desktop hub tells the player and offers Rose's own uninstaller, which opens visibly
-and asks them; Lust never removes another program by itself.
+While Lust runs it keeps Rose out of the way without touching Rose's files or settings:
+a running Rose is closed, and when the League hook runs Rose's Pengu Loader, Lust puts
+its own back. The desktop hub also offers Rose's own uninstaller, which opens visibly
+and asks the player; Lust never removes another program by itself.
 """
 
 from __future__ import annotations
 
 import os
 import subprocess
+import threading
+import time
 import winreg
 from pathlib import Path
 from typing import Optional
@@ -80,3 +84,54 @@ def uninstall() -> str:
         return "Rose'un kaldırıcısı açılamadı"
     log.info(f"[Rose] Opened Rose's uninstaller: {uninstaller}")
     return "Rose'un kaldırıcısı açıldı: onaylayınca Rose kaldırılır, sonra League'i yeniden başlat"
+
+
+GUARD_INTERVAL_S = 30
+_guard_started = False
+
+
+def _close_rose() -> bool:
+    closed = False
+    for proc in psutil.process_iter(["name"]):
+        if (proc.info.get("name") or "").lower() == "rose.exe":
+            try:
+                proc.terminate()
+                closed = True
+            except psutil.Error:
+                pass
+    return closed
+
+
+def _take_back_hook() -> bool:
+    """The League hook runs Rose's Pengu Loader: put Lust's back (used from the next client start)."""
+    from utils.integration import pengu_loader
+    other = pengu_loader._hook_of_another_loader()
+    if other is None or "rose" not in {part.lower() for part in other.parts}:
+        return False
+    log.info(f"[Rose] The League hook ran Rose's loader ({other}); switching it back to Lust's")
+    return pengu_loader.activate()
+
+
+def keep_rose_off() -> None:
+    """Close Rose and keep the League hook Lust's, while Lust runs."""
+    global _guard_started
+    if _guard_started:
+        return
+    _guard_started = True
+
+    def guard():
+        told = False
+        while True:
+            try:
+                closed = _close_rose()
+                took = _take_back_hook()
+                if (closed or took) and not told:
+                    told = True
+                    log.info("[Rose] Rose was running next to Lust; it was closed")
+                    from launcher import lust_hub
+                    lust_hub.toast("Rose kapatıldı: Lust ile aynı anda çalışınca çakışıyor")
+            except Exception as exc:  # noqa: BLE001
+                log.debug(f"[Rose] Guard failed: {exc}")
+            time.sleep(GUARD_INTERVAL_S)
+
+    threading.Thread(target=guard, daemon=True, name="LustRoseGuard").start()

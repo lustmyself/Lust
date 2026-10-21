@@ -10,7 +10,10 @@ from GitHub, checks its Authenticode signature (League Toolkit signs as
 Natoken LLC) and opens it for the user to click through. Once it closes,
 Lust copies the patcher from the new install.
 
-Lust never installs anything silently and never ships or modifies the patcher.
+Once LTK Manager is installed it is the player's own, kept current: when a newer
+release is out (checked once a day) or the patcher no longer supports the game, Lust
+downloads the signed installer and runs it silently (/S) to update it. A first install
+still opens the installer for the player. Lust never ships or modifies the patcher.
 """
 
 import re
@@ -18,6 +21,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import threading
 from pathlib import Path
 from typing import Callable, Optional
@@ -47,11 +51,28 @@ class SetupError(Exception):
 # Download and verify
 # ---------------------------------------------------------------------------
 
+def _latest_from_web(session: requests.Session) -> tuple:
+    """(tag, URL, size) from github.com itself, which GitHub's API limit does not cover."""
+    r = session.get("https://github.com/LeagueToolkit/ltk-manager/releases/latest",
+                    timeout=15, allow_redirects=False)
+    tag = r.headers.get("Location", "").rstrip("/").rsplit("/tag/", 1)[-1]
+    if r.status_code not in (301, 302) or not re.fullmatch(r"v?[0-9][0-9A-Za-z.\-]*", tag):
+        raise SetupError("Could not find LTK Manager's latest release")
+    url = f"{DOWNLOAD_PREFIX}{tag}/LTK.Manager_{tag.lstrip('vV')}_x64-setup.exe"
+    head = session.head(url, timeout=15, allow_redirects=True)
+    head.raise_for_status()
+    return tag, url, int(head.headers.get("Content-Length") or 0)
+
+
 def latest_release(session: requests.Session) -> tuple:
     """(tag, setup download URL, size) of LTK Manager's latest release."""
-    r = session.get(RELEASES_API, timeout=15, headers={"Accept": "application/vnd.github+json"})
-    r.raise_for_status()
-    release = r.json()
+    try:
+        r = session.get(RELEASES_API, timeout=15, headers={"Accept": "application/vnd.github+json"})
+        r.raise_for_status()
+        release = r.json()
+    except requests.RequestException as e:
+        log.info(f"[LTK] GitHub API unavailable ({e}); asking github.com")
+        return _latest_from_web(session)
     for asset in release.get("assets") or []:
         name = asset.get("name") or ""
         url = asset.get("browser_download_url") or ""
@@ -127,6 +148,88 @@ def open_installer(setup: Path) -> None:
 # Startup flow
 # ---------------------------------------------------------------------------
 
+UPDATE_CHECK_S = 24 * 60 * 60
+
+
+def installed_version() -> Optional[str]:
+    """LTK Manager's version from its Windows uninstall entry, or None when it isn't installed."""
+    if sys.platform != "win32":
+        return None
+    import winreg
+    for hive in (winreg.HKEY_LOCAL_MACHINE, winreg.HKEY_CURRENT_USER):
+        try:
+            with winreg.OpenKey(hive, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\LTK Manager") as key:
+                return str(winreg.QueryValueEx(key, "DisplayVersion")[0]).strip() or None
+        except OSError:
+            continue
+    return None
+
+
+def _version(text: str) -> tuple:
+    return tuple(int(n) for n in re.findall(r"\d+", text or ""))
+
+
+def run_installer_silently(setup: Path) -> None:
+    """Update an installed LTK Manager without showing its installer."""
+    try:
+        subprocess.run([str(setup), "/S"], check=False, timeout=600)
+    except (OSError, subprocess.TimeoutExpired) as e:
+        raise SetupError(f"Could not update LTK Manager: {e}")
+
+
+def _due_for_check() -> bool:
+    from utils.core.paths import get_user_data_dir
+    stamp = get_user_data_dir() / "ltk-update-check"
+    try:
+        if time.time() - stamp.stat().st_mtime < UPDATE_CHECK_S:
+            return False
+    except OSError:
+        pass
+    try:
+        stamp.write_text(str(int(time.time())), encoding="utf-8")
+    except OSError:
+        pass
+    return True
+
+
+def update_installed(tools_dir: Path, current: str, fetch: Callable[[Path], Path],
+                     run_silent: Callable[[Path], None]) -> bool:
+    """Update the player's LTK Manager to the latest release and take its patcher. True when done."""
+    work = Path(tempfile.mkdtemp(prefix="lust-ltk-"))
+    try:
+        setup = fetch(work)
+        log.info(f"[LTK] Updating LTK Manager {current} silently")
+        run_silent(setup)
+    except SetupError as e:
+        log.warning(f"[LTK] {e}")
+        return False
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+    if import_from_ltk_manager(tools_dir):
+        log.info(f"[LTK] Patcher taken from the updated LTK Manager ({installed_version()})")
+        return True
+    return False
+
+
+def _update_if_newer(tools_dir: Path) -> None:
+    """In the background: a newer LTK Manager release replaces the installed one."""
+    try:
+        current = installed_version()
+        if not current or not _due_for_check():
+            return
+        session = requests.Session()
+        try:
+            tag, _, _ = latest_release(session)
+        finally:
+            session.close()
+        if _version(tag) <= _version(current):
+            return
+        log.info(f"[LTK] LTK Manager {tag} is out (installed: {current})")
+        update_installed(tools_dir, current, download_verified_installer, run_installer_silently)
+    except Exception as e:  # noqa: BLE001 - never in the way of starting Lust
+        log.info(f"[LTK] Background LTK Manager check failed: {e}")
+
+
 def patcher_needs_update(tools_dir: Path, game_dir: Optional[Path]) -> bool:
     status = check_ltk_patcher(tools_dir)
     return bool(status.missing) or status.eol is None or status.expired_for(game_dir)
@@ -136,19 +239,36 @@ def ensure_ltk_patcher(tools_dir: Path, game_dir: Optional[Path],
                        ask: Optional[Callable[[str], bool]] = None,
                        fetch: Optional[Callable[[Path], Path]] = None,
                        run_installer: Optional[Callable[[Path], None]] = None,
-                       report_error: Optional[Callable[[str], None]] = None) -> None:
-    """Get a usable patcher into tools_dir, offering to set up LTK Manager.
-
-    Anything left unresolved falls through to Lust's missing-patcher dialog.
+                       report_error: Optional[Callable[[str], None]] = None,
+                       installed: Optional[Callable[[], Optional[str]]] = None,
+                       run_silent: Optional[Callable[[Path], None]] = None,
+                       background: Optional[Callable[[Path], None]] = None) -> None:
+    """Get a usable patcher into tools_dir: update an installed LTK Manager silently,
+    or offer to set it up. Anything left unresolved falls through to Lust's
+    missing-patcher dialog.
     """
     ask = ask or ask_to_install
     fetch = fetch or (lambda work: with_progress(lambda: download_verified_installer(work)))
     run_installer = run_installer or open_installer
     report_error = report_error or show_error
+    installed = installed or installed_version
+    run_silent = run_silent or run_installer_silently
+    if background is None:
+        def background(tools):
+            threading.Thread(target=_update_if_newer, args=(tools,), daemon=True, name="LtkUpdate").start()
 
     import_from_ltk_manager(tools_dir)
+    current = installed()
     if not patcher_needs_update(tools_dir, game_dir):
+        if current:
+            background(tools_dir)  # a newer release, once a day, without holding up Lust
         return
+
+    if current:
+        # The player's LTK Manager no longer supports the game: update it now, silently
+        if update_installed(tools_dir, current, fetch, run_silent) and not patcher_needs_update(tools_dir, game_dir):
+            return
+        log.info("[LTK] Silent LTK Manager update did not give a usable patcher; asking")
 
     status = check_ltk_patcher(tools_dir)
     if not ask("update" if not status.missing and status.eol is not None else "install"):

@@ -513,6 +513,9 @@ def attach(tray_manager) -> None:
     _set(phase="ready", progress=100, detail="", status="")
     threading.Thread(target=_release_watch, daemon=True, name="LustHubReleases").start()
     threading.Thread(target=_spotify_reapply, daemon=True, name="LustSpotify").start()
+    from launcher import lust_cleanup, lust_rose
+    threading.Thread(target=lust_cleanup.run, daemon=True, name="LustCleanup").start()
+    lust_rose.keep_rose_off()
 
 
 def _spotify_reapply() -> None:

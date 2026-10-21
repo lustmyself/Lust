@@ -32,7 +32,7 @@ class EnsurePatcherTests(unittest.TestCase):
         self.calls.append("import")
         return self.tools if self.imports_succeed and "installer" in self.calls else None
 
-    def _run(self, answer=True, fetch_error=None):
+    def _run(self, answer=True, fetch_error=None, installed=None):
         def ask(kind):
             self.calls.append(f"ask:{kind}")
             return answer
@@ -46,10 +46,48 @@ class EnsurePatcherTests(unittest.TestCase):
         def run_installer(path):
             self.calls.append("installer")
 
+        def run_silent(path):
+            self.calls.append("silent")
+
         errors = []
         setup.ensure_ltk_patcher(self.tools, None, ask=ask, fetch=fetch,
-                                 run_installer=run_installer, report_error=errors.append)
+                                 run_installer=run_installer, report_error=errors.append,
+                                 installed=lambda: installed, run_silent=run_silent,
+                                 background=lambda tools: self.calls.append("background"))
         return errors
+
+    def test_installed_ltk_manager_is_checked_in_the_background(self):
+        self.statuses = [_status()]
+        self._run(installed="1.28.1")
+        self.assertEqual(self.calls, ["import", "background"])
+
+    def test_expired_patcher_of_an_installed_manager_updates_silently(self):
+        self.statuses = [_status(expired=True), _status()]
+        self.imports_succeed = True
+        self.calls_before = []
+
+        def import_after_silent(tools_dir):
+            self.calls.append("import")
+            return self.tools if "silent" in self.calls else None
+        with patch.object(setup, "import_from_ltk_manager", side_effect=import_after_silent):
+            self._run(installed="1.27.0")
+        self.assertEqual(self.calls, ["import", "fetch", "silent", "import"])
+        self.assertNotIn("installer", self.calls)
+        self.assertFalse(any(call.startswith("ask") for call in self.calls))
+
+    def test_versions_compare_by_number(self):
+        self.assertGreater(setup._version("v1.28.10"), setup._version("1.28.9"))
+        self.assertEqual(setup._version("v1.28.1"), setup._version("1.28.1"))
+
+    def test_latest_release_falls_back_to_github_com(self):
+        session = MagicMock()
+        session.get.side_effect = [setup.requests.HTTPError("403 rate limit"),
+                                   MagicMock(status_code=302, headers={
+                                       "Location": "https://github.com/LeagueToolkit/ltk-manager/releases/tag/v1.29.0"})]
+        session.head.return_value = MagicMock(headers={"Content-Length": "123"})
+        tag, url, size = setup.latest_release(session)
+        self.assertEqual((tag, size), ("v1.29.0", 123))
+        self.assertEqual(url, setup.DOWNLOAD_PREFIX + "v1.29.0/LTK.Manager_1.29.0_x64-setup.exe")
 
     def test_usable_patcher_asks_nothing(self):
         self.statuses = [_status()]

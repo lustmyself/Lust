@@ -4887,6 +4887,8 @@ const LUST_TR = {
   "Ranked Solo/Duo": "Dereceli Tek/Çift", "Ranked Flex": "Dereceli Esnek", "Normal": "Normal", "Quickplay": "Hızlı Oyun",
   "Match": "Maç", "Last match": "Son maç", "Victory": "Galibiyet", "Defeat": "Mağlubiyet", "W": "G", "L": "M",
   "Level {level}": "Seviye {level}",
+  "{region} cutoffs:": "{region} sınırları:",
+  "{lp} LP to {rank}": "{rank} için {lp} LP",
   "Lust is ready": "Lust hazır",
   "Your status, look, skins and plugins, all in one place.": "Durumun, görünümün, skinlerin ve eklentilerin tek yerde.",
   "On": "Açık",
@@ -5155,6 +5157,21 @@ const LUST_TIERS = { IRON: "Iron", BRONZE: "Bronze", SILVER: "Silver", GOLD: "Go
   EMERALD: "Emerald", DIAMOND: "Diamond", MASTER: "Master", GRANDMASTER: "Grandmaster", CHALLENGER: "Challenger" };
 const LUST_QUEUES = { 420: "Ranked Solo/Duo", 440: "Ranked Flex", 400: "Normal", 430: "Normal", 490: "Quickplay",
   480: "Quickplay", 450: "ARAM", 1700: "Arena", 1900: "URF", 900: "URF" };
+// The server's Challenger and Grandmaster cutoffs, read by Lust from replays.lol
+let lustCutoffWaiter = null;
+function lustCutoffs(region) {
+  const bridge = window.__lustBridge;
+  if (!bridge || !region) return Promise.resolve(null);
+  if (!lustCutoffs.subscribed) {
+    lustCutoffs.subscribed = true;
+    bridge.subscribe("lust-cutoffs", (reply) => lustCutoffWaiter && lustCutoffWaiter(reply));
+  }
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(null), 15000);
+    lustCutoffWaiter = (reply) => { clearTimeout(timer); resolve(reply && reply.cutoff); };
+    bridge.send({ type: "lust-cutoffs", region, requestId: String(Date.now()) });
+  });
+}
 async function lustHeroData() {
   const get = async (path) => {
     const response = await fetch(path);
@@ -5170,7 +5187,11 @@ async function lustHeroData() {
     let rank = tier ? lustTr(LUST_TIERS[tier] || tier) : lustTr("Unranked");
     if (tier && solo.division && solo.division !== "NA" && !["MASTER", "GRANDMASTER", "CHALLENGER"].includes(tier)) rank += ` ${solo.division}`;
     if (tier) rank += ` · ${solo.leaguePoints || 0} LP`;
-    Object.assign(data, { rank, wins: solo.wins || 0, losses: solo.losses || 0 });
+    Object.assign(data, { rank, wins: solo.wins || 0, losses: solo.losses || 0, lp: solo.leaguePoints || 0,
+      tier: tier.toLowerCase() });
+  } catch (error) {}
+  try {
+    data.cutoff = await lustCutoffs((await get("/riotclient/region-locale")).region);
   } catch (error) {}
   try {
     const games = ((await get("/lol-match-history/v1/products/lol/current-summoner/matches?begIndex=0&endIndex=1")).games || {}).games || [];
@@ -5201,6 +5222,20 @@ function lustHeroFill(hero, data) {
   if (data && data.level) chips.appendChild(make("span", "lust-chip", lustTr("Level {level}", { level: data.level })));
   if (chips.childElementCount) body.appendChild(chips);
   else body.appendChild(make("span", "", lustTr("Your status, look, skins and plugins, all in one place.")));
+  const cut = data && data.cutoff;
+  if (cut) {
+    const row = make("div", "lust-hero-cut", "");
+    row.append(make("span", "", lustTr("{region} cutoffs:", { region: cut.region })),
+      make("span", "lust-cut gm", `${lustTr("Grandmaster")} ${cut.grandmaster} LP`),
+      make("span", "lust-cut ch", `${lustTr("Challenger")} ${cut.challenger} LP`));
+    const apex = data.tier === "grandmaster" || data.tier === "challenger";
+    const target = apex ? cut.challenger : data.tier === "master" ? cut.grandmaster : 0;
+    if (target && data.lp < target) {
+      row.appendChild(make("span", "lust-cut-need",
+        lustTr("{lp} LP to {rank}", { lp: target - data.lp, rank: lustTr(apex ? "Challenger" : "Grandmaster") })));
+    }
+    body.appendChild(row);
+  }
   const parts = [body];
   if (data && data.last) {
     const last = make("div", "lust-hero-last", "");
@@ -5627,6 +5662,12 @@ const LUST_PANEL_CSS = `
   .lust-hero b i { font-style: normal; font-weight: 400; opacity: .6; font-size: 17px; }
   .lust-hero span { opacity: .9; font-size: 12px; }
   .lust-hero-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .lust-hero-cut { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 8px; font-size: 11.5px; }
+  .lust-cut { display: inline-flex; align-items: center; gap: 5px; }
+  .lust-cut::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--c); box-shadow: 0 0 8px var(--c); }
+  .lust-cut.gm { --c: #f87171; } .lust-cut.ch { --c: #facc15; }
+  .lust-cut-need { padding: 2px 8px; border-radius: 99px; background: rgba(250, 204, 21, .16); color: #fde68a; font-weight: 600;
+    opacity: 1 !important; }
   .lust-chip { padding: 4px 10px; border-radius: 99px; font-size: 11.5px; font-weight: 600; opacity: 1 !important;
     background: rgba(255, 255, 255, .14); border: 1px solid rgba(255, 255, 255, .18); }
   .lust-chip.rank { background: linear-gradient(135deg, rgba(167, 139, 250, .5), rgba(219, 39, 119, .45)); }

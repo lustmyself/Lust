@@ -236,6 +236,13 @@ class MessageHandler:
 
     def _route(self, payload_type: Optional[str], payload: dict) -> None:
         # Route to appropriate handler
+        if payload_type == "lust-cutoffs":
+            def _reply_cutoffs(request=payload):
+                from launcher.lust_hero import cutoffs_for
+                self._send_response(json.dumps({"type": "lust-cutoffs", "requestId": request.get("requestId"),
+                                                "cutoff": cutoffs_for(str(request.get("region") or ""))}))
+            threading.Thread(target=_reply_cutoffs, daemon=True, name="LustCutoffs").start()
+            return
         if payload_type == "lust-custom-skins":
             from pengu.communication.lust_custom_skins import handle as _handle_custom_skins
             self._send_response(json.dumps(_handle_custom_skins(payload)))

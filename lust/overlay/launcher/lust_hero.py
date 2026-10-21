@@ -9,6 +9,7 @@ is closed.
 from __future__ import annotations
 
 import json
+import re
 import threading
 import time
 from pathlib import Path
@@ -26,6 +27,17 @@ QUEUES = {420: "Dereceli Tek/Çift", 440: "Dereceli Esnek", 400: "Normal", 430: 
 TIERS = {"IRON": "Demir", "BRONZE": "Bronz", "SILVER": "Gümüş", "GOLD": "Altın", "PLATINUM": "Platin",
          "EMERALD": "Zümrüt", "DIAMOND": "Elmas", "MASTER": "Ustalık", "GRANDMASTER": "Üstatlık",
          "CHALLENGER": "Şampiyonluk"}
+# Challenger and Grandmaster LP cutoffs per server, from replays.lol (one page lists them all)
+CUTOFF_URL = "https://www.replays.lol/cutoff/TR/challenger"
+CUTOFF_TTL_S = 30 * 60
+CUTOFF_STALE_S = 7 * 24 * 3600
+PLATFORMS = {"NA": "NA1", "EUW": "EUW1", "EUNE": "EUN1", "KR": "KR", "BR": "BR1", "JP": "JP1", "LAN": "LA1", "LA1": "LA1",
+             "LAS": "LA2", "LA2": "LA2", "OCE": "OC1", "OC1": "OC1", "TR": "TR1", "RU": "RU", "SG": "SG2", "PH": "PH2",
+             "TH": "TH2", "VN": "VN2", "TW": "TW2", "ME": "ME1"}
+_CUTOFF_RE = re.compile(r'"region":"([A-Z0-9]+)","challenger":(\d+),"grandmaster":(\d+),"timeFetched":(\d+)')
+_cutoff_lock = threading.Lock()
+_cutoffs: dict = {}
+_cutoffs_at = 0.0
 _lock = threading.Lock()
 _data: Optional[dict] = None
 _started = False
@@ -52,6 +64,35 @@ def get() -> Optional[dict]:
             except (OSError, ValueError):
                 _data = {}
         return dict(_data) if _data else None
+
+
+def parse_cutoffs(page: str) -> dict:
+    """{platform: {"challenger": lp, "grandmaster": lp}} from the replays.lol page, fresh ones only."""
+    now_ms = time.time() * 1000
+    found = {}
+    for platform, challenger, grandmaster, fetched in _CUTOFF_RE.findall(page.replace('\\"', '"')):
+        if now_ms - int(fetched) < CUTOFF_STALE_S * 1000:
+            found[platform] = {"challenger": int(challenger), "grandmaster": int(grandmaster)}
+    return found
+
+
+def cutoffs_for(region: str) -> Optional[dict]:
+    """The server's Challenger and Grandmaster cutoffs (region as the client names it, e.g. TR)."""
+    global _cutoffs, _cutoffs_at
+    platform = PLATFORMS.get((region or "").upper(), (region or "").upper())
+    with _cutoff_lock:
+        if time.time() - _cutoffs_at > CUTOFF_TTL_S:
+            try:
+                response = requests.get(CUTOFF_URL, timeout=10, headers={"User-Agent": "Mozilla/5.0 Lust"})
+                response.raise_for_status()
+                found = parse_cutoffs(response.text)
+                if found:
+                    _cutoffs = found
+            except requests.RequestException as exc:
+                log.debug(f"[Hero] Could not read the LP cutoffs: {exc}")
+            _cutoffs_at = time.time()
+        cutoff = _cutoffs.get(platform)
+    return dict(cutoff, region=(region or "").upper()) if cutoff else None
 
 
 def _rank_text(solo: dict) -> str:
@@ -91,8 +132,13 @@ def refresh() -> bool:
             "tier": (solo.get("tier") or "").lower(),
             "wins": solo.get("wins") or 0,
             "losses": solo.get("losses") or 0,
+            "lp": solo.get("leaguePoints") or 0,
             "updated": int(time.time()),
         }
+        try:
+            data["cutoff"] = cutoffs_for(get_json("/riotclient/region-locale").json().get("region") or "")
+        except (requests.RequestException, ValueError):
+            pass
         games = ((get_json("/lol-match-history/v1/products/lol/current-summoner/matches?begIndex=0&endIndex=1")
                   .json().get("games") or {}).get("games") or [])
         if games:

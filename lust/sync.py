@@ -507,6 +507,21 @@ EDITS += [
 ]
 
 
+
+# LP cutoffs for the client hub's welcome card: the page can't read replays.lol itself (no CORS)
+EDITS += [
+    ('pengu/communication/message_handler.py',
+     '        if payload_type == "lust-assets":\n',
+     '        if payload_type == "lust-cutoffs":\n'
+     '            def _reply_cutoffs(request=payload):\n'
+     '                from launcher.lust_hero import cutoffs_for\n'
+     '                self._send_response(json.dumps({"type": "lust-cutoffs", "requestId": request.get("requestId"),\n'
+     '                                                "cutoff": cutoffs_for(str(request.get("region") or ""))}))\n'
+     '            threading.Thread(target=_reply_cutoffs, daemon=True, name="LustCutoffs").start()\n'
+     '            return\n'
+     '        if payload_type == "lust-assets":\n'),
+]
+
 # Custom skins (pengu/communication/lust_custom_skins.py): the Lust hub's Custom skins tab
 # replaces champ select's Custom mods button; a switched-on skin plays on its champion's default skin
 EDITS += [

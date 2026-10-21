@@ -94,6 +94,11 @@ PAGE = r"""<!doctype html>
   .hero h2 i { font-style: normal; font-weight: 400; opacity: .6; font-size: 18px; }
   .hero p { margin: 8px 0 0; opacity: .85; font-size: 12px; }
   .hero-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .hero-cut { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 8px; font-size: 11.5px; opacity: .92; }
+  .hero-cut .cut { display: inline-flex; align-items: center; gap: 5px; }
+  .hero-cut .cut::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--c); box-shadow: 0 0 8px var(--c); }
+  .hero-cut .gm { --c: #f87171; } .hero-cut .ch { --c: #facc15; }
+  .hero-cut .need { padding: 2px 8px; border-radius: 99px; background: rgba(250, 204, 21, .16); color: #fde68a; font-weight: 600; }
   .chip { padding: 4px 10px; border-radius: 99px; font-size: 11.5px; font-weight: 600; background: rgba(255, 255, 255, .14);
     border: 1px solid rgba(255, 255, 255, .18); backdrop-filter: blur(8px); }
   .chip.rank { background: linear-gradient(135deg, rgba(167, 139, 250, .5), rgba(219, 39, 119, .45)); }
@@ -234,6 +239,7 @@ PAGE = r"""<!doctype html>
         <small id="h-small">Hoş geldin</small>
         <h2 id="h-title">Lust başlıyor</h2>
         <div class="hero-chips" id="h-chips"></div>
+        <div class="hero-cut" id="h-cut" hidden></div>
         <p id="h-sub"></p>
         <div class="bar busy" id="h-bar"><i></i></div>
       </div>
@@ -379,6 +385,19 @@ function render(s) {
     $("h-chips").replaceChildren(...chips.map(([cls, text]) => Object.assign(document.createElement("span"), { className: cls, textContent: text })));
   }
   $("h-sub").textContent = starting ? (s.transfer || bits.join(" · ")) : bits.join(" · ");
+  const cut = hero.cutoff;
+  $("h-cut").hidden = starting || !cut;
+  if (cut) {
+    const parts = [["cut gm", `Üstatlık ${cut.grandmaster} LP`], ["cut ch", `Şampiyonluk ${cut.challenger} LP`]];
+    const target = hero.tier === "grandmaster" || hero.tier === "challenger" ? cut.challenger : hero.tier === "master" ? cut.grandmaster : 0;
+    if (target && hero.lp < target) parts.push(["need", `${hero.tier === "master" ? "Üstatlık" : "Şampiyonluk"} için ${target - hero.lp} LP`]);
+    const key = JSON.stringify(parts);
+    if ($("h-cut").dataset.key !== key) {
+      $("h-cut").dataset.key = key;
+      $("h-cut").replaceChildren(Object.assign(document.createElement("span"), { textContent: `${cut.region} sınırları:` }),
+        ...parts.map(([cls, text]) => Object.assign(document.createElement("span"), { className: cls, textContent: text })));
+    }
+  }
   const last = hero.last;
   $("h-last").hidden = starting || !last;
   if (last) {

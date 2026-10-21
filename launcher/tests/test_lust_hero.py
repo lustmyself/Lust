@@ -19,5 +19,22 @@ class RankTextTests(unittest.TestCase):
             self.assertFalse(lust_hero.refresh())
 
 
+class CutoffTests(unittest.TestCase):
+    def test_parse_keeps_fresh_servers(self):
+        import time
+        now = int(time.time() * 1000)
+        page = (f'[{{"region":"TR1","challenger":1256,"grandmaster":784,"timeFetched":{now}}},'
+                f'{{"region":"PH2","challenger":500,"grandmaster":200,"timeFetched":1738093826907}}]')
+        self.assertEqual(lust_hero.parse_cutoffs(page), {"TR1": {"challenger": 1256, "grandmaster": 784}})
+        escaped = page.replace('"', '\\"')
+        self.assertEqual(lust_hero.parse_cutoffs(escaped), {"TR1": {"challenger": 1256, "grandmaster": 784}})
+
+    def test_client_region_maps_to_server(self):
+        from unittest import mock
+        with mock.patch.object(lust_hero, "_cutoffs", {"TR1": {"challenger": 1256, "grandmaster": 784}}),                 mock.patch.object(lust_hero, "_cutoffs_at", 1e18):
+            self.assertEqual(lust_hero.cutoffs_for("TR"), {"challenger": 1256, "grandmaster": 784, "region": "TR"})
+            self.assertIsNone(lust_hero.cutoffs_for("EUW"))
+
+
 if __name__ == "__main__":
     unittest.main()

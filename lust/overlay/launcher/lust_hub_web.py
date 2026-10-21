@@ -115,20 +115,21 @@ PAGE = r"""<!doctype html>
 
   .hero { border-radius: 20px; min-height: 150px; color: #fff; position: relative; overflow: hidden; display: flex;
     align-items: flex-end; gap: 16px; padding: 20px 22px;
-    background: linear-gradient(120deg, #7c3aed 0%, #a21caf 55%, #db2777 100%); }
+    background: #0b0c12; }
   .hero-art { position: absolute; inset: 0; background-size: cover; background-position: center 22%; opacity: 0;
     transform: scale(1.08); transition: opacity .8s ease; animation: drift 24s ease-in-out infinite alternate; }
   .hero-art.on { opacity: 1; }
   .hero { box-shadow: 0 18px 50px rgba(var(--tint), .22), inset 0 0 0 1px rgba(255, 255, 255, .07); transition: box-shadow 1.2s ease; }
   .hero::before { content: ""; position: absolute; inset: 0; z-index: 1;
-    background: linear-gradient(90deg, rgba(22, 14, 40, .92) 0%, rgba(60, 20, 90, .55) 55%, rgba(219, 39, 119, .25) 100%); }
+    background: linear-gradient(90deg, rgba(7, 8, 13, .9) 0%, rgba(7, 8, 13, .55) 42%, rgba(7, 8, 13, .05) 75%),
+      linear-gradient(0deg, rgba(7, 8, 13, .55) 0%, transparent 45%); }
   @keyframes drift { from { transform: scale(1.08) translateX(0); } to { transform: scale(1.14) translateX(-2%); } }
   .hero-body, .hero-last { position: relative; z-index: 2; }
   .hero-body { flex: 1; min-width: 0; }
   .hero small { opacity: .8; font-size: 12px; }
-  .hero h2 { margin: 2px 0 8px; font-size: 26px; font-weight: 700; letter-spacing: -.3px; white-space: nowrap;
+  .hero h2 { margin: 2px 0 8px; font-size: 18px; font-weight: 600; letter-spacing: .1px; white-space: nowrap;
     overflow: hidden; text-overflow: ellipsis; }
-  .hero h2 i { font-style: normal; font-weight: 400; opacity: .6; font-size: 18px; }
+  .hero h2 i { font-style: normal; font-weight: 400; opacity: .6; font-size: inherit; }
   .hero p { margin: 8px 0 0; opacity: .85; font-size: 12px; }
   .hero-chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .hero-cut { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 8px; font-size: 11.5px; opacity: .92; }
@@ -141,7 +142,7 @@ PAGE = r"""<!doctype html>
     box-shadow: 0 0 10px rgba(250, 204, 21, .6); transition: width .8s cubic-bezier(.2, .8, .2, 1); }
   .chip { padding: 4px 10px; border-radius: 99px; font-size: 11.5px; font-weight: 600; background: rgba(255, 255, 255, .14);
     border: 1px solid rgba(255, 255, 255, .18); backdrop-filter: blur(8px); }
-  .chip.rank { background: linear-gradient(135deg, rgba(167, 139, 250, .5), rgba(219, 39, 119, .45)); }
+  .chip.rank { background: rgba(var(--tint), .35); border-color: rgba(var(--tint), .6); }
   .hero-last { flex: none; text-align: right; padding: 12px 14px; border-radius: 14px; background: rgba(10, 8, 18, .45);
     border: 1px solid rgba(255, 255, 255, .12); backdrop-filter: blur(10px); }
   .hero-last b { display: block; font-size: 16px; margin: 2px 0; }
@@ -344,6 +345,14 @@ PAGE = r"""<!doctype html>
     background: #2a2540; border: 1px solid #4b3f73; color: var(--text); padding: 10px 18px; border-radius: 99px; max-width: 80%; pointer-events: none; }
   #toast.show { opacity: 1; transform: translate(-50%, 0); }
   #lost { position: fixed; inset: 0; display: none; place-items: center; background: rgba(16, 14, 23, .9); color: var(--sub); }
+  /* Cinematic backdrop (over the ambient styles above) */
+  .ambient { background: #07080d; }
+  .blob { display: none; }
+  .amb-art { inset: 0 0 30% 0; filter: blur(4px) saturate(1.15) brightness(.6); transform: scale(1.03); }
+  .amb-art.on { opacity: 1; }
+  .ambient::after { background: linear-gradient(180deg, rgba(7, 8, 13, .1) 0%, rgba(7, 8, 13, .65) 45%, #07080d 70%); }
+  .rail { background: transparent; backdrop-filter: none; border-right: 1px solid rgba(255, 255, 255, .05); }
+  .card, .act { background: rgba(14, 15, 22, .6); }
 </style>
 </head>
 <body>

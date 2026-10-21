@@ -1,17 +1,17 @@
 {
-  "version": "1.4.9.37",
+  "version": "1.4.9.38",
   "en": [
+    "Cinematic backdrop: your last champion's splash fills the top of the window, side menu included, and fades into black",
+    "The welcome card shows the splash in its own colours; the rank chip takes the champion's colour",
+    "Your Riot ID and tag are the same, calmer size",
     "New desktop hub look: your last champion's splash glows behind everything, in its own colours",
-    "League's big play card, coloured quick actions and a real Start with Windows switch",
-    "A bar shows how close your LP is to the next cutoff",
-    "The LUST tab hint sits softly in the title bar; the version pill opens what's new and updates",
-    "The window fits its content, and fills up nicely when you make it bigger"
+    "League's big play card, coloured quick actions and a real Start with Windows switch"
   ],
   "tr": [
+    "Sinematik arka plan: son oynadığın şampiyonun splash'ı sol menü dahil pencerenin üstünü kaplıyor ve siyaha eriyor",
+    "Karşılama kartı splash'ı kendi renkleriyle gösteriyor; rank kapsülü şampiyonun rengini alıyor",
+    "Riot ID ve etiket aynı, daha sakin boyutta",
     "Masaüstü hub'a yeni görünüm: son oynadığın şampiyonun splash'ı arkada, kendi renkleriyle parlıyor",
-    "Büyük LoL kartı, renkli hızlı işlemler ve gerçek bir Windows ile başlat anahtarı",
-    "LP'nin bir sonraki sınıra ne kadar yakın olduğunu gösteren çubuk",
-    "LUST sekmesi ipucu başlık çubuğunda yumuşak bir kapsülde; sürüm kapsülü yenilikleri ve güncellemeyi açıyor",
-    "Pencere içeriğine göre boyutlandı, büyütünce de dolu görünüyor"
+    "Büyük LoL kartı, renkli hızlı işlemler ve gerçek bir Windows ile başlat anahtarı"
   ]
 }

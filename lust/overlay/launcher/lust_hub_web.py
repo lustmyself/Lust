@@ -5,8 +5,24 @@ from __future__ import annotations
 import json
 
 # Line icons in Lucide's style (24px grid, 2px stroke)
+# League's L in a ring, in hextech gold and blue: the LoL tab's mark
+LOL_MARK = (
+    '<svg class="lol-mark" viewBox="0 0 24 24" aria-hidden="true">'
+    '<defs>'
+    '<linearGradient id="hx-gold" x1="0" y1="0" x2="0" y2="1">'
+    '<stop offset="0" stop-color="#f0e6d2"/><stop offset=".45" stop-color="#c8aa6e"/>'
+    '<stop offset="1" stop-color="#785a28"/></linearGradient>'
+    '<linearGradient id="hx-blue" x1="0" y1="0" x2="1" y2="1">'
+    '<stop offset="0" stop-color="#cdfafa"/><stop offset=".5" stop-color="#0ac8b9"/>'
+    '<stop offset="1" stop-color="#005a82"/></linearGradient>'
+    '</defs>'
+    '<circle cx="13.2" cy="12" r="8.3" fill="none" stroke="url(#hx-blue)" stroke-width="1.3" opacity=".85"/>'
+    '<path d="M4.6 3.4h5.6l-1.1 1.3v12.9h8.3l1.9-2.4-.95 5.2H4.3l1.5-1.7V4.7z" '
+    'fill="url(#hx-gold)" stroke="#3c2a12" stroke-width=".35" stroke-linejoin="round"/>'
+    '</svg>'
+)
+
 ICONS = {
-    "lol": '<rect x="2" y="6" width="20" height="12" rx="4"/><path d="M6 12h4M8 10v4"/><circle cx="15.5" cy="11" r="1"/><circle cx="18" cy="13.5" r="1"/>',
     "spotify": '<circle cx="12" cy="12" r="10"/><path d="M7.5 10c3-1 6.5-.8 9 .8M8 13.3c2.4-.7 5-.5 7 .7M8.6 16.3c1.8-.4 3.7-.3 5.3.5"/>',
     "play": '<polygon points="7 4 20 12 7 20 7 4"/>',
     "folder": '<path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9l-.8-1.2A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>',
@@ -41,20 +57,19 @@ PAGE = r"""<!doctype html>
   /* Side rail: icon tiles that grow under the mouse */
   .rail { width: 76px; background: var(--rail); display: flex; flex-direction: column; align-items: center;
     gap: 14px; padding: 18px 0; border-right: 1px solid #1c1926; }
-  .logo { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center;
-    background: linear-gradient(135deg, #7c3aed, #db2777); font: 800 20px Georgia, serif; color: #fff;
-    box-shadow: 0 6px 18px rgba(124, 58, 237, .35); margin-bottom: 6px; }
   .tab { position: relative; width: 44px; height: 44px; border-radius: 13px; display: grid; place-items: center;
     background: #1d1a29; color: var(--sub); cursor: pointer;
     transition: transform .18s cubic-bezier(.3, 1.6, .5, 1), background .15s, color .15s; }
   .tab:hover { transform: scale(1.18); background: #2a2540; color: var(--text); }
   .tab.active { background: linear-gradient(135deg, #7c3aed, #a78bfa); color: #fff; box-shadow: 0 6px 16px rgba(124, 58, 237, .4); }
   /* Each tab in its own color: LoL in League's hextech teal, Spotify in its green */
-  .tab[data-page="lol"] { color: #0ac8b9; background: rgba(10, 200, 185, .12); }
+  .tab[data-page="lol"] { background: #0a1428; box-shadow: inset 0 0 0 1px rgba(200, 170, 110, .35); }
+  .lol-mark { width: 26px; height: 26px; filter: drop-shadow(0 0 4px rgba(10, 200, 185, .25)); }
   .tab[data-page="spotify"] { color: #1db954; background: rgba(29, 185, 84, .12); }
-  .tab[data-page="lol"]:hover { background: rgba(10, 200, 185, .22); color: #5ff3e6; }
+  .tab[data-page="lol"]:hover { background: #0e1f36; box-shadow: inset 0 0 0 1px rgba(200, 170, 110, .6); }
   .tab[data-page="spotify"]:hover { background: rgba(29, 185, 84, .22); color: #4ade80; }
-  .tab[data-page="lol"].active { background: linear-gradient(135deg, #0397ab, #0ac8b9); color: #fff; box-shadow: 0 6px 16px rgba(10, 200, 185, .4); }
+  .tab[data-page="lol"].active { background: radial-gradient(circle at 50% 40%, #0a323c, #091428 75%);
+    box-shadow: inset 0 0 0 1.5px #c8aa6e, 0 6px 18px rgba(10, 200, 185, .35); }
   .tab[data-page="spotify"].active { background: linear-gradient(135deg, #12873d, #1ed760); color: #fff; box-shadow: 0 6px 16px rgba(29, 185, 84, .4); }
   .tab::after { content: attr(data-label); position: absolute; left: 58px; padding: 5px 10px; border-radius: 8px;
     background: #2a2540; color: var(--text); font-size: 12px; white-space: nowrap; opacity: 0; pointer-events: none;
@@ -218,7 +233,6 @@ PAGE = r"""<!doctype html>
   </linearGradient></defs>
 </svg>
 <nav class="rail">
-  <div class="logo">L</div>
   <div class="tab active" data-page="lol" data-label="LoL">__lol__</div>
   <div class="tab" data-page="spotify" data-label="Spotify">__spotify__</div>
   <div class="spacer"></div>
@@ -513,6 +527,7 @@ def _svg(path: str) -> str:
 
 def render(token: str, version: str, themes: list) -> str:
     page = PAGE.replace("__TOKEN__", json.dumps(token)).replace("__VERSION__", version)
+    page = page.replace("__lol__", LOL_MARK)
     page = page.replace("__THEMES__", json.dumps(themes, ensure_ascii=False))
     for name, path in ICONS.items():
         page = page.replace(f"__{name}__", _svg(path))

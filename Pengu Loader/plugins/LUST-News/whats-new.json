@@ -1,6 +1,7 @@
 {
-  "version": "1.4.9.35",
+  "version": "1.4.9.36",
   "en": [
+    "The desktop hub's LoL tab wears League's L in hextech gold and blue; the purple L above it is gone",
     "The desktop hub's quick actions are tidier: the empty mods folder and Copy log are gone",
     "Fixed the desktop hub locking up a few seconds after it opened",
     "Privacy: Lust no longer sends a usage heartbeat to Rose's analytics server",
@@ -11,6 +12,7 @@
     "A silent update no longer pops the desktop hub open after you close League"
   ],
   "tr": [
+    "Masaüstü hub'ın LoL sekmesinde artık hextech altın ve mavisiyle LoL'ün L simgesi var; üstündeki mor L kaldırıldı",
     "Masaüstü hub'ın hızlı işlemleri sadeleşti: boş mod klasörü ve Logu kopyala kaldırıldı",
     "Masaüstü hub'ın açıldıktan birkaç saniye sonra donması düzeltildi",
     "Gizlilik: Lust artık Rose'un analiz sunucusuna kullanım bilgisi göndermiyor",

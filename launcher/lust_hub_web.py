@@ -46,17 +46,33 @@ PAGE = r"""<!doctype html>
 <style>
   :root { --bg: #16141f; --rail: #100e17; --card: #211e2d; --card2: #292537; --line: #2e2a3d; --text: #f0eef5;
     --sub: #a3a0ad; --faint: #6c6878; --accent: #a78bfa; --accent2: #db2777; --green: #4ade80; --amber: #f5b14c;
-    --red: #f87171; --yellow: #f2c94c; }
+    --red: #f87171; --yellow: #f2c94c; --tint: 167, 139, 250; }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); overflow: hidden;
     font: 13px/1.45 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif; user-select: none; }
   body { display: flex; }
+  /* Behind everything: the last champion's splash, blurred and dimmed, under two slow lights
+     tinted with that splash's own colour (--tint, set when the splash loads) */
+  .ambient { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+  .amb-art { position: absolute; inset: -12%; background-size: cover; background-position: center 25%;
+    filter: blur(48px) saturate(1.5) brightness(.8); opacity: 0; transform: scale(1.1); transition: opacity 1.2s ease; }
+  .amb-art.on { opacity: .9; }
+  .ambient::after { content: ""; position: absolute; inset: 0;
+    background: radial-gradient(130% 100% at 65% 10%, rgba(14, 12, 22, .05) 0%, rgba(14, 12, 22, .4) 55%, rgba(12, 10, 18, .8) 100%); }
+  .blob { position: absolute; width: 520px; height: 520px; border-radius: 50%; filter: blur(90px); opacity: .5;
+    background: radial-gradient(circle, rgba(var(--tint), .9), transparent 65%); transition: background 1.2s ease; }
+  .blob.b1 { left: -140px; top: -160px; animation: float1 26s ease-in-out infinite alternate; }
+  .blob.b2 { right: -180px; bottom: -220px; opacity: .3;
+    background: radial-gradient(circle, rgba(10, 200, 185, .8), transparent 65%); animation: float2 32s ease-in-out infinite alternate; }
+  @keyframes float1 { to { transform: translate(180px, 120px) scale(1.15); } }
+  @keyframes float2 { to { transform: translate(-160px, -90px) scale(1.1); } }
+  .rail, .main { position: relative; z-index: 1; }
   svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
   /* Side rail: icon tiles that grow under the mouse */
-  .rail { width: 76px; background: var(--rail); display: flex; flex-direction: column; align-items: center;
-    gap: 14px; padding: 18px 0; border-right: 1px solid #1c1926; }
+  .rail { width: 76px; background: rgba(13, 11, 20, .62); backdrop-filter: blur(18px); display: flex;
+    flex-direction: column; align-items: center; gap: 14px; padding: 18px 0; border-right: 1px solid rgba(255, 255, 255, .05); }
   .tab { position: relative; width: 44px; height: 44px; border-radius: 13px; display: grid; place-items: center;
     background: #1d1a29; color: var(--sub); cursor: pointer;
     transition: transform .18s cubic-bezier(.3, 1.6, .5, 1), background .15s, color .15s; }
@@ -89,6 +105,11 @@ PAGE = r"""<!doctype html>
   .win svg { width: 16px; height: 16px; }
   .page { flex: 1; overflow-y: auto; padding: 4px 26px 22px; display: none; }
   .page.active { display: block; animation: rise .25s ease; }
+  #page-lol.active { display: flex; flex-direction: column; }
+  #page-lol > * { flex: none; }
+  /* Extra height goes mostly to the splash card, the rest to the quick actions */
+  #page-lol > .hero { flex: 2 1 auto; max-height: 48vh; }
+  #page-lol > .acts { flex: 1 1 auto; min-height: 194px; max-height: 380px; }
   @keyframes rise { from { opacity: 0; transform: translateY(10px) scale(.985); } }
   .page::-webkit-scrollbar { width: 8px; } .page::-webkit-scrollbar-thumb { background: #2e2a3d; border-radius: 8px; }
 
@@ -98,6 +119,7 @@ PAGE = r"""<!doctype html>
   .hero-art { position: absolute; inset: 0; background-size: cover; background-position: center 22%; opacity: 0;
     transform: scale(1.08); transition: opacity .8s ease; animation: drift 24s ease-in-out infinite alternate; }
   .hero-art.on { opacity: 1; }
+  .hero { box-shadow: 0 18px 50px rgba(var(--tint), .22), inset 0 0 0 1px rgba(255, 255, 255, .07); transition: box-shadow 1.2s ease; }
   .hero::before { content: ""; position: absolute; inset: 0; z-index: 1;
     background: linear-gradient(90deg, rgba(22, 14, 40, .92) 0%, rgba(60, 20, 90, .55) 55%, rgba(219, 39, 119, .25) 100%); }
   @keyframes drift { from { transform: scale(1.08) translateX(0); } to { transform: scale(1.14) translateX(-2%); } }
@@ -114,6 +136,9 @@ PAGE = r"""<!doctype html>
   .hero-cut .cut::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--c); box-shadow: 0 0 8px var(--c); }
   .hero-cut .gm { --c: #f87171; } .hero-cut .ch { --c: #facc15; }
   .hero-cut .need { padding: 2px 8px; border-radius: 99px; background: rgba(250, 204, 21, .16); color: #fde68a; font-weight: 600; }
+  .cutbar { flex: 1 1 120px; max-width: 220px; height: 6px; border-radius: 99px; background: rgba(255, 255, 255, .12); overflow: hidden; }
+  .cutbar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #c8aa6e, #facc15);
+    box-shadow: 0 0 10px rgba(250, 204, 21, .6); transition: width .8s cubic-bezier(.2, .8, .2, 1); }
   .chip { padding: 4px 10px; border-radius: 99px; font-size: 11.5px; font-weight: 600; background: rgba(255, 255, 255, .14);
     border: 1px solid rgba(255, 255, 255, .18); backdrop-filter: blur(8px); }
   .chip.rank { background: linear-gradient(135deg, rgba(167, 139, 250, .5), rgba(219, 39, 119, .45)); }
@@ -150,14 +175,21 @@ PAGE = r"""<!doctype html>
   .bar > i { display: block; height: 100%; width: 0; border-radius: 9px; background: #fff; transition: width .4s; }
   .bar.busy > i { width: 30%; animation: busy 1.3s ease-in-out infinite; }
   @keyframes busy { from { margin-left: -30%; } to { margin-left: 100%; } }
-  .hint { margin: 14px 2px; color: var(--yellow); font-weight: 700; font-size: 13.5px; }
+  .tip { margin-left: 6px; padding: 4px 12px 4px 10px; border-radius: 99px; font-size: 11.5px; color: #d9c79a;
+    background: linear-gradient(90deg, rgba(200, 170, 110, .14), rgba(200, 170, 110, .04));
+    border: 1px solid rgba(200, 170, 110, .22); white-space: nowrap; display: inline-flex; align-items: center; gap: 7px; }
+  .tip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #c8aa6e; box-shadow: 0 0 8px #c8aa6e; }
+  .tip b { color: #f0e6d2; font-weight: 600; letter-spacing: .4px; }
+  .hero { margin-bottom: 14px; }
 
   .grid { display: grid; gap: 10px; }
   .g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .card { background: var(--card); border-radius: 14px; padding: 13px 14px; border: 1px solid transparent; }
+  .card { background: rgba(30, 27, 42, .42); backdrop-filter: blur(16px) saturate(1.2); border-radius: 14px;
+    padding: 13px 14px; border: 1px solid rgba(255, 255, 255, .06); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05); }
   .tile { display: flex; align-items: center; gap: 12px; cursor: pointer; transition: background .15s, transform .15s, border-color .15s; }
-  .tile:hover { background: var(--card2); transform: translateY(-2px); border-color: var(--line); }
+  .tile:hover { background: rgba(48, 43, 64, .7); transform: translateY(-2px); border-color: rgba(var(--tint), .35);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 8px 24px rgba(var(--tint), .12); }
   .tile.off { opacity: .45; pointer-events: none; }
   .ico { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; background: #2c2840; color: var(--accent); flex: none; }
   .tile.danger .ico { background: #3a1d26; color: var(--red); }
@@ -165,6 +197,74 @@ PAGE = r"""<!doctype html>
   .t b { display: block; font-size: 13px; font-weight: 600; }
   .t span { color: var(--sub); font-size: 11.5px; }
   .tile .end { margin-left: auto; width: 8px; height: 8px; border-radius: 50%; background: var(--faint); }
+
+  /* Quick actions: League's play card, and coloured actions beside it */
+  .acts { display: grid; grid-template-columns: 1.15fr 1fr; grid-template-rows: repeat(3, minmax(58px, 1fr)); gap: 10px; }
+  .acts > * { animation: rise .45s cubic-bezier(.2, .8, .2, 1) both; }
+  .acts > :nth-child(2) { animation-delay: .06s; } .acts > :nth-child(3) { animation-delay: .12s; }
+  .acts > :nth-child(4) { animation-delay: .18s; }
+  .play { grid-row: span 3; position: relative; overflow: hidden; border-radius: 18px; padding: 20px 22px; cursor: pointer;
+    display: flex; flex-direction: column; justify-content: flex-end; gap: 14px;
+    background: radial-gradient(120% 120% at 0% 0%, rgba(200, 170, 110, .30), transparent 55%),
+      radial-gradient(120% 120% at 100% 100%, rgba(10, 200, 185, .22), transparent 55%), rgba(9, 20, 40, .72);
+    border: 1px solid rgba(200, 170, 110, .45); backdrop-filter: blur(16px);
+    box-shadow: inset 0 1px 0 rgba(240, 230, 210, .12), 0 10px 30px rgba(0, 0, 0, .25);
+    transition: transform .2s cubic-bezier(.3, 1.4, .5, 1), box-shadow .2s, border-color .2s; }
+  .play:hover { transform: translateY(-3px); border-color: #c8aa6e;
+    box-shadow: inset 0 1px 0 rgba(240, 230, 210, .16), 0 16px 40px rgba(200, 170, 110, .22); }
+  .play:active { transform: scale(.98); }
+  .play-orb { width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center;
+    background: radial-gradient(circle at 35% 30%, #f0e6d2, #c8aa6e 45%, #785a28);
+    box-shadow: 0 0 0 4px rgba(200, 170, 110, .18), 0 8px 22px rgba(200, 170, 110, .45); color: #1e2328;
+    transition: transform .25s cubic-bezier(.3, 1.6, .5, 1); }
+  .play-orb svg { width: 24px; height: 24px; stroke: #1e2328; fill: #1e2328; margin-left: 3px; }
+  .play:hover .play-orb { transform: scale(1.08); }
+  .play-t small { display: block; font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: #c8aa6e; }
+  .play-t b { display: block; margin: 2px 0 3px; font-size: 22px; font-weight: 700; letter-spacing: .2px; color: #f0e6d2; }
+  .play-t span { color: #a09b8c; font-size: 12px; }
+  .play-shine { position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(115deg, transparent 35%, rgba(240, 230, 210, .14) 48%, transparent 60%);
+    transform: translateX(-100%); }
+  .play:hover .play-shine { transform: translateX(100%); transition: transform .9s ease; }
+  /* League is already open: a live green state instead of the button */
+  .play.live { cursor: default; border-color: rgba(74, 222, 128, .45);
+    background: radial-gradient(120% 120% at 0% 0%, rgba(74, 222, 128, .2), transparent 55%),
+      radial-gradient(120% 120% at 100% 100%, rgba(10, 200, 185, .2), transparent 55%), rgba(9, 20, 40, .72); }
+  .play.live:hover { transform: none; box-shadow: inset 0 1px 0 rgba(240, 230, 210, .12); }
+  .play.live .play-orb { background: radial-gradient(circle at 35% 30%, #bbf7d0, #22c55e 50%, #15803d);
+    box-shadow: 0 0 0 4px rgba(74, 222, 128, .18); animation: live 2s ease-out infinite; }
+  .play.live .play-orb svg { display: none; }
+  .play.live .play-orb::after { content: ""; width: 14px; height: 14px; border-radius: 50%; background: #f0fdf4; }
+  .play.live .play-t small { color: #4ade80; }
+  @keyframes live { 0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, .55); } 100% { box-shadow: 0 0 0 18px rgba(74, 222, 128, 0); } }
+
+  .act { position: relative; overflow: hidden; display: flex; align-items: center; gap: 12px; padding: 0 14px;
+    border-radius: 14px; cursor: pointer; background: rgba(30, 27, 42, .42); backdrop-filter: blur(16px) saturate(1.2);
+    border: 1px solid rgba(255, 255, 255, .06); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05);
+    transition: transform .18s cubic-bezier(.3, 1.4, .5, 1), border-color .18s, box-shadow .18s; }
+  .act::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .7; transition: opacity .2s;
+    background: radial-gradient(90% 140% at 100% 0%, rgba(var(--a), .16), transparent 60%); }
+  .act:hover { transform: translateX(3px); border-color: rgba(var(--a), .5); box-shadow: 0 8px 26px rgba(var(--a), .16); }
+  .act:hover::before { opacity: 1; }
+  .act:active { transform: scale(.97); }
+  .act.off { opacity: .45; pointer-events: none; }
+  .orb { position: relative; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; flex: none;
+    background: radial-gradient(circle at 35% 30%, rgba(var(--a), .45), rgba(var(--a), .12));
+    box-shadow: 0 0 14px rgba(var(--a), .3), inset 0 0 0 1px rgba(var(--a), .4); color: rgb(var(--a)); }
+  .orb svg { width: 17px; height: 17px; }
+  .act:hover .orb { animation: wobble .4s ease; }
+  @keyframes wobble { 40% { transform: rotate(-10deg) scale(1.1); } 80% { transform: rotate(4deg); } }
+  .act .t { position: relative; flex: 1; min-width: 0; }
+  .chev { position: relative; font-style: normal; font-size: 20px; color: rgba(var(--a), .7); transition: transform .2s; }
+  .act:hover .chev { transform: translateX(4px); }
+  .sw { position: relative; width: 36px; height: 20px; border-radius: 99px; background: rgba(255, 255, 255, .14); flex: none;
+    transition: background .2s; }
+  .sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%;
+    background: #d4d0dc; transition: left .3s cubic-bezier(.3, 1.6, .5, 1), background .2s; }
+  .sw.on { background: rgb(var(--a)); box-shadow: 0 0 12px rgba(var(--a), .45); }
+  .sw.on::after { left: 19px; background: #fff; }
+  /* Close asks again: the card turns red for the second click */
+  .act.armed { border-color: rgba(var(--a), .8); background: rgba(127, 29, 29, .45); }
   .section { margin: 16px 2px 8px; color: var(--faint); font-size: 11.5px; font-weight: 600; letter-spacing: .4px; text-transform: uppercase; }
 
   .appear { display: flex; align-items: center; gap: 12px; }
@@ -184,10 +284,30 @@ PAGE = r"""<!doctype html>
   .btn.primary { background: var(--accent); color: #15111f; }
   .btn:disabled { opacity: .45; cursor: default; filter: none; }
 
-  .ver { display: flex; gap: 16px; align-items: center; margin-top: 10px; }
-  .ver .mark { width: 64px; height: 64px; border-radius: 16px; display: grid; place-items: center; flex: none;
-    background: linear-gradient(135deg, #2a2340, #3b2a55); color: var(--accent); font: 800 26px Georgia, serif; }
-  .ver ul { margin: 6px 0 0; padding-left: 16px; color: var(--sub); font-size: 11.5px; }
+  /* Version pill and its panel */
+  .ver-pill { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; font: inherit; font-size: 11px;
+    color: var(--sub); transition: background .15s, color .15s, border-color .15s; }
+  .ver-pill:hover, .ver-pill.open { color: var(--text); border-color: rgba(var(--tint), .45); background: rgba(48, 43, 64, .7); }
+  .vdot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px rgba(74, 222, 128, .7); }
+  .vdot.new { background: #facc15; animation: vpulse 1.6s ease-out infinite; }
+  @keyframes vpulse { 0% { box-shadow: 0 0 0 0 rgba(250, 204, 21, .7); } 100% { box-shadow: 0 0 0 9px rgba(250, 204, 21, 0); } }
+  .vpop { position: absolute; z-index: 30; top: 48px; left: 64px; width: 380px; padding: 16px 16px 14px; border-radius: 16px;
+    background: rgba(26, 23, 37, .92); backdrop-filter: blur(22px) saturate(1.3); border: 1px solid rgba(255, 255, 255, .08);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 255, 255, .06);
+    transform-origin: 30px -8px; animation: pop .22s cubic-bezier(.2, 1.2, .4, 1); }
+  @keyframes pop { from { opacity: 0; transform: translateY(-6px) scale(.96); } }
+  .vpop::before { content: ""; position: absolute; top: -6px; left: 28px; width: 12px; height: 12px; transform: rotate(45deg);
+    background: rgba(26, 23, 37, .92); border-left: 1px solid rgba(255, 255, 255, .08); border-top: 1px solid rgba(255, 255, 255, .08); }
+  .vpop-head b { display: block; font-size: 14px; }
+  .vpop-head span { color: var(--sub); font-size: 11.5px; }
+  .vpop-k { display: block; margin: 12px 0 4px; font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--faint); }
+  .vpop ul { margin: 0; padding-left: 16px; color: var(--sub); font-size: 11.5px; max-height: 150px; overflow-y: auto; }
+  .vpop li { margin-bottom: 3px; }
+  .vpop-foot { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+  .vpop-foot .auto { margin-left: 0; }
+  .vbtn { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; }
+  .vbtn svg { width: 15px; height: 15px; }
+  .main { position: relative; }
   .round { margin-left: auto; width: 52px; height: 52px; border-radius: 50%; border: 0; display: grid; place-items: center; flex: none;
     background: var(--accent); color: #15111f; cursor: pointer; box-shadow: 0 6px 18px rgba(167, 139, 250, .35); transition: transform .15s; }
   .round:hover { transform: scale(1.08); }
@@ -232,6 +352,7 @@ PAGE = r"""<!doctype html>
     <stop offset="0" stop-color="#c4b5fd"/><stop offset=".55" stop-color="#a78bfa"/><stop offset="1" stop-color="#f472b6"/>
   </linearGradient></defs>
 </svg>
+<div class="ambient" aria-hidden="true"><div class="amb-art" id="amb-art"></div><i class="blob b1"></i><i class="blob b2"></i></div>
 <nav class="rail">
   <div class="tab active" data-page="lol" data-label="LoL">__lol__</div>
   <div class="tab" data-page="spotify" data-label="Spotify">__spotify__</div>
@@ -240,11 +361,23 @@ PAGE = r"""<!doctype html>
 </nav>
 <div class="main">
   <header class="top pywebview-drag-region">
-    <h1 id="title">LoL</h1><span class="pill">__VERSION__</span>
+    <h1 id="title">LoL</h1><button class="pill ver-pill" id="ver-pill" title="Sürüm ve yenilikler"><i class="vdot" id="vdot"></i>__VERSION__</button>
+    <span class="tip" id="tip">Oyun ayarları LoL istemcisinde, üstteki <b>LUST</b> sekmesinde</span>
     <div class="grow pywebview-drag-region"></div>
     <div class="win" id="w-min" title="Küçült">__min__</div>
     <div class="win x" id="w-close" title="Kapat">__close__</div>
   </header>
+  <div class="vpop" id="vpop" hidden>
+    <div class="vpop-head"><b>Lust __VERSION__</b><span id="v-sub"></span></div>
+    <small class="vpop-k">Yenilikler</small>
+    <ul id="news"></ul>
+    <div class="vpop-foot">
+      <div class="auto" data-act="auto_update" title="Yeni sürümler arka planda iner, League kapalıyken kurulur">
+        <span>Otomatik güncelle</span><i class="switch" id="auto-upd"></i>
+      </div>
+      <button class="btn primary vbtn" id="v-btn"></button>
+    </div>
+  </div>
 
   <section class="page active" id="page-lol">
     <div class="hero" id="hero">
@@ -264,7 +397,6 @@ PAGE = r"""<!doctype html>
         <span id="hl-meta"></span>
       </div>
     </div>
-    <div class="hint">Oyun ayarlarınızı LoL istemcisindeki LUST sekmesine tıklayarak ayarlayabilirsiniz.</div>
     <div class="card rose" id="rose" hidden>
       <div class="ico">__close__</div>
       <div class="t"><b>Rose da kurulu</b><span>İkisi aynı anda çalışınca LoL'de Rose'un gül simgesi çıkar ve çakışırlar. Lust, Rose'un yaptığı her şeyi zaten yapıyor.</span></div>
@@ -283,19 +415,18 @@ PAGE = r"""<!doctype html>
       </div>
     </div>
     <div class="section">Hızlı işlemler</div>
-    <div class="grid g2">
-      <div class="card tile" id="a-league" data-act="league"><div class="ico">__play__</div><div class="t"><b id="a-league-t">League'i aç</b><span>Lust Offline üzerinden</span></div></div>
-      <div class="card tile" data-act="autostart"><div class="ico">__power__</div><div class="t"><b>Windows ile başlat</b><span id="auto-sub"></span></div><i class="end" id="auto-dot"></i></div>
-      <div class="card tile" id="a-restart" data-act="restart"><div class="ico">__restart__</div><div class="t"><b>Yeniden başlat</b><span>Lust'ı yeniden başlat</span></div></div>
-      <div class="card tile danger" id="a-quit"><div class="ico">__close__</div><div class="t"><b id="quit-t">Lust'ı kapat</b><span>Tamamen kapat</span></div></div>
-    </div>
-    <div class="card ver">
-      <div class="mark">L</div>
-      <div class="t"><b>Lust __VERSION__</b><span id="v-sub"></span><ul id="news"></ul></div>
-      <div class="auto" data-act="auto_update" title="Yeni sürümler arka planda iner, League kapalıyken kurulur">
-        <span>Otomatik güncelle</span><i class="switch" id="auto-upd"></i>
+    <div class="acts">
+      <div class="play" id="a-league" data-act="league">
+        <div class="play-orb">__play__</div>
+        <div class="play-t"><small id="a-league-k">Hazır</small><b id="a-league-t">League'i aç</b><span id="a-league-s">Lust Offline üzerinden, skinler hazır</span></div>
+        <i class="play-shine"></i>
       </div>
-      <button class="round" id="v-btn" title="">__sync__</button>
+      <div class="act" data-act="autostart" style="--a: 74, 222, 128"><div class="orb">__power__</div>
+        <div class="t"><b>Windows ile başlat</b><span id="auto-sub"></span></div><i class="sw" id="auto-sw"></i></div>
+      <div class="act" id="a-restart" data-act="restart" style="--a: 167, 139, 250"><div class="orb">__restart__</div>
+        <div class="t"><b>Yeniden başlat</b><span>Lust kapanıp açılır</span></div><i class="chev">›</i></div>
+      <div class="act" id="a-quit" style="--a: 248, 113, 113"><div class="orb">__close__</div>
+        <div class="t"><b id="quit-t">Lust'ı kapat</b><span id="quit-s">Tamamen kapat</span></div><i class="chev">›</i></div>
     </div>
   </section>
 
@@ -367,6 +498,30 @@ function drawThemes() {
   document.querySelectorAll(".theme").forEach((c) => c.classList.toggle("on", c.dataset.key === choice));
 }
 
+function splashTint(img) {
+  try {
+    const canvas = document.createElement("canvas");
+    canvas.width = 32; canvas.height = 18;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0, 32, 18);
+    const data = ctx.getImageData(0, 0, 32, 18).data;
+    const picks = [];
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      const sat = max ? (max - min) / max : 0;
+      if (max > 70) picks.push([sat * max, r, g, b]);
+    }
+    picks.sort((a, z) => z[0] - a[0]);
+    const top = picks.slice(0, Math.max(8, Math.floor(picks.length / 8)));
+    if (!top.length) return "";
+    const avg = [1, 2, 3].map((k) => Math.round(top.reduce((sum, p) => sum + p[k], 0) / top.length));
+    return avg.join(", ");
+  } catch (error) {
+    return "";
+  }
+}
+
 function render(s) {
   state = s;
   const starting = s.phase !== "ready";
@@ -402,12 +557,28 @@ function render(s) {
   if (cut) {
     const parts = [["cut gm", `Üstatlık ${cut.grandmaster} LP`], ["cut ch", `Şampiyonluk ${cut.challenger} LP`]];
     const target = hero.tier === "grandmaster" || hero.tier === "challenger" ? cut.challenger : hero.tier === "master" ? cut.grandmaster : 0;
-    if (target && hero.lp < target) parts.push(["need", `${hero.tier === "master" ? "Üstatlık" : "Şampiyonluk"} için ${target - hero.lp} LP`]);
+    if (target && hero.lp < target) {
+      parts.push(["need", `${hero.tier === "master" ? "Üstatlık" : "Şampiyonluk"} için ${target - hero.lp} LP`]);
+      parts.push(["cutbar", Math.max(4, Math.min(100, Math.round(hero.lp * 100 / target)))]);
+    }
     const key = JSON.stringify(parts);
     if ($("h-cut").dataset.key !== key) {
       $("h-cut").dataset.key = key;
       $("h-cut").replaceChildren(Object.assign(document.createElement("span"), { textContent: `${cut.region} sınırları:` }),
-        ...parts.map(([cls, text]) => Object.assign(document.createElement("span"), { className: cls, textContent: text })));
+        ...parts.map(([cls, text]) => {
+          const el = document.createElement("span");
+          el.className = cls;
+          if (cls === "cutbar") {
+            const fill = document.createElement("i");
+            fill.style.width = "0%";
+            el.title = `%${text}`;
+            el.appendChild(fill);
+            requestAnimationFrame(() => requestAnimationFrame(() => { fill.style.width = `${text}%`; }));
+          } else {
+            el.textContent = text;
+          }
+          return el;
+        }));
     }
   }
   const last = hero.last;
@@ -421,7 +592,14 @@ function render(s) {
   if (hero.image && $("h-art").dataset.image !== String(hero.image)) {
     $("h-art").dataset.image = String(hero.image);
     const img = new Image();
-    img.onload = () => { $("h-art").style.backgroundImage = `url(${img.src})`; $("h-art").classList.add("on"); };
+    img.onload = () => {
+      $("h-art").style.backgroundImage = `url(${img.src})`;
+      $("h-art").classList.add("on");
+      $("amb-art").style.backgroundImage = `url(${img.src})`;
+      $("amb-art").classList.add("on");
+      const tint = splashTint(img);
+      if (tint) document.documentElement.style.setProperty("--tint", tint);
+    };
     img.src = `/hero.jpg?v=${hero.image}`;
   }
   const busy = s.progress === null || s.progress === undefined;
@@ -440,21 +618,28 @@ function render(s) {
     b.disabled = !off.running || starting;
     b.classList.toggle("on", !!off.running && off.status === b.dataset.status);
   });
-  $("a-league").classList.toggle("off", s.league);
+  $("a-league").classList.toggle("live", !!s.league);
+  $("a-league-k").textContent = s.league ? "Canlı" : (s.ready ? "Hazır" : "Hazırlanıyor");
   $("a-league-t").textContent = s.league ? "League açık" : "League'i aç";
+  $("a-league-s").textContent = s.league ? (off.running ? "Lust Offline üzerinden bağlı" : "Skinler oyunda uygulanır")
+    : "Lust Offline üzerinden, skinler hazır";
   $("auto-sub").textContent = s.autostart ? "Açık" : "Kapalı";
-  $("auto-dot").style.background = s.autostart ? "var(--accent)" : "var(--faint)";
+  $("auto-sw").classList.toggle("on", !!s.autostart);
   $("a-restart").classList.toggle("off", !s.running);
-  $("quit-t").textContent = Date.now() - quitArmed < 3000 ? "Tekrar tıkla" : "Lust'ı kapat";
+  const armed = Date.now() - quitArmed < 3000;
+  $("a-quit").classList.toggle("armed", armed);
+  $("quit-t").textContent = armed ? "Emin misin?" : "Lust'ı kapat";
+  $("quit-s").textContent = armed ? "Kapatmak için tekrar tıkla" : "Tamamen kapat";
 
   $("v-sub").textContent = s.pending ? `Lust ${s.pending} indirildi · League kapalıyken kurulacak`
     : s.update_available ? `Yeni sürüm ${s.latest}` : `Güncel · son kontrol ${ago(s.checked_at)}`;
   $("auto-upd").classList.toggle("on", !!s.auto_update);
   $("v-sub").style.color = s.update_available ? "var(--accent)" : "";
-  $("v-btn").innerHTML = s.update_available ? ICON_DOWNLOAD : ICON_SYNC;
-  $("v-btn").title = s.update_available ? "Güncelle" : "Şimdi kontrol et";
+  $("v-btn").innerHTML = (s.update_available ? ICON_DOWNLOAD : ICON_SYNC) + (s.update_available ? "Güncelle" : "Kontrol et");
+  $("vdot").classList.toggle("new", !!(s.update_available || s.pending));
+  $("ver-pill").title = s.pending ? `Lust ${s.pending} indirildi` : s.update_available ? `Yeni sürüm ${s.latest}` : "Sürüm ve yenilikler";
   $("v-btn").disabled = starting;
-  const items = ((s.news || {}).items || []).slice(0, 3);
+  const items = ((s.news || {}).items || []).slice(0, 6);
   if (JSON.stringify(items) !== newsKey) {
     newsKey = JSON.stringify(items);
     $("news").replaceChildren(...items.map((x) => { const li = document.createElement("li"); li.textContent = x; return li; }));
@@ -485,18 +670,30 @@ function showPage(name) {
   document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t.dataset.page === name));
   document.querySelectorAll(".page").forEach((p) => p.classList.toggle("active", p.id === `page-${name}`));
   $("title").textContent = name === "lol" ? "LoL" : "Spotify";
+  $("tip").hidden = name !== "lol";
 }
 
 const ICON_SYNC = `__sync__`, ICON_DOWNLOAD = `__download__`;
 document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => showPage(t.dataset.page)));
-document.querySelectorAll("[data-act]").forEach((el) => el.addEventListener("click", () =>
-  act(el.dataset.act, el.dataset.body ? JSON.parse(el.dataset.body) : {})));
+document.querySelectorAll("[data-act]").forEach((el) => el.addEventListener("click", () => {
+  if (el.classList.contains("live")) return;
+  act(el.dataset.act, el.dataset.body ? JSON.parse(el.dataset.body) : {});
+}));
 document.querySelectorAll("#seg button").forEach((b) => b.addEventListener("click", () => act("status", { value: b.dataset.status })));
 $("a-quit").addEventListener("click", () => {
   if (Date.now() - quitArmed < 3000) { act("quit"); return; }
   quitArmed = Date.now(); state && render(state); setTimeout(() => state && render(state), 3100);
 });
 $("v-btn").addEventListener("click", () => act(state && state.update_available ? "update" : "check"));
+// The version panel opens from the pill and closes on a click elsewhere or Escape
+function setVpop(open) {
+  $("vpop").hidden = !open;
+  $("ver-pill").classList.toggle("open", open);
+}
+$("ver-pill").addEventListener("click", (e) => { e.stopPropagation(); setVpop($("vpop").hidden); });
+$("vpop").addEventListener("click", (e) => e.stopPropagation());
+document.addEventListener("click", () => setVpop(false));
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") setVpop(false); });
 // Applying restarts Spotify (and stops the music): a second click confirms
 function confirmed(button, idle, run) {
   if (button.dataset.armed && Date.now() - Number(button.dataset.armed) < 4000) {

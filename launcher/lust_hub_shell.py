@@ -17,7 +17,7 @@ import threading
 
 ARG = "--lust-hub-window"
 PARENT_ARG = "--lust-parent"
-SIZE = (1000, 660)
+SIZE = (1000, 584)  # fits the LoL page without empty space below it
 
 
 class _Api:
@@ -80,7 +80,7 @@ def run(url: str, parent: int = 0) -> None:
 
     api = _Api()
     api._window = webview.create_window(
-        "Lust", url, js_api=api, width=SIZE[0], height=SIZE[1], min_size=(860, 600),
+        "Lust", url, js_api=api, width=SIZE[0], height=SIZE[1], min_size=(860, 520),
         frameless=True, easy_drag=False, background_color="#16141f",
     )
     if parent:

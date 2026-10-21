@@ -1,25 +1,17 @@
 {
-  "version": "1.4.9.36",
+  "version": "1.4.9.37",
   "en": [
-    "The desktop hub's LoL tab wears League's L in hextech gold and blue; the purple L above it is gone",
-    "The desktop hub's quick actions are tidier: the empty mods folder and Copy log are gone",
-    "Fixed the desktop hub locking up a few seconds after it opened",
-    "Privacy: Lust no longer sends a usage heartbeat to Rose's analytics server",
-    "Removed Party Mode's button next to Social: it needs a server Lust doesn't have and could never connect",
-    "Settings show the GitHub link only (Rose's Discord and Ko-fi links are gone)",
-    "The desktop hub no longer gets stuck on \"not responding\": a locked-up window is closed and opened again",
-    "League's own loading icons and loading screens everywhere: no Kai'Sa picture after matches or anywhere else",
-    "A silent update no longer pops the desktop hub open after you close League"
+    "New desktop hub look: your last champion's splash glows behind everything, in its own colours",
+    "League's big play card, coloured quick actions and a real Start with Windows switch",
+    "A bar shows how close your LP is to the next cutoff",
+    "The LUST tab hint sits softly in the title bar; the version pill opens what's new and updates",
+    "The window fits its content, and fills up nicely when you make it bigger"
   ],
   "tr": [
-    "Masaüstü hub'ın LoL sekmesinde artık hextech altın ve mavisiyle LoL'ün L simgesi var; üstündeki mor L kaldırıldı",
-    "Masaüstü hub'ın hızlı işlemleri sadeleşti: boş mod klasörü ve Logu kopyala kaldırıldı",
-    "Masaüstü hub'ın açıldıktan birkaç saniye sonra donması düzeltildi",
-    "Gizlilik: Lust artık Rose'un analiz sunucusuna kullanım bilgisi göndermiyor",
-    "Social yanındaki Party Mode butonu kaldırıldı: Lust'ta olmayan bir sunucuya ihtiyaç duyuyordu ve hiç bağlanamıyordu",
-    "Ayarlarda sadece GitHub bağlantısı var (Rose'un Discord ve Ko-fi bağlantıları kaldırıldı)",
-    "Masaüstü hub artık \"yanıt vermiyor\"da kalmıyor: donan pencere kapatılıp yeniden açılıyor",
-    "Her yerde LoL'ün kendi yükleme simgeleri ve ekranları: maç sonrası ve başka hiçbir yerde Kai'Sa resmi yok",
-    "Sessiz güncelleme LoL'ü kapattıktan sonra masaüstü hub'ı açıp önüne çıkarmıyor"
+    "Masaüstü hub'a yeni görünüm: son oynadığın şampiyonun splash'ı arkada, kendi renkleriyle parlıyor",
+    "Büyük LoL kartı, renkli hızlı işlemler ve gerçek bir Windows ile başlat anahtarı",
+    "LP'nin bir sonraki sınıra ne kadar yakın olduğunu gösteren çubuk",
+    "LUST sekmesi ipucu başlık çubuğunda yumuşak bir kapsülde; sürüm kapsülü yenilikleri ve güncellemeyi açıyor",
+    "Pencere içeriğine göre boyutlandı, büyütünce de dolu görünüyor"
   ]
 }

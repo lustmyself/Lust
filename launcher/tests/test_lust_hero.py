@@ -36,5 +36,16 @@ class CutoffTests(unittest.TestCase):
             self.assertIsNone(lust_hero.cutoffs_for("EUW"))
 
 
+class SavedCardTests(unittest.TestCase):
+    def test_a_missed_read_is_tried_again(self):
+        import tempfile
+        from pathlib import Path
+        from unittest import mock
+        with tempfile.TemporaryDirectory() as folder, mock.patch.object(lust_hero, "_dir", return_value=Path(folder)),                 mock.patch.object(lust_hero, "_data", None):
+            self.assertIsNone(lust_hero.get())
+            (Path(folder) / "hero.json").write_text('{"name": "Lust"}', encoding="utf-8")
+            self.assertEqual(lust_hero.get(), {"name": "Lust"})
+
+
 if __name__ == "__main__":
     unittest.main()

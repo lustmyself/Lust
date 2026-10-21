@@ -22,6 +22,7 @@ from utils.core.logging import get_logger
 log = get_logger()
 
 REFRESH_S = 120
+RETRY_S = 10  # until the client answers the first time
 QUEUES = {420: "Dereceli Tek/Çift", 440: "Dereceli Esnek", 400: "Normal", 430: "Normal", 490: "Hızlı Oyun",
           480: "Hızlı Oyun", 450: "ARAM", 1700: "Arena", 1900: "URF", 900: "URF"}
 TIERS = {"IRON": "Demir", "BRONZE": "Bronz", "SILVER": "Gümüş", "GOLD": "Altın", "PLATINUM": "Platin",
@@ -58,11 +59,12 @@ def get() -> Optional[dict]:
     """The card's data, from the client or as last seen."""
     global _data
     with _lock:
-        if _data is None:
+        if not _data:
+            # Read again until it works: a miss at startup left the card empty until the client answered
             try:
-                _data = json.loads((_dir() / "hero.json").read_text(encoding="utf-8"))
-            except (OSError, ValueError):
-                _data = {}
+                _data = json.loads((_dir() / "hero.json").read_text(encoding="utf-8")) or None
+            except (OSError, ValueError) as exc:
+                log.debug(f"[Hero] No saved card yet: {exc}")
         return dict(_data) if _data else None
 
 
@@ -178,7 +180,6 @@ def start() -> None:
 
     def loop():
         while True:
-            refresh()
-            time.sleep(REFRESH_S)
+            time.sleep(REFRESH_S if refresh() else RETRY_S)
 
     threading.Thread(target=loop, daemon=True, name="LustHero").start()

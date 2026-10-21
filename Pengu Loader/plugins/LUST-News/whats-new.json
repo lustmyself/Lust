@@ -1,6 +1,7 @@
 {
-  "version": "1.4.9.29",
+  "version": "1.4.9.30",
   "en": [
+    "The welcome card fills in right after League opens instead of minutes later",
     "Fixed updates hanging on \"Lust is restarting\" while the desktop hub was open",
     "The welcome card shows your server's Grandmaster and Challenger LP cutoffs (from replays.lol) and how much LP you need",
     "The hub's welcome card shows you: Riot ID, rank, win rate and your last match on that champion's splash art",
@@ -9,6 +10,7 @@
     "Grandmaster shows as Üstatlık in Turkish, as in League"
   ],
   "tr": [
+    "Karşılama kartı LoL açılır açılmaz doluyor, dakikalarca beklemiyor",
     "Masaüstü hub açıkken güncellemenin \"Lust yeniden başlıyor\"da takılması düzeltildi",
     "Karşılama kartı sunucunun Üstatlık ve Şampiyonluk LP sınırlarını (replays.lol'dan) ve kaç LP'ye ihtiyacın olduğunu gösteriyor",
     "Hub'ın karşılama kartı artık seni gösteriyor: Riot ID, rank, kazanma oranı ve son maçın, o şampiyonun splash art'ı üzerinde",

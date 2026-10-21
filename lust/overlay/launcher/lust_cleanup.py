@@ -115,7 +115,10 @@ def run() -> None:
         from config import APP_VERSION, get_config_file_path
         removed = clean_updates(get_config_file_path().parent / "updates", APP_VERSION)
         install_dir = Path(sys.executable).resolve().parent
-        removed += clean_retired_plugins(install_dir / "Pengu Loader" / "plugins")
+        from utils.core.paths import get_user_data_dir
+        # The client loads plugins from the runtime copy in Lust's data folder
+        for plugins in (get_user_data_dir() / "Pengu Loader" / "plugins", install_dir / "Pengu Loader" / "plugins"):
+            removed += clean_retired_plugins(plugins)
         removed += clean_old_installs(install_dir)
         if removed:
             log.info(f"[Cleanup] Removed {removed} leftover(s) of older Lust versions")

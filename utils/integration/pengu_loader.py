@@ -301,6 +301,12 @@ def _resolve_pengu_dir() -> Path:
                 shutil.copy2(bundled_datastore, runtime_datastore)
             except Exception as exc:
                 log.debug("Failed to seed Pengu Loader datastore: %s", exc)
+        # Lust plugins a newer Lust no longer ships stay here otherwise (the copy keeps extras)
+        try:
+            from launcher.lust_cleanup import clean_retired_plugins
+            clean_retired_plugins(runtime_dir / "plugins")
+        except Exception as exc:
+            log.debug("Could not remove retired Lust plugins: %s", exc)
         log.info("Synced Pengu Loader to runtime directory (preserving user files): %s", runtime_dir)
 
         # Restore plugin enable/disable state after the overlay sync.

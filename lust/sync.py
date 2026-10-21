@@ -605,6 +605,14 @@ EDITS += [
      "        for plugin in ('LUST-SkinMonitor',):\n"),
 ]
 
+
+# Retired Lust plugins leave the runtime Pengu Loader the client loads plugins from
+EDITS += [
+    ('utils/integration/pengu_loader.py',
+     '        log.info("Synced Pengu Loader to runtime directory (preserving user files): %s", runtime_dir)\n',
+     '        # Lust plugins a newer Lust no longer ships stay here otherwise (the copy keeps extras)\n        try:\n            from launcher.lust_cleanup import clean_retired_plugins\n            clean_retired_plugins(runtime_dir / "plugins")\n        except Exception as exc:\n            log.debug("Could not remove retired Lust plugins: %s", exc)\n        log.info("Synced Pengu Loader to runtime directory (preserving user files): %s", runtime_dir)\n'),
+]
+
 # Custom skins (pengu/communication/lust_custom_skins.py): the Lust hub's Custom skins tab
 # replaces champ select's Custom mods button; a switched-on skin plays on its champion's default skin
 EDITS += [

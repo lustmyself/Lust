@@ -45,7 +45,7 @@ class ServerTests(unittest.TestCase):
         self.assertEqual((status, json.loads(body)), (200, {"phase": "ready"}))
         self.assertTrue(server.page_open())
         with patch.object(lust_hub, "run_action") as run:
-            self.assertEqual(_request("POST", "/api/action/mods", token=server._token, body={"x": 1})[0], 200)
+            self.assertEqual(_request("POST", "/api/action/autostart", token=server._token, body={"x": 1})[0], 200)
             self.assertEqual(_request("POST", "/api/action/nope", token=server._token, body={})[0], 404)
         run.assert_called_once()
 

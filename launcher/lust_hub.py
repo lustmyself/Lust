@@ -6,7 +6,7 @@ browser, no local web server. This module holds what it shows and what its butto
 Startup progress that the Win32 launcher dialog used to show goes to the hub
 (HubDialog has the dialog's methods). After startup the hub keeps running: the tray
 icon opens it again, it checks for new Lust releases, and its buttons open League,
-change the Lust Offline status, open the mods folder, copy the log, toggle Start
+change the Lust Offline status, toggle Start
 with Windows, restart Lust and close Lust.
 """
 
@@ -280,32 +280,8 @@ def _set_offline(command: str) -> str:
             else "Status unchanged: League wasn't opened through Lust")
 
 
-def _open_mods() -> str:
-    from utils.core.paths import get_user_data_dir, open_folder_in_explorer
-    folder = get_user_data_dir() / "mods"
-    folder.mkdir(parents=True, exist_ok=True)
-    open_folder_in_explorer(folder)
-    return ""
 
 
-def _copy_log() -> str:
-    from utils.core.paths import get_user_data_dir
-    logs = sorted((get_user_data_dir() / "logs").glob("*.log"), key=lambda p: p.stat().st_mtime)
-    if not logs:
-        return "Henüz log yok" if LANG == "tr" else "No log yet"
-    # A file on the clipboard: pasting into Discord or a GitHub issue attaches it
-    result = subprocess.run(
-        ["powershell", "-NoProfile", "-NonInteractive", "-Command",
-         "Set-Clipboard -LiteralPath $env:LUST_LOG"],
-        env={**os.environ, "LUST_LOG": str(logs[-1])},
-        capture_output=True,
-        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-        timeout=15,
-    )
-    if result.returncode != 0:
-        return "Log kopyalanamadı" if LANG == "tr" else "Couldn't copy the log"
-    return ("Log panoya kopyalandı: Discord'a ya da GitHub'a yapıştırabilirsin" if LANG == "tr"
-            else "Log copied: paste it into Discord or a GitHub issue")
 
 
 def _toggle_autostart() -> str:
@@ -358,8 +334,6 @@ def _answer_prompt(accept: bool) -> str:
 ACTIONS: dict[str, Callable[[dict], str]] = {
     "league": lambda body: _open_league(),
     "status": lambda body: _set_offline(body.get("value", "")) if body.get("value") in ("online", "offline", "mobile") else "",
-    "mods": lambda body: _open_mods(),
-    "log": lambda body: _copy_log(),
     "autostart": lambda body: _toggle_autostart(),
     "restart": lambda body: _restart(),
     "quit": lambda body: _quit(),

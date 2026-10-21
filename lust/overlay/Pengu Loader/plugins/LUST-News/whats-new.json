@@ -1,6 +1,7 @@
 {
-  "version": "1.4.9.34",
+  "version": "1.4.9.35",
   "en": [
+    "The desktop hub's quick actions are tidier: the empty mods folder and Copy log are gone",
     "Fixed the desktop hub locking up a few seconds after it opened",
     "Privacy: Lust no longer sends a usage heartbeat to Rose's analytics server",
     "Removed Party Mode's button next to Social: it needs a server Lust doesn't have and could never connect",
@@ -10,6 +11,7 @@
     "A silent update no longer pops the desktop hub open after you close League"
   ],
   "tr": [
+    "Masaüstü hub'ın hızlı işlemleri sadeleşti: boş mod klasörü ve Logu kopyala kaldırıldı",
     "Masaüstü hub'ın açıldıktan birkaç saniye sonra donması düzeltildi",
     "Gizlilik: Lust artık Rose'un analiz sunucusuna kullanım bilgisi göndermiyor",
     "Social yanındaki Party Mode butonu kaldırıldı: Lust'ta olmayan bir sunucuya ihtiyaç duyuyordu ve hiç bağlanamıyordu",

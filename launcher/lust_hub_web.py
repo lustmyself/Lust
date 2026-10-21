@@ -269,10 +269,8 @@ PAGE = r"""<!doctype html>
       </div>
     </div>
     <div class="section">Hızlı işlemler</div>
-    <div class="grid g3">
+    <div class="grid g2">
       <div class="card tile" id="a-league" data-act="league"><div class="ico">__play__</div><div class="t"><b id="a-league-t">League'i aç</b><span>Lust Offline üzerinden</span></div></div>
-      <div class="card tile" data-act="mods"><div class="ico">__folder__</div><div class="t"><b>Mod klasörü</b><span>Gezginde aç</span></div></div>
-      <div class="card tile" data-act="log"><div class="ico">__log__</div><div class="t"><b>Logu kopyala</b><span>Discord'a yapıştır</span></div></div>
       <div class="card tile" data-act="autostart"><div class="ico">__power__</div><div class="t"><b>Windows ile başlat</b><span id="auto-sub"></span></div><i class="end" id="auto-dot"></i></div>
       <div class="card tile" id="a-restart" data-act="restart"><div class="ico">__restart__</div><div class="t"><b>Yeniden başlat</b><span>Lust'ı yeniden başlat</span></div></div>
       <div class="card tile danger" id="a-quit"><div class="ico">__close__</div><div class="t"><b id="quit-t">Lust'ı kapat</b><span>Tamamen kapat</span></div></div>

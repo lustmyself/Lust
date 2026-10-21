@@ -63,15 +63,15 @@ class HubDialogTests(unittest.TestCase):
 
 class ActionTests(unittest.TestCase):
     def test_action_message_becomes_a_toast(self):
-        with patch.dict(lust_hub.ACTIONS, {"mods": lambda body: "done"}):
-            self.assertEqual(lust_hub.run_action("mods"), "done")
+        with patch.dict(lust_hub.ACTIONS, {"autostart": lambda body: "done"}):
+            self.assertEqual(lust_hub.run_action("autostart"), "done")
         self.assertEqual(lust_hub._state["toast"]["text"], "done")
 
     def test_failing_action_is_reported_not_raised(self):
         def boom(body):
             raise RuntimeError("x")
-        with patch.dict(lust_hub.ACTIONS, {"mods": boom}):
-            self.assertTrue(lust_hub.run_action("mods"))
+        with patch.dict(lust_hub.ACTIONS, {"autostart": boom}):
+            self.assertTrue(lust_hub.run_action("autostart"))
 
     def test_unknown_action_does_nothing(self):
         self.assertEqual(lust_hub.run_action("nope"), "")

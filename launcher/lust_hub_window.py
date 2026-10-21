@@ -341,14 +341,13 @@ class HubWindow:
         # Rows 3 and 4: actions
         y3 = y2 + h2 + p(GAP)
         h3 = p(60)
-        xs = [left, left + col + p(GAP), right - col]
-        self.a_league = self.tile("a_league", xs[0], y3, xs[0] + col, y3 + h3, "play", lambda: self._act("league"))
-        self.a_mods = self.tile("a_mods", xs[1], y3, xs[1] + col, y3 + h3, "folder", lambda: self._act("mods"))
-        self.a_log = self.tile("a_log", xs[2], y3, xs[2] + col, y3 + h3, "log", lambda: self._act("log"))
+        half = (right - left - p(GAP)) / 2
+        xs = [left, right - half]
+        self.a_league = self.tile("a_league", xs[0], y3, xs[0] + half, y3 + h3, "play", lambda: self._act("league"))
+        self.a_auto = self.tile("a_auto", xs[1], y3, xs[1] + half, y3 + h3, "power", lambda: self._act("autostart"))
         y4 = y3 + h3 + p(GAP)
-        self.a_auto = self.tile("a_auto", xs[0], y4, xs[0] + col, y4 + h3, "power", lambda: self._act("autostart"))
-        self.a_restart = self.tile("a_restart", xs[1], y4, xs[1] + col, y4 + h3, "restart", lambda: self._act("restart"))
-        self.a_quit = self.tile("a_quit", xs[2], y4, xs[2] + col, y4 + h3, "close", self._quit_clicked, danger=True)
+        self.a_restart = self.tile("a_restart", xs[0], y4, xs[0] + half, y4 + h3, "restart", lambda: self._act("restart"))
+        self.a_quit = self.tile("a_quit", xs[1], y4, xs[1] + half, y4 + h3, "close", self._quit_clicked, danger=True)
 
         # Row 5: version, what's new, and the round update button
         y5 = y4 + h3 + p(GAP)
@@ -838,8 +837,6 @@ class HubWindow:
 
         self._tile_set(self.a_league, self.t("league_open" if s["league"] else "open_league"),
                        self.t("start_league"), None, enabled=not s["league"], key="a_league")
-        self._tile_set(self.a_mods, self.t("mods"), self.t("mods_sub"))
-        self._tile_set(self.a_log, self.t("log"), self.t("log_sub"))
         self._tile_set(self.a_auto, self.t("autostart"), self.t("on" if s["autostart"] else "off"),
                        ACCENT if s["autostart"] else FAINT)
         self._tile_set(self.a_restart, self.t("restart"), self.t("restart_sub"), enabled=s["running"], key="a_restart")

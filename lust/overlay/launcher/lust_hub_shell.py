@@ -4,13 +4,19 @@ pywebview needs the main thread, which Lust's main loop holds, so Lust starts it
 as `Lust.exe --lust-hub-window <url>` and this process only shows the page Lust serves
 (launcher/lust_hub_server.py). It is frameless: the page draws its own title bar, drags by
 its `pywebview-drag-region` and calls back here to minimize and close.
+
+It closes with the Lust that started it (`--lust-parent <pid>`): a window left open runs
+from Lust's files and kept an update from replacing them.
 """
 
 from __future__ import annotations
 
+import os
 import sys
+import threading
 
 ARG = "--lust-hub-window"
+PARENT_ARG = "--lust-parent"
 SIZE = (1000, 660)
 
 
@@ -25,7 +31,23 @@ class _Api:
         self.window.destroy()
 
 
-def run(url: str) -> None:
+def _close_with(pid: int, api: "_Api") -> None:
+    """Wait for the Lust that started this window, then close it."""
+    import ctypes
+    kernel32 = ctypes.windll.kernel32
+    kernel32.OpenProcess.restype = ctypes.c_void_p
+    handle = kernel32.OpenProcess(0x00100000, False, pid)  # SYNCHRONIZE
+    if handle:
+        kernel32.WaitForSingleObject(ctypes.c_void_p(handle), 0xFFFFFFFF)
+        kernel32.CloseHandle(ctypes.c_void_p(handle))
+    threading.Timer(1.0, lambda: os._exit(0)).start()
+    try:
+        api.window.destroy()
+    except Exception:  # noqa: BLE001
+        pass
+
+
+def run(url: str, parent: int = 0) -> None:
     import webview
     from utils.core.paths import get_user_data_dir
 
@@ -34,6 +56,8 @@ def run(url: str) -> None:
         "Lust", url, js_api=api, width=SIZE[0], height=SIZE[1], min_size=(860, 600),
         frameless=True, easy_drag=False, background_color="#16141f",
     )
+    if parent:
+        threading.Thread(target=_close_with, args=(parent, api), daemon=True, name="LustHubParent").start()
     storage = get_user_data_dir() / "hub-webview"
     storage.mkdir(parents=True, exist_ok=True)
     webview.start(gui="edgechromium", private_mode=False, storage_path=str(storage))
@@ -46,6 +70,10 @@ def main_if_window(argv=None) -> bool:
         return False
     index = argv.index(ARG)
     url = argv[index + 1] if index + 1 < len(argv) else ""
+    parent = 0
+    if PARENT_ARG in argv:
+        value = argv[argv.index(PARENT_ARG) + 1] if argv.index(PARENT_ARG) + 1 < len(argv) else ""
+        parent = int(value) if value.isdigit() else 0
     if url.startswith("http://127.0.0.1:"):
-        run(url)
+        run(url, parent)
     return True

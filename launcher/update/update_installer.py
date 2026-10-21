@@ -41,6 +41,8 @@ if defined PID (
     echo [%date% %time%] Waiting for Lust to exit >> "%LOG%"
     powershell -NoProfile -NonInteractive -Command "Wait-Process -Id %PID% -Timeout 30 -ErrorAction SilentlyContinue" >nul 2>&1
 )
+echo [%date% %time%] Closing Lust windows left open >> "%LOG%"
+powershell -NoProfile -NonInteractive -Command "Get-Process -Name Lust -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path.StartsWith($env:DEST, [StringComparison]::OrdinalIgnoreCase) } | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 800" >nul 2>&1
 echo [%date% %time%] Mirroring files >> "%LOG%"
 robocopy "%SOURCE%" "%DEST%" /MIR /R:5 /W:2 /NFL /NDL /NJH /NJS /XD __pycache__ "%SOURCE%\Pengu Loader\plugins" /XF config.ini ltk_patcher_host.exe ltk_patcher_dll.dll hashes.game.txt >> "%LOG%" 2>&1
 set "RC=%ERRORLEVEL%"

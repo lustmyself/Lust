@@ -522,6 +522,19 @@ EDITS += [
      '        if payload_type == "lust-assets":\n'),
 ]
 
+
+# Updates: a Lust process left running from the install folder (an old hub window) locked
+# Lust.exe and its DLLs, robocopy gave up on them and the update hung on "restarting"
+EDITS += [
+    ('launcher/update/update_installer.py',
+     'echo [%date% %time%] Mirroring files >> "%LOG%"\n',
+     'echo [%date% %time%] Closing Lust windows left open >> "%LOG%"\n'
+     'powershell -NoProfile -NonInteractive -Command "Get-Process -Name Lust -ErrorAction SilentlyContinue'
+     ' | Where-Object { $_.Path -and $_.Path.StartsWith($env:DEST, [StringComparison]::OrdinalIgnoreCase) }'
+     ' | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 800" >nul 2>&1\n'
+     'echo [%date% %time%] Mirroring files >> "%LOG%"\n'),
+]
+
 # Custom skins (pengu/communication/lust_custom_skins.py): the Lust hub's Custom skins tab
 # replaces champ select's Custom mods button; a switched-on skin plays on its champion's default skin
 EDITS += [

@@ -452,7 +452,7 @@ def _open_web() -> bool:
     """The WebView2 window (a second Lust process, see lust_hub_shell). False when it can't show."""
     global _shell
     from launcher import lust_hub_server
-    from launcher.lust_hub_shell import ARG
+    from launcher.lust_hub_shell import ARG, PARENT_ARG
     if not lust_hub_server.start():
         return False
     hwnd = _shell_window()
@@ -467,6 +467,8 @@ def _open_web() -> bool:
     else:
         from utils.core.paths import get_app_dir
         command = [sys.executable, str(get_app_dir() / "main.py"), ARG, lust_hub_server.url()]
+    # The window closes with this Lust, so it never holds Lust's files during an update
+    command += [PARENT_ARG, str(os.getpid())]
     try:
         _shell = subprocess.Popen(command, close_fds=True,
                                   creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))

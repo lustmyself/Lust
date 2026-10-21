@@ -60,7 +60,7 @@ class ShellArgTests(unittest.TestCase):
             self.assertTrue(main_if_window(["Lust.exe", "--lust-hub-window", "https://evil.example/"]))
             run.assert_not_called()
             self.assertTrue(main_if_window(["Lust.exe", "--lust-hub-window", "http://127.0.0.1:47823/"]))
-            run.assert_called_once_with("http://127.0.0.1:47823/")
+            run.assert_called_once_with("http://127.0.0.1:47823/", 0)
 
 
 if __name__ == "__main__":

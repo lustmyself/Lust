@@ -1,6 +1,7 @@
 {
-  "version": "1.4.9.28",
+  "version": "1.4.9.29",
   "en": [
+    "Fixed updates hanging on \"Lust is restarting\" while the desktop hub was open",
     "The welcome card shows your server's Grandmaster and Challenger LP cutoffs (from replays.lol) and how much LP you need",
     "The hub's welcome card shows you: Riot ID, rank, win rate and your last match on that champion's splash art",
     "New Lust icon set with a purple-pink gradient",
@@ -8,6 +9,7 @@
     "Grandmaster shows as Üstatlık in Turkish, as in League"
   ],
   "tr": [
+    "Masaüstü hub açıkken güncellemenin \"Lust yeniden başlıyor\"da takılması düzeltildi",
     "Karşılama kartı sunucunun Üstatlık ve Şampiyonluk LP sınırlarını (replays.lol'dan) ve kaç LP'ye ihtiyacın olduğunu gösteriyor",
     "Hub'ın karşılama kartı artık seni gösteriyor: Riot ID, rank, kazanma oranı ve son maçın, o şampiyonun splash art'ı üzerinde",
     "Mor-pembe geçişli yeni Lust simge seti",

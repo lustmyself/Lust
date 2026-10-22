@@ -106,7 +106,7 @@ Pengu Loader/datastore
 injection/tools/.hashes_state.json
 
 chroma_issue.txt
-CLAUDE.md
+# CLAUDE.md: Lust keeps its notes for Claude Code in the repo (lust/overlay/CLAUDE.md)
 injection/tools/ltk_patcher_host.exe
 injection/tools/ltk_patcher_dll.dll
 Pengu Loader/pengu.log

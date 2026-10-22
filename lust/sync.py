@@ -654,6 +654,12 @@ EDITS += [
      '        log.info(f"Restart scheduled via {batch_path}")\n        try:\n            pengu_loader.keep_on_for_restart()\n        except Exception as e:\n            log.debug(f"Could not keep Pengu on for the restart: {e}")\n        return True\n'),
 ]
 
+
+# Lust's CLAUDE.md (working notes that survive a fresh machine) is tracked, not ignored
+EDITS += [
+    ('.gitignore', 'chroma_issue.txt\nCLAUDE.md\n', 'chroma_issue.txt\n# CLAUDE.md: Lust keeps its notes for Claude Code in the repo (lust/overlay/CLAUDE.md)\n'),
+]
+
 # Custom skins (pengu/communication/lust_custom_skins.py): the Lust hub's Custom skins tab
 # replaces champ select's Custom mods button; a switched-on skin plays on its champion's default skin
 EDITS += [

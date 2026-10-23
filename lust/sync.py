@@ -749,6 +749,42 @@ EDITS += [
 ]
 
 
+# LTK patcher builds from October 2026 verify their host and refuse any program but LTK Manager
+# ("host verification failed, refusing overlay"): the game then starts without mods. The build
+# is remembered so Lust never takes it again (injection/tools/ltk_manager.py), and the player is
+# told in Turkish what to do instead of a generic patcher failure.
+EDITS += [
+    (OVERLAY_PY,
+     '                    elif parts[0] == "dll" and " ERROR " in line:\n'
+     '                        # e.g. "overlay verification failed, disabling overlay"\n',
+     '                    elif parts[0] == "dll" and "host verification failed" in line:\n'
+     '                        # Lust: a patcher build that runs only inside LTK Manager\n'
+     '                        session["error"] = line\n'
+     '                        session["host_locked"] = True\n'
+     '                        log.error("[INJECT] LTK patcher DLL refused Lust as its host - overlay not applied")\n'
+     '                        try:\n'
+     '                            from ..tools.ltk_manager import patcher_refused_host\n'
+     '                            patcher_refused_host(host_exe.parent, line)\n'
+     '                        except Exception as e:\n'
+     '                            log.debug(f"[INJECT] Could not record the refused patcher: {e}")\n'
+     '                    elif parts[0] == "dll" and " ERROR " in line:\n'
+     '                        # e.g. "overlay verification failed, disabling overlay"\n'),
+    (OVERLAY_PY,
+     '            if session.get("crash_loop"):\n'
+     '                # Reported by game_keeps_crashing, in the player\'s words\n'
+     '                self._log_runoverlay_tail(runoverlay_log)\n'
+     '                return 1\n',
+     '            if session.get("crash_loop"):\n'
+     '                # Reported by game_keeps_crashing, in the player\'s words\n'
+     '                self._log_runoverlay_tail(runoverlay_log)\n'
+     '                return 1\n'
+     '            if session.get("host_locked"):\n'
+     '                # Reported by patcher_refused_host, in the player\'s words\n'
+     '                self._log_runoverlay_tail(runoverlay_log)\n'
+     '                return 1\n'),
+]
+
+
 # Desktop hub in WebView2 (launcher/lust_hub_shell.py): Lust.exe --lust-hub-window <url> shows it
 EDITS += [
     ('main/__init__.py',

@@ -30,7 +30,7 @@ import requests
 
 from utils.core.logging import get_logger
 
-from .ltk_manager import LTK_MANAGER_URL, import_from_ltk_manager
+from .ltk_manager import LTK_MANAGER_URL, import_from_ltk_manager, warn_if_host_locked
 from .patcher import check_ltk_patcher
 
 log = get_logger()
@@ -298,6 +298,7 @@ def startup_check(tools_dir: Path) -> None:
 
     league_path = get_config_option("General", "leaguePath")
     ensure_ltk_patcher(tools_dir, Path(league_path) if league_path else None)
+    warn_if_host_locked(tools_dir)
 
 
 # ---------------------------------------------------------------------------

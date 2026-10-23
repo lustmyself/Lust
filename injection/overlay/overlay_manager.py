@@ -512,6 +512,16 @@ class OverlayManager:
                         # The game was launched before the host started scanning
                         session["error"] = LATE_JOIN_ERROR
                         log.error("[INJECT] LTK patcher DLL joined the game too late - overlay not applied")
+                    elif parts[0] == "dll" and "host verification failed" in line:
+                        # Lust: a patcher build that runs only inside LTK Manager
+                        session["error"] = line
+                        session["host_locked"] = True
+                        log.error("[INJECT] LTK patcher DLL refused Lust as its host - overlay not applied")
+                        try:
+                            from ..tools.ltk_manager import patcher_refused_host
+                            patcher_refused_host(host_exe.parent, line)
+                        except Exception as e:
+                            log.debug(f"[INJECT] Could not record the refused patcher: {e}")
                     elif parts[0] == "dll" and " ERROR " in line:
                         # e.g. "overlay verification failed, disabling overlay"
                         message = line.split(" ERROR ", 1)[1]
@@ -609,6 +619,10 @@ class OverlayManager:
                 return 1
             if session.get("crash_loop"):
                 # Reported by game_keeps_crashing, in the player's words
+                self._log_runoverlay_tail(runoverlay_log)
+                return 1
+            if session.get("host_locked"):
+                # Reported by patcher_refused_host, in the player's words
                 self._log_runoverlay_tail(runoverlay_log)
                 return 1
             if session["error"]:

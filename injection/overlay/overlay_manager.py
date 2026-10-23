@@ -77,6 +77,8 @@ QUICK_EXITS_TO_STOP = 2
 def ltk_failure_cause(reason: str) -> str:
     """Why the patcher failed, from the reason Lust reported: what to do about
     it depends on it (Troubleshooting shows a hint for each)"""
+    if "host verification" in reason:
+        return "locked"  # Lust: a patcher build that runs only inside LTK Manager
     if "SetWindowsHookEx" in reason:
         return "hook"
     if reason == LATE_JOIN_ERROR:

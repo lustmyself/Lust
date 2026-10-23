@@ -5057,12 +5057,14 @@
             rejected: () => t('Fix: the patcher rejected the overlay built for this game. Try another skin or turn off custom mods. If every skin fails, update your LTK patcher files.'),
             start: () => t("Fix: Lust could not start ltk_patcher_host.exe. Check that it is still in Lust's tools folder: an antivirus may have removed it."),
             crashed: () => t('Fix: the LTK patcher crashed. Retry the next game. If it crashes every game, update your LTK patcher files.'),
+            locked: () => t("Fix: put LTK patcher files without host verification (ltk_patcher_host.exe and ltk_patcher_dll.dll) in %LOCALAPPDATA%\\Lust\\ltk-patcher, then restart Lust. Lust never copies a locked patcher over a working one."),
           };
           const fix = fixes[e?.cause];
           return {
             title: t('LTK patcher failed during injection'),
             details: [
-              detail ? t('What happened: {detail}', { detail }) : t('What happened: the LTK patcher reported an error.'),
+              e?.cause === 'locked' ? t('What happened: this LTK patcher only runs inside LTK Manager, so it refused Lust and the game started without skins.')
+                : detail ? t('What happened: {detail}', { detail }) : t('What happened: the LTK patcher reported an error.'),
               fix ? fix() : t('Fix: retry the next game. If it fails every game, report it with your Lust logs.'),
               t('Full output is in lust_runoverlay_*.log in the Lust logs folder.'),
             ],

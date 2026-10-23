@@ -1,4 +1,6 @@
 {
+  "What happened: this LTK patcher only runs inside LTK Manager, so it refused Lust and the game started without skins.": "What happened: this LTK patcher only runs inside LTK Manager, so it refused Lust and the game started without skins.",
+  "Fix: put LTK patcher files without host verification (ltk_patcher_host.exe and ltk_patcher_dll.dll) in %LOCALAPPDATA%\\Lust\\ltk-patcher, then restart Lust. Lust never copies a locked patcher over a working one.": "Fix: put LTK patcher files without host verification (ltk_patcher_host.exe and ltk_patcher_dll.dll) in %LOCALAPPDATA%\\Lust\\ltk-patcher, then restart Lust. Lust never copies a locked patcher over a working one.",
   "Base Skin": "Základní skin",
   "Disable custom skin mod": "Vypnout mod skinu",
   "Custom Skin {number}": "Vlastní skin {number}",

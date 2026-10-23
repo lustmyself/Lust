@@ -1,6 +1,7 @@
 {
-  "version": "1.4.9.45",
+  "version": "1.4.9.46",
   "en": [
+    "Troubleshooting explains a patcher that only runs inside LTK Manager and tells you where to put one that works, in Turkish too",
     "LTK Manager's newest patcher only runs inside LTK Manager and refuses Lust: Lust no longer copies it over a working patcher, keeps the one it replaces, and says clearly when skins can't load",
     "Your own LTK patcher files can go in Lust's ltk-patcher folder (no admin rights needed); Lust takes them at the next start",
     "The client's Match History shows all your games again (Lust's card had cut it to the last two)",
@@ -15,6 +16,7 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "Sorun giderme, yalnızca LTK Manager içinde çalışan bir patcher'ı açıklıyor ve çalışan bir patcher'ı nereye koyacağını söylüyor",
     "LTK Manager'ın en yeni patcher'ı yalnızca LTK Manager içinde çalışıyor ve Lust'ı reddediyor: Lust artık onu çalışan patcher'ın üstüne kopyalamıyor, değiştirdiğini yedekliyor ve skinler yüklenemeyince bunu açıkça söylüyor",
     "Kendi LTK patcher dosyalarını Lust'ın ltk-patcher klasörüne koyabilirsin (yönetici izni gerekmez); Lust bir sonraki açılışta onları alır",
     "İstemcinin maç geçmişi yine tüm maçlarını gösteriyor (Lust'ın kartı onu son iki maça indiriyordu)",

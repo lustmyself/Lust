@@ -17,6 +17,7 @@ Any step that no longer fits Rose's code fails loudly instead of guessing.
 """
 
 import io
+import json
 import re
 import shutil
 import subprocess
@@ -782,7 +783,36 @@ EDITS += [
      '                # Reported by patcher_refused_host, in the player\'s words\n'
      '                self._log_runoverlay_tail(runoverlay_log)\n'
      '                return 1\n'),
+    # Troubleshooting names the lock and what to do, instead of "retry the next game"
+    (OVERLAY_PY,
+     '    if "SetWindowsHookEx" in reason:\n'
+     '        return "hook"\n',
+     '    if "host verification" in reason:\n'
+     '        return "locked"  # Lust: a patcher build that runs only inside LTK Manager\n'
+     '    if "SetWindowsHookEx" in reason:\n'
+     '        return "hook"\n'),
+    ('Pengu Loader/plugins/LUST-SettingsPanel/index.js',
+     "            crashed: () => t('Fix: the LTK patcher crashed. Retry the next game. If it crashes every game, update your LTK patcher files.'),\n",
+     "            crashed: () => t('Fix: the LTK patcher crashed. Retry the next game. If it crashes every game, update your LTK patcher files.'),\n"
+     r'            locked: () => t("Fix: put LTK patcher files without host verification (ltk_patcher_host.exe and ltk_patcher_dll.dll) in %LOCALAPPDATA%\\Lust\\ltk-patcher, then restart Lust. Lust never copies a locked patcher over a working one."),'
+     '\n'),
+    ('Pengu Loader/plugins/LUST-SettingsPanel/index.js',
+     "              detail ? t('What happened: {detail}', { detail }) : t('What happened: the LTK patcher reported an error.'),\n",
+     "              e?.cause === 'locked' ? t('What happened: this LTK patcher only runs inside LTK Manager, so it refused Lust and the game started without skins.')\n"
+     "                : detail ? t('What happened: {detail}', { detail }) : t('What happened: the LTK patcher reported an error.'),\n"),
 ]
+
+# Lust's own texts in the client plugins' languages (LUST-I18n): Turkish where Lust has it,
+# English in the others, so every language keeps the same keys
+LOCALE_STRINGS = {
+    "What happened: this LTK patcher only runs inside LTK Manager, so it refused Lust and the game started without skins.":
+        {"tr": "Ne oldu: bu LTK patcher yalnızca LTK Manager içinde çalışıyor; Lust'ı reddetti ve oyun skinsiz açıldı."},
+    "Fix: put LTK patcher files without host verification (ltk_patcher_host.exe and ltk_patcher_dll.dll) in "
+    "%LOCALAPPDATA%\\Lust\\ltk-patcher, then restart Lust. Lust never copies a locked patcher over a working one.":
+        {"tr": "Çözüm: host doğrulaması olmayan LTK patcher dosyalarını (ltk_patcher_host.exe ve ltk_patcher_dll.dll) "
+               "%LOCALAPPDATA%\\Lust\\ltk-patcher klasörüne koy, sonra Lust'ı yeniden başlat. "
+               "Lust kilitli bir patcher'ı çalışan bir patcher'ın üstüne asla kopyalamaz."},
+}
 
 
 # Desktop hub in WebView2 (launcher/lust_hub_shell.py): Lust.exe --lust-hub-window <url> shows it
@@ -892,6 +922,20 @@ def remove_unused(tree):
             path.unlink()
 
 
+def add_locale_strings(tree):
+    """Add LOCALE_STRINGS to every LUST-I18n language, right after the opening brace."""
+    for path in sorted((tree / "Pengu Loader/plugins/LUST-I18n/locales").glob("*.json")):
+        raw = read_text(path)
+        newline = "\r\n" if "\r\n" in raw else "\n"
+        present = json.loads(raw)
+        lines = [f"  {json.dumps(key, ensure_ascii=False)}: {json.dumps(values.get(path.stem, key), ensure_ascii=False)},"
+                 for key, values in LOCALE_STRINGS.items() if key not in present]
+        if not lines:
+            continue
+        head, rest = raw.split("{", 1)
+        write_text(path, head + "{" + newline + newline.join(lines) + rest)
+
+
 def apply_edits(tree):
     failures = []
     for rel, old, new in EDITS:
@@ -988,6 +1032,7 @@ def main():
         remove_unused(tree)
         copy_overlay(tree)
         apply_edits(tree)
+        add_locale_strings(tree)
         apply_lust_version(tree)
         install(tree)
     print(f"[sync] Lust tree rebuilt from Rose {ref}")

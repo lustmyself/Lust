@@ -60,6 +60,13 @@ class RefusedHostTests(unittest.TestCase):
         self.report.assert_not_called()  # no generic "LTK patcher failed" on top
 
 
+class LockedCauseTests(unittest.TestCase):
+    def test_troubleshooting_names_the_lock(self):
+        self.assertEqual(overlay_manager.ltk_failure_cause(
+            "Skins will not load: this LTK patcher only runs inside LTK Manager (host verification)."), "locked")
+        self.assertEqual(overlay_manager.ltk_failure_cause(REFUSED.splitlines()[-1]), "locked")
+
+
 class HostLockedImportTests(unittest.TestCase):
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()

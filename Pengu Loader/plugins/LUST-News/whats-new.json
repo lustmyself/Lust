@@ -1,6 +1,9 @@
 {
-  "version": "1.4.9.50",
+  "version": "1.4.9.51",
   "en": [
+    "New Maps tab in the hub: pick the map skin for your next game, drop a .zip, .fantome or .modpkg on it to add one, and get maps from Lust's catalog",
+    "The patcher's download link and the builds Lust trusts now come from Lust's GitHub, so a new ltk_patcher.zip link reaches you without an update",
+    "Lust warns you a few days before the patcher stops working, and the hub shows a patcher card with a download button when something is wrong",
     "No patcher? Lust opens the ltk_patcher.zip download (Rose Discord, #tutorial) and installs it as soon as it lands in Downloads, no restart",
     "Lust no longer installs or updates LTK Manager: its patchers since 1.30 don't work with Lust",
     "Uninstalling Lust no longer leaves a dead \"Lust\" in Windows' Apps list, and the list shows the version you run",
@@ -21,6 +24,9 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "Hub'da yeni Haritalar sekmesi: sonraki maçın harita skinini seç, .zip, .fantome veya .modpkg dosyasını sürükleyip ekle, Lust kataloğundan harita indir",
+    "Patcher'ın indirme linki ve Lust'ın güvendiği sürümler artık Lust'ın GitHub'ından geliyor: yeni ltk_patcher.zip linki güncelleme beklemeden sana ulaşır",
+    "Patcher'ın süresi dolmadan birkaç gün önce Lust uyarır; bir sorun olunca hub'da indirme düğmeli bir patcher kartı çıkar",
     "Patcher yok mu? Lust ltk_patcher.zip indirme sayfasını (Rose Discord, #tutorial) açıyor ve dosya İndirilenler'e iner inmez kuruyor, yeniden başlatmaya gerek yok",
     "Lust artık LTK Manager'ı kurmuyor ve güncellemiyor: 1.30'dan beri onun patcher'ları Lust'la çalışmıyor",
     "Lust'ı kaldırmak artık Windows'un Uygulamalar listesinde ölü bir \"Lust\" bırakmıyor, liste de çalışan sürümü gösteriyor",

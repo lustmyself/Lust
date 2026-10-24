@@ -52,6 +52,11 @@ def initialize_core_components(args, injection_threshold: Optional[float] = None
         log.info("Initializing shared state...")
         state = SharedState()
         log.info("Shared state initialized")
+        try:
+            from launcher import lust_maps
+            lust_maps.attach_state(state)
+        except Exception as e:  # noqa: BLE001
+            log.debug(f"[Maps] Hub map picks stay saved choices only: {e}")
     except Exception as e:
         log.error("=" * 80)
         log.error("FATAL ERROR DURING INITIALIZATION")

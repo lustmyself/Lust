@@ -26,12 +26,13 @@ from typing import Iterable, List, Optional
 from utils.core.logging import get_logger
 
 from .patcher import LTK_PATCHER_DLL, LTK_PATCHER_HOST, check_ltk_patcher
+from .patcher_manifest import DEFAULT_MANIFEST, download_url, locked_digests
 
 log = get_logger()
 
 LTK_MANAGER_NAME = "LTK Manager"
-# ltk_patcher.zip, as Rose's Discord shares it (#tutorial, "NEW LTK FILES REQUIRED", 2026-10-22)
-PATCHER_URL = "https://www.mediafire.com/file/g0lzcgpr97jd9r3/ltk_patcher.zip/file"
+# The built-in ltk_patcher.zip page; lust/patcher.json (patcher_manifest) can name another one
+PATCHER_URL = DEFAULT_MANIFEST["downloads"][0]["url"]
 
 HOST_LOCK_MARKER = b"host verification failed"
 HOST_LOCK_LINE = "host verification failed"
@@ -143,7 +144,10 @@ def host_locked(folder: Path, tools_dir: Path) -> bool:
         data = (folder / LTK_PATCHER_DLL).read_bytes()
     except OSError:
         return False
-    return HOST_LOCK_MARKER in data or hashlib.sha256(data).hexdigest() in _refused_digests(tools_dir)
+    if HOST_LOCK_MARKER in data:
+        return True
+    digest = hashlib.sha256(data).hexdigest()
+    return digest in _refused_digests(tools_dir) or digest in locked_digests()
 
 
 def _copy_pair(source: Path, target: Path) -> None:
@@ -207,10 +211,11 @@ def import_from_ltk_manager(tools_dir: Path, extra_dirs: Iterable[Path] = ()) ->
 
 def _locked_text() -> tuple:
     folder = user_patcher_dir()
+    url = download_url()
     turkish = ("Skinler yüklenmiyor: LTK Manager'ın yeni patcher'ı yalnızca LTK Manager içinde çalışıyor "
-               f"ve Lust'ı reddediyor. ltk_patcher.zip'i İndirilenler klasörüne indir ({PATCHER_URL}): Lust "
+               f"ve Lust'ı reddediyor. ltk_patcher.zip'i İndirilenler klasörüne indir ({url}): Lust "
                f"imzasını kontrol edip kendisi kurar. Ya da iki dosyayı {folder} klasörüne koy.")
-    english = (f"Download ltk_patcher.zip into your Downloads folder ({PATCHER_URL}): Lust checks its League "
+    english = (f"Download ltk_patcher.zip into your Downloads folder ({url}): Lust checks its League "
                f"Toolkit signature and installs it. Or put ltk_patcher_host.exe and ltk_patcher_dll.dll in {folder}.")
     return turkish, english
 

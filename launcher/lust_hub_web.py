@@ -50,6 +50,7 @@ ICONS = {
     "sync": '<path d="M21 12a9 9 0 0 1-15 6.7L3 16M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5M3 21v-5h5"/>',
     "download": '<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>',
     "check": '<path d="M20 6 9 17l-5-5"/>',
+    "map": '<path d="M9 4 3 6.5v13.5L9 17.5l6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/>',
 }
 
 PAGE = r"""<!doctype html>
@@ -97,6 +98,9 @@ PAGE = r"""<!doctype html>
   .tab[data-page="lol"] { background: #0a1428; box-shadow: inset 0 0 0 1px rgba(200, 170, 110, .35); }
   .lol-mark { width: 26px; height: 26px; filter: drop-shadow(0 0 4px rgba(10, 200, 185, .25)); }
   .tab[data-page="spotify"] { color: #1db954; background: rgba(29, 185, 84, .12); }
+  .tab[data-page="maps"] { color: #5eead4; background: rgba(94, 234, 212, .1); }
+  .tab[data-page="maps"]:hover { background: rgba(94, 234, 212, .2); color: #99f6e4; }
+  .tab[data-page="maps"].active { background: linear-gradient(135deg, #0f766e, #2dd4bf); color: #04201d; box-shadow: 0 6px 16px rgba(45, 212, 191, .35); }
   .tab[data-page="settings"] { color: #c8aa6e; background: rgba(200, 170, 110, .1); }
   .tab[data-page="settings"]:hover { background: rgba(200, 170, 110, .2); color: #f0e6d2; }
   .tab[data-page="settings"].active { background: linear-gradient(135deg, #785a28, #c8aa6e); color: #1e2328;
@@ -362,6 +366,31 @@ PAGE = r"""<!doctype html>
     background: linear-gradient(transparent, var(--bg) 30%); }
   .sticky .btn { flex: 1; padding: 12px; }
   .note { color: var(--faint); font-size: 11px; margin-top: 10px; }
+  .maps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .mapc { position: relative; background: var(--card); border-radius: 14px; padding: 7px 7px 11px; cursor: pointer;
+    border: 2px solid transparent; transition: transform .15s, border-color .15s; }
+  .mapc:hover { transform: translateY(-3px) scale(1.02); }
+  .mapc.on { border-color: #2dd4bf; box-shadow: 0 8px 22px rgba(45, 212, 191, .18); }
+  .mapc .shot { background: linear-gradient(135deg, #12313a, #1c2b1f 60%, #2b2414); display: grid; place-items: center; color: #5eead4; }
+  .mapc .shot svg { width: 34px; height: 34px; opacity: .7; }
+  .mapc .shot.img svg { display: none; }
+  .mapc b { display: block; margin: 8px 3px 0; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mapc span { display: block; margin: 2px 3px 0; color: var(--sub); font-size: 11px; min-height: 14px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mapc .tag { position: absolute; top: 13px; left: 13px; padding: 2px 8px; border-radius: 99px; font-size: 10.5px; font-weight: 700;
+    background: #2dd4bf; color: #04201d; }
+  .mapc .del { position: absolute; top: 12px; right: 12px; width: 24px; height: 24px; border-radius: 8px; display: grid; place-items: center;
+    background: rgba(16, 14, 23, .75); color: var(--sub); opacity: 0; transition: opacity .15s; }
+  .mapc:hover .del { opacity: 1; }
+  .mapc .del:hover { color: #f87171; }
+  .mapc .del svg { width: 13px; height: 13px; }
+  .mapc .get { margin: 8px 3px 0; width: calc(100% - 6px); padding: 7px; }
+  .drop { margin-top: 12px; border: 1.5px dashed #3a3550; border-radius: 14px; padding: 16px; display: flex; align-items: center; gap: 14px;
+    color: var(--sub); font-size: 12px; transition: border-color .15s, background .15s; }
+  .drop.over { border-color: #2dd4bf; background: rgba(45, 212, 191, .07); color: var(--text); }
+  .drop svg { width: 22px; height: 22px; color: #5eead4; flex: none; }
+  .drop .btn { margin-left: auto; }
+  .empty { color: var(--faint); font-size: 12px; padding: 6px 2px; }
 
   #toast { position: fixed; left: 50%; bottom: 22px; transform: translate(-50%, 20px); opacity: 0; transition: .25s;
     background: #2a2540; border: 1px solid #4b3f73; color: var(--text); padding: 10px 18px; border-radius: 99px; max-width: 80%; pointer-events: none; }
@@ -470,6 +499,7 @@ PAGE = r"""<!doctype html>
 <nav class="rail">
   <div class="tab active" data-page="lol" data-label="LoL">__lol__</div>
   <div class="tab" data-page="spotify" data-label="Spotify">__spotify__</div>
+  <div class="tab" data-page="maps" data-label="Haritalar">__map__</div>
   <div class="tab" data-page="settings" data-label="Ayarlar">__gear__</div>
   <div class="spacer"></div>
   <div class="dot" id="dot" title=""></div>
@@ -517,6 +547,11 @@ PAGE = r"""<!doctype html>
       <div class="t"><b>Rose da kurulu</b><span>İkisi aynı anda çalışınca LoL'de Rose'un gül simgesi çıkar ve çakışırlar. Lust, Rose'un yaptığı her şeyi zaten yapıyor.</span></div>
       <button class="btn danger" style="margin-left:auto" data-act="rose_uninstall">Rose'u kaldır</button>
     </div>
+    <div class="card rose" id="ltk" hidden>
+      <div class="ico">__close__</div>
+      <div class="t"><b id="ltk-t"></b><span id="ltk-b"></span></div>
+      <button class="btn primary" style="margin-left:auto" id="ltk-btn" data-act="patcher_download">İndirme sayfasını aç</button>
+    </div>
     <div class="card prompt" id="prompt" hidden>
       <div class="t"><b id="q-title"></b><span id="q-body"></span></div>
       <button class="btn primary" style="margin-left:auto" data-act="prompt" data-body='{"accept":true}'>Kur</button>
@@ -557,6 +592,17 @@ PAGE = r"""<!doctype html>
       <div class="sg-mini" data-act="clear_cache">__trash__<div><b>Önbelleği temizle</b><span id="sg-cache">Hub'ın tarayıcı önbelleği</span></div></div>
       <div class="sg-mini" data-act="open_data">__folder__<div><b>Lust klasörü</b><span>Ayarlar, skinler, loglar</span></div></div>
     </div>
+  </section>
+
+  <section class="page" id="page-maps">
+    <div class="section">Sonraki maçın haritası</div>
+    <div class="maps" id="maps"></div>
+    <div class="drop" id="drop">__download__<div><b>Harita modu ekle</b><br>.zip, .fantome veya .modpkg dosyasını buraya sürükle</div>
+      <button class="btn" data-act="map_folder">Klasörü aç</button>
+    </div>
+    <div class="section" id="cat-h" hidden>Lust kataloğu</div>
+    <div class="maps" id="catalog"></div>
+    <div class="note">Seçtiğin harita bir sonraki maçta yüklenir. LoL istemcisindeki LUST panelinin Maps sekmesi de aynı listeyi kullanır.</div>
   </section>
 
   <section class="page" id="page-spotify">
@@ -611,6 +657,12 @@ function ago(s) {
   const m = Math.floor((Date.now() / 1000 - s) / 60);
   return m < 1 ? "az önce" : `${m} dk önce`;
 }
+const LTK_TITLE = {
+  missing: "LTK patcher eksik",
+  locked: "Bu LTK patcher Lust'la çalışmıyor",
+  expired: "LTK patcher'ın süresi doldu",
+  expiring: "LTK patcher'ın süresi doluyor",
+};
 const STATUS = { online: "Çevrimiçi", offline: "Çevrimdışı", mobile: "Mobil" };
 const ICON = { sparkle: `__sparkle__`, plusbox: `__plusbox__`, users: `__users__`, shield: `__shield__`, power: `__power__`,
   sync: `__sync__`, bolt: `__bolt__`, spotify: `__spotify__`, moon: `__moon__`, play: `__play__`, image: `__image__`, wind: `__wind__` };
@@ -880,6 +932,17 @@ function render(s) {
   $("h-bar").firstElementChild.style.width = busy ? "" : `${s.progress}%`;
 
   $("rose").hidden = !(s.rose && s.rose.installed);
+  const ltk = s.patcher || {};
+  $("ltk").hidden = !ltk.state || ltk.state === "ok";
+  if (!$("ltk").hidden) {
+    $("ltk-t").textContent = LTK_TITLE[ltk.state] || LTK_TITLE.missing;
+    $("ltk-b").textContent = ltk.waiting
+      ? "ltk_patcher.zip bekleniyor: İndirilenler'e inince Lust imzasını kontrol edip kendisi kurar."
+      : (ltk.state === "expiring"
+        ? `Süresi ${ltk.eol} tarihinde doluyor; League'in sonraki güncellemesinden sonra skinler yüklenmez.` +
+          (ltk.newer ? " Yeni ltk_patcher.zip hazır." : " Yenisi Rose Discord'unda (#tutorial) paylaşılınca indir.")
+        : "Skinler için ltk_patcher.zip gerekli. İndir, Lust onu İndirilenler'de bulup kendisi kurar.");
+  }
   $("prompt").hidden = !s.prompt;
   if (s.prompt) {
     $("q-title").textContent = `Lust ${s.prompt.version} kurulmaya hazır`;
@@ -942,9 +1005,84 @@ async function poll() {
 function showPage(name) {
   document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t.dataset.page === name));
   document.querySelectorAll(".page").forEach((p) => p.classList.toggle("active", p.id === `page-${name}`));
-  $("title").textContent = name === "lol" ? "LoL" : name === "spotify" ? "Spotify" : "Ayarlar";
+  $("title").textContent = { lol: "LoL", spotify: "Spotify", maps: "Haritalar" }[name] || "Ayarlar";
   $("tip").hidden = name !== "lol";
+  if (name === "maps") loadMaps();
 }
+
+// ---- map skins ----
+const ICON_MAP = `__map__`, ICON_TRASH = `__trash__`;
+let mapsKey = "";
+function mapCard(m, catalogItem) {
+  const card = document.createElement("div");
+  card.className = "mapc" + (m.selected ? " on" : "");
+  const shot = document.createElement("div");
+  shot.className = "shot";
+  shot.innerHTML = ICON_MAP;
+  const src = catalogItem ? m.preview : (m.preview ? `/map-preview?id=${encodeURIComponent(m.id)}` : "");
+  if (src) { shot.classList.add("img"); shot.style.backgroundImage = `url("${src}")`; }
+  card.appendChild(shot);
+  const b = document.createElement("b"); b.textContent = m.name; card.appendChild(b);
+  const span = document.createElement("span");
+  span.textContent = catalogItem ? (m.author ? `${m.author}` : m.description) : (m.description || (m.id ? "Mod" : "League'in kendi haritası"));
+  card.appendChild(span);
+  if (m.selected) { const tag = document.createElement("i"); tag.className = "tag"; tag.textContent = "Seçili"; card.appendChild(tag); }
+  if (catalogItem) {
+    const get = document.createElement("button");
+    get.className = "btn get" + (m.installed ? "" : " primary");
+    get.textContent = m.installing ? "İndiriliyor…" : m.installed ? "Kurulu" : "İndir";
+    get.disabled = m.installed || m.installing;
+    get.addEventListener("click", (e) => { e.stopPropagation(); act("map_install", { id: m.id }).then(() => setTimeout(loadMaps, 400)); });
+    card.appendChild(get);
+  } else {
+    card.addEventListener("click", () => act("map_select", { id: m.id || null }).then(() => setTimeout(loadMaps, 300)));
+    if (m.id) {
+      const del = document.createElement("div");
+      del.className = "del"; del.title = "Sil"; del.innerHTML = ICON_TRASH;
+      del.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (del.dataset.armed && Date.now() - Number(del.dataset.armed) < 3000) {
+          act("map_delete", { id: m.id }).then(() => setTimeout(loadMaps, 300));
+        } else { del.dataset.armed = Date.now(); showToast("Silmek için tekrar bas"); }
+      });
+      card.appendChild(del);
+    }
+  }
+  return card;
+}
+async function loadMaps() {
+  let data;
+  try { data = await api("/api/maps"); } catch (e) { return; }
+  const key = JSON.stringify(data);
+  if (key === mapsKey) return;
+  mapsKey = key;
+  const list = $("maps");
+  list.innerHTML = "";
+  list.appendChild(mapCard({ id: "", name: "Varsayılan", selected: !data.selected }, false));
+  data.installed.forEach((m) => list.appendChild(mapCard(m, false)));
+  const cat = $("catalog");
+  cat.innerHTML = "";
+  $("cat-h").hidden = !data.catalog.length;
+  data.catalog.forEach((m) => cat.appendChild(mapCard(m, true)));
+}
+setInterval(() => { if ($("page-maps").classList.contains("active")) loadMaps(); }, 3000);
+// A file dropped anywhere else must not replace the page with it
+["dragover", "drop"].forEach((t) => document.addEventListener(t, (e) => e.preventDefault()));
+const drop = $("drop");
+["dragenter", "dragover"].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", async (e) => {
+  for (const file of e.dataTransfer.files) {
+    showToast(`${file.name} ekleniyor…`);
+    try {
+      const r = await fetch(`/api/maps/upload?name=${encodeURIComponent(file.name)}`,
+        { method: "POST", headers: { "X-Lust-Hub": TOKEN }, body: file });
+      const out = await r.json();
+      if (out.message) showToast(out.message);
+    } catch (err) { showToast("Eklenemedi"); }
+  }
+  mapsKey = ""; loadMaps();
+});
 
 const ICON_SYNC = `__sync__`, ICON_DOWNLOAD = `__download__`;
 document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => showPage(t.dataset.page)));

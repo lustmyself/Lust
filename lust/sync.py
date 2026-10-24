@@ -980,6 +980,23 @@ EDITS += [
 ]
 
 
+# Map skins in the hub (launcher/lust_maps.py) and the patcher manifest
+# (injection/tools/patcher_manifest.py): the hub sees the shared state, PyInstaller takes both
+EDITS += [
+    ("main/core/initialization.py",
+     '        state = SharedState()\n        log.info("Shared state initialized")\n',
+     '        state = SharedState()\n        log.info("Shared state initialized")\n'
+     '        try:\n'
+     '            from launcher import lust_maps\n'
+     '            lust_maps.attach_state(state)\n'
+     '        except Exception as e:  # noqa: BLE001\n'
+     '            log.debug(f"[Maps] Hub map picks stay saved choices only: {e}")\n'),
+    ("Lust.spec", "    'launcher.lust_offline',\n    'launcher.autostart_default',\n",
+     "    'launcher.lust_offline',\n    'launcher.lust_maps',\n    'injection.tools.patcher_manifest',\n"
+     "    'launcher.autostart_default',\n"),
+]
+
+
 # Rose's files that Lust doesn't use: dropped from the tree on every sync
 REMOVE = [
     "relay-worker",  # Rose's party relay server (Cloudflare worker); Lust runs no relay

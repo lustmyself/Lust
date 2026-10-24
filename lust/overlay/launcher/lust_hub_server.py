@@ -94,6 +94,17 @@ class _Handler(BaseHTTPRequestHandler):
                 return self._send(200, lust_hero.image_path().read_bytes(), "image/jpeg")
             except OSError:
                 return self._send(404)
+        if path == "/api/maps":
+            if not self._authorized():
+                return self._send(403)
+            from launcher import lust_maps
+            return self._send(200, lust_maps.dumps_listing(), "application/json")
+        if path == "/map-preview":
+            from urllib.parse import parse_qs
+            from launcher import lust_maps
+            map_id = (parse_qs(self.path.split("?", 1)[-1]).get("id") or [""])[0]
+            found = lust_maps.preview_bytes(map_id) if map_id else None
+            return self._send(200, *found) if found else self._send(404)
         if path == "/api/media":
             if not self._authorized():
                 return self._send(403)
@@ -123,6 +134,18 @@ class _Handler(BaseHTTPRequestHandler):
             from launcher import lust_media
             ok = lust_media.control(self.path.rsplit("/", 1)[-1])
             return self._send(200 if ok else 404, b'{"ok": true}' if ok else b"", "application/json")
+        if self._authorized() and self.path.startswith("/api/maps/upload"):
+            from urllib.parse import parse_qs, unquote
+            from launcher import lust_hub, lust_maps
+            name = unquote((parse_qs(self.path.split("?", 1)[-1]).get("name") or [""])[0])
+            try:
+                length = int(self.headers.get("Content-Length") or 0)
+            except ValueError:
+                length = 0
+            message = lust_maps.import_upload(name, self.rfile, length)
+            if message:
+                lust_hub.toast(message)
+            return self._send(200, json.dumps({"message": message}).encode("utf-8"), "application/json")
         if not self._authorized() or not self.path.startswith("/api/action/"):
             return self._send(403)
         name = self.path.rsplit("/", 1)[-1]

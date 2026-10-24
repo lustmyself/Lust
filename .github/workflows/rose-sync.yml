@@ -193,9 +193,11 @@ jobs:
           TAG: ${{ steps.rose.outputs.tag }}
           VERSION: ${{ steps.rose.outputs.version }}
         run: |
-          # Releases are named Lust v1, v2, ... in order. The tag is the version the
+          # Releases are named Lust v1.1, v1.2, ... in order. The tag is the version the
           # updater compares (Rose's, plus Lust's patch number), so only the title is numbered.
-          number=$(( $(gh release list --repo "$GITHUB_REPOSITORY" --limit 1000 --json tagName --jq length) + 1 ))
+          last=$(gh release list --repo "$GITHUB_REPOSITORY" --limit 1000 --json name \
+            --jq '[.[].name | select(test("^Lust v1[.][0-9]+$")) | ltrimstr("Lust v1.") | tonumber] | max // 0')
+          name="Lust v1.$(( last + 1 ))"
           news="Pengu Loader/plugins/LUST-News/whats-new.json"
           changes=""
           if [ -f "$news" ] && [ "$(jq -r .version "$news")" = "$VERSION" ]; then
@@ -203,7 +205,7 @@ jobs:
           $(jq -r '.en[] | "- " + .' "$news")
           "
           fi
-          notes="Lust v$number ($VERSION), built automatically from [Rose $TAG](https://github.com/$ROSE_REPO/releases/tag/$TAG).
+          notes="$name ($VERSION), built automatically from [Rose $TAG](https://github.com/$ROSE_REPO/releases/tag/$TAG).
 
           $changes
           **Install:** download \`Lust_Setup_$VERSION.exe\` below. Existing installs update themselves."
@@ -212,7 +214,7 @@ jobs:
             "installer/update_package_$VERSION.zip" \
             --repo "$GITHUB_REPOSITORY" \
             --target "$(git rev-parse HEAD)" \
-            --title "Lust v$number" \
+            --title "$name" \
             --notes "$notes"
 
       - name: Report the failure as an issue

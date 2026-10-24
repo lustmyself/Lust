@@ -5057,7 +5057,7 @@
             rejected: () => t('Fix: the patcher rejected the overlay built for this game. Try another skin or turn off custom mods. If every skin fails, update your LTK patcher files.'),
             start: () => t("Fix: Lust could not start ltk_patcher_host.exe. Check that it is still in Lust's tools folder: an antivirus may have removed it."),
             crashed: () => t('Fix: the LTK patcher crashed. Retry the next game. If it crashes every game, update your LTK patcher files.'),
-            locked: () => t("Fix: download ltk_patcher.zip from the Rose Discord (discord.com/invite/roseskins, #latest-version) into your Downloads folder and restart Lust: it checks the League Toolkit signature and installs it. Or put both files in %LOCALAPPDATA%\\Lust\\ltk-patcher."),
+            locked: () => t("Fix: download ltk_patcher.zip (www.mediafire.com/file/g0lzcgpr97jd9r3/ltk_patcher.zip/file, shared in the Rose Discord #tutorial) into your Downloads folder and restart Lust: it checks the League Toolkit signature and installs it. Or put both files in %LOCALAPPDATA%\\Lust\\ltk-patcher."),
           };
           const fix = fixes[e?.cause];
           return {

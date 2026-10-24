@@ -1,19 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Help the user get LTK Manager, so Lust has an LTK patcher.
+Get Lust an LTK patcher that runs with it.
 
-Lust needs ltk_patcher_host.exe and ltk_patcher_dll.dll, which come with LTK
-Manager. When they are missing, unreadable or past their end of life, Lust
-asks the user; on yes it downloads LTK Manager's latest official installer
-from GitHub, checks its Authenticode signature (League Toolkit signs as
-Natoken LLC) and opens it for the user to click through. Once it closes,
-Lust copies the patcher from the new install.
-
-Once LTK Manager is installed it is the player's own, kept current: when a newer
-release is out (checked once a day) or the patcher no longer supports the game, Lust
-downloads the signed installer and runs it silently (/S) to update it. A first install
-still opens the installer for the player. Lust never ships or modifies the patcher.
+Lust needs ltk_patcher_host.exe and ltk_patcher_dll.dll. LTK Manager's own builds since
+1.30 refuse any host but LTK Manager, so Lust neither installs nor updates LTK Manager.
+When the patcher is missing, past its end of life or locked, Lust opens the download page
+of the ltk_patcher.zip that Rose's Discord shares (#tutorial) and waits for it in the
+Downloads folder, without a restart. It takes the files only when both are signed by League
+Toolkit (Natoken LLC) and the DLL runs outside LTK Manager, so a link that changes can't give
+players anything else. Lust never ships the patcher itself.
 """
 
 import re
@@ -21,82 +17,25 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import time
 import threading
+import time
+import webbrowser
 import zipfile
 from pathlib import Path
 from typing import Callable, Optional
 
-import requests
-
 from utils.core.logging import get_logger
 
-from .ltk_manager import LTK_MANAGER_URL, host_locked, import_from_ltk_manager, user_patcher_dir, warn_if_host_locked
+from .ltk_manager import PATCHER_URL, host_locked, import_from_ltk_manager, user_patcher_dir, warn_if_host_locked
 from .patcher import LTK_PATCHER_DLL, LTK_PATCHER_HOST, check_ltk_patcher
 
 log = get_logger()
 
-RELEASES_API = "https://api.github.com/repos/LeagueToolkit/ltk-manager/releases/latest"
-DOWNLOAD_PREFIX = "https://github.com/LeagueToolkit/ltk-manager/releases/download/"
-SETUP_ASSET_RE = re.compile(r"^LTK\.Manager_[0-9][0-9A-Za-z.\-]*_x64-setup\.exe$")
 # League Toolkit's code signing identity (Azure Trusted Signing profile "Natoken")
 SIGNER_SUBJECT = "O=Natoken LLC"
 MAX_PATCHER_BYTES = 32 * 1024 * 1024  # each patcher file is ~1 MB; a larger zip member is not one
-MAX_SETUP_BYTES = 200 * 1024 * 1024
-
-
-class SetupError(Exception):
-    """A step of getting LTK Manager failed; the message is shown to the user."""
-
-
-# ---------------------------------------------------------------------------
-# Download and verify
-# ---------------------------------------------------------------------------
-
-def _latest_from_web(session: requests.Session) -> tuple:
-    """(tag, URL, size) from github.com itself, which GitHub's API limit does not cover."""
-    r = session.get("https://github.com/LeagueToolkit/ltk-manager/releases/latest",
-                    timeout=15, allow_redirects=False)
-    tag = r.headers.get("Location", "").rstrip("/").rsplit("/tag/", 1)[-1]
-    if r.status_code not in (301, 302) or not re.fullmatch(r"v?[0-9][0-9A-Za-z.\-]*", tag):
-        raise SetupError("Could not find LTK Manager's latest release")
-    url = f"{DOWNLOAD_PREFIX}{tag}/LTK.Manager_{tag.lstrip('vV')}_x64-setup.exe"
-    head = session.head(url, timeout=15, allow_redirects=True)
-    head.raise_for_status()
-    return tag, url, int(head.headers.get("Content-Length") or 0)
-
-
-def latest_release(session: requests.Session) -> tuple:
-    """(tag, setup download URL, size) of LTK Manager's latest release."""
-    try:
-        r = session.get(RELEASES_API, timeout=15, headers={"Accept": "application/vnd.github+json"})
-        r.raise_for_status()
-        release = r.json()
-    except requests.RequestException as e:
-        log.info(f"[LTK] GitHub API unavailable ({e}); asking github.com")
-        return _latest_from_web(session)
-    for asset in release.get("assets") or []:
-        name = asset.get("name") or ""
-        url = asset.get("browser_download_url") or ""
-        if SETUP_ASSET_RE.match(name) and url.startswith(DOWNLOAD_PREFIX):
-            return release.get("tag_name") or "", url, int(asset.get("size") or 0)
-    raise SetupError("LTK Manager's latest release has no Windows installer")
-
-
-def download(session: requests.Session, url: str, size: int, dest: Path) -> None:
-    if size <= 0 or size > MAX_SETUP_BYTES:
-        raise SetupError(f"Unexpected LTK Manager installer size: {size} bytes")
-    written = 0
-    with session.get(url, stream=True, timeout=30) as r:
-        r.raise_for_status()
-        with open(dest, "wb") as f:
-            for chunk in r.iter_content(chunk_size=1 << 16):
-                written += len(chunk)
-                if written > MAX_SETUP_BYTES:
-                    raise SetupError("LTK Manager installer is larger than expected")
-                f.write(chunk)
-    if written != size:
-        raise SetupError(f"LTK Manager download incomplete ({written} of {size} bytes)")
+WAIT_S = 15 * 60
+POLL_S = 3
 
 
 def signature_of(path: Path) -> tuple:
@@ -114,185 +53,14 @@ def signature_of(path: Path) -> tuple:
     return status, subject
 
 
-def verify_signature(path: Path) -> None:
-    status, subject = signature_of(path)
-    if status != "Valid" or SIGNER_SUBJECT not in subject:
-        raise SetupError("The downloaded LTK Manager installer is not signed by League Toolkit "
-                         f"(signature: {status or 'none'}, signer: {subject or 'none'}), so Lust did not open it")
-
-
-def download_verified_installer(work: Path) -> Path:
-    """Download LTK Manager's latest installer into work and verify it. Raises SetupError."""
-    session = requests.Session()
-    try:
-        tag, url, size = latest_release(session)
-        setup = work / url.rsplit("/", 1)[-1]
-        log.info(f"[LTK] Downloading LTK Manager {tag}")
-        download(session, url, size, setup)
-    except requests.RequestException as e:
-        raise SetupError(f"Could not download LTK Manager: {e}")
-    finally:
-        session.close()
-    verify_signature(setup)
-    log.info(f"[LTK] LTK Manager {tag} installer verified")
-    return setup
-
-
-def open_installer(setup: Path) -> None:
-    """Open the installer for the user and wait until they close it."""
-    try:
-        subprocess.run([str(setup)], check=False)
-    except OSError as e:
-        raise SetupError(f"Could not open the LTK Manager installer: {e}")
+def _signed_by_ltk(result: tuple) -> bool:
+    status, subject = result
+    return status == "Valid" and SIGNER_SUBJECT in subject
 
 
 # ---------------------------------------------------------------------------
-# Startup flow
+# The patcher the player downloaded
 # ---------------------------------------------------------------------------
-
-UPDATE_CHECK_S = 24 * 60 * 60
-
-
-def installed_version() -> Optional[str]:
-    """LTK Manager's version from its Windows uninstall entry, or None when it isn't installed."""
-    if sys.platform != "win32":
-        return None
-    import winreg
-    for hive in (winreg.HKEY_LOCAL_MACHINE, winreg.HKEY_CURRENT_USER):
-        try:
-            with winreg.OpenKey(hive, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\LTK Manager") as key:
-                return str(winreg.QueryValueEx(key, "DisplayVersion")[0]).strip() or None
-        except OSError:
-            continue
-    return None
-
-
-def _version(text: str) -> tuple:
-    return tuple(int(n) for n in re.findall(r"\d+", text or ""))
-
-
-def run_installer_silently(setup: Path) -> None:
-    """Update an installed LTK Manager without showing its installer."""
-    try:
-        subprocess.run([str(setup), "/S"], check=False, timeout=600)
-    except (OSError, subprocess.TimeoutExpired) as e:
-        raise SetupError(f"Could not update LTK Manager: {e}")
-
-
-def _due_for_check() -> bool:
-    from utils.core.paths import get_user_data_dir
-    stamp = get_user_data_dir() / "ltk-update-check"
-    try:
-        if time.time() - stamp.stat().st_mtime < UPDATE_CHECK_S:
-            return False
-    except OSError:
-        pass
-    try:
-        stamp.write_text(str(int(time.time())), encoding="utf-8")
-    except OSError:
-        pass
-    return True
-
-
-def update_installed(tools_dir: Path, current: str, fetch: Callable[[Path], Path],
-                     run_silent: Callable[[Path], None]) -> bool:
-    """Update the player's LTK Manager to the latest release and take its patcher. True when done."""
-    work = Path(tempfile.mkdtemp(prefix="lust-ltk-"))
-    try:
-        setup = fetch(work)
-        log.info(f"[LTK] Updating LTK Manager {current} silently")
-        run_silent(setup)
-    except SetupError as e:
-        log.warning(f"[LTK] {e}")
-        return False
-    finally:
-        shutil.rmtree(work, ignore_errors=True)
-    if import_from_ltk_manager(tools_dir):
-        log.info(f"[LTK] Patcher taken from the updated LTK Manager ({installed_version()})")
-        return True
-    return False
-
-
-def _update_if_newer(tools_dir: Path) -> None:
-    """In the background: a newer LTK Manager release replaces the installed one."""
-    try:
-        current = installed_version()
-        if not current or not _due_for_check():
-            return
-        session = requests.Session()
-        try:
-            tag, _, _ = latest_release(session)
-        finally:
-            session.close()
-        if _version(tag) <= _version(current):
-            return
-        log.info(f"[LTK] LTK Manager {tag} is out (installed: {current})")
-        update_installed(tools_dir, current, download_verified_installer, run_installer_silently)
-    except Exception as e:  # noqa: BLE001 - never in the way of starting Lust
-        log.info(f"[LTK] Background LTK Manager check failed: {e}")
-
-
-def patcher_needs_update(tools_dir: Path, game_dir: Optional[Path]) -> bool:
-    status = check_ltk_patcher(tools_dir)
-    return bool(status.missing) or status.eol is None or status.expired_for(game_dir)
-
-
-def ensure_ltk_patcher(tools_dir: Path, game_dir: Optional[Path],
-                       ask: Optional[Callable[[str], bool]] = None,
-                       fetch: Optional[Callable[[Path], Path]] = None,
-                       run_installer: Optional[Callable[[Path], None]] = None,
-                       report_error: Optional[Callable[[str], None]] = None,
-                       installed: Optional[Callable[[], Optional[str]]] = None,
-                       run_silent: Optional[Callable[[Path], None]] = None,
-                       background: Optional[Callable[[Path], None]] = None) -> None:
-    """Get a usable patcher into tools_dir: update an installed LTK Manager silently,
-    or offer to set it up. Anything left unresolved falls through to Lust's
-    missing-patcher dialog.
-    """
-    ask = ask or ask_to_install
-    fetch = fetch or (lambda work: with_progress(lambda: download_verified_installer(work)))
-    run_installer = run_installer or open_installer
-    report_error = report_error or show_error
-    installed = installed or installed_version
-    run_silent = run_silent or run_installer_silently
-    if background is None:
-        def background(tools):
-            threading.Thread(target=_update_if_newer, args=(tools,), daemon=True, name="LtkUpdate").start()
-
-    import_from_ltk_manager(tools_dir)
-    current = installed()
-    if not patcher_needs_update(tools_dir, game_dir):
-        if current:
-            background(tools_dir)  # a newer release, once a day, without holding up Lust
-        return
-
-    if current:
-        # The player's LTK Manager no longer supports the game: update it now, silently
-        if update_installed(tools_dir, current, fetch, run_silent) and not patcher_needs_update(tools_dir, game_dir):
-            return
-        log.info("[LTK] Silent LTK Manager update did not give a usable patcher; asking")
-
-    status = check_ltk_patcher(tools_dir)
-    if not ask("update" if not status.missing and status.eol is not None else "install"):
-        log.info("[LTK] User declined getting LTK Manager")
-        return
-
-    work = Path(tempfile.mkdtemp(prefix="lust-ltk-"))
-    try:
-        setup = fetch(work)
-        run_installer(setup)
-    except SetupError as e:
-        log.warning(f"[LTK] {e}")
-        report_error(str(e))
-        return
-    finally:
-        shutil.rmtree(work, ignore_errors=True)
-
-    if import_from_ltk_manager(tools_dir):
-        log.info("[LTK] Patcher taken from the new LTK Manager install")
-    elif patcher_needs_update(tools_dir, game_dir):
-        log.info("[LTK] LTK Manager setup closed without a usable patcher")
-
 
 def _downloads_dir() -> Path:
     """The Downloads folder where Windows keeps it (players move it to another drive)."""
@@ -335,10 +103,10 @@ def _read_patcher(source: Path) -> Optional[dict]:
 
 def take_downloaded_patcher(tools_dir: Path, downloads: Optional[Path] = None,
                             signature: Callable[[Path], tuple] = signature_of) -> bool:
-    """The LTK patcher the player downloaded (Rose's Discord shares ltk_patcher.zip) goes to
-    Lust's ltk-patcher folder, where the import takes it: from ltk_patcher*.zip, an extracted
-    ltk_patcher* folder or loose files in Downloads, only when both files are signed by League
-    Toolkit and the DLL runs outside LTK Manager. True when it was taken."""
+    """The LTK patcher the player downloaded goes to Lust's ltk-patcher folder, where the
+    import takes it: from ltk_patcher*.zip, an extracted ltk_patcher* folder or loose files
+    in Downloads, only when both files are signed by League Toolkit and the DLL runs outside
+    LTK Manager. True when it was taken."""
     downloads = downloads or _downloads_dir()
     try:
         sources = sorted((p for p in downloads.iterdir() if p.name.lower().startswith("ltk_patcher")
@@ -365,7 +133,7 @@ def take_downloaded_patcher(tools_dir: Path, downloads: Optional[Path] = None,
             target = user_patcher_dir()
             if all((target / name).is_file() and (target / name).read_bytes() == (work / name).read_bytes()
                    for name in names):
-                return False  # taken at an earlier start
+                return False  # taken before
             target.mkdir(parents=True, exist_ok=True)
             for name in names:
                 shutil.copyfile(work / name, target / name)
@@ -378,9 +146,60 @@ def take_downloaded_patcher(tools_dir: Path, downloads: Optional[Path] = None,
     return False
 
 
-def _signed_by_ltk(result: tuple) -> bool:
-    status, subject = result
-    return status == "Valid" and SIGNER_SUBJECT in subject
+# ---------------------------------------------------------------------------
+# Startup flow
+# ---------------------------------------------------------------------------
+
+def patcher_problem(tools_dir: Path, game_dir: Optional[Path]) -> Optional[str]:
+    """Why the patcher in tools_dir can't put skins in game ("missing", "locked",
+    "expired"), or None when it can."""
+    status = check_ltk_patcher(tools_dir)
+    if status.missing or status.eol is None:
+        return "missing"
+    if host_locked(tools_dir, tools_dir):
+        return "locked"
+    if status.expired_for(game_dir):
+        return "expired"
+    return None
+
+
+def _take(tools_dir: Path) -> None:
+    take_downloaded_patcher(tools_dir)
+    import_from_ltk_manager(tools_dir)
+
+
+def ensure_ltk_patcher(tools_dir: Path, game_dir: Optional[Path],
+                       ask: Optional[Callable[[str], bool]] = None,
+                       wait: Optional[Callable[[Callable[[], bool]], bool]] = None,
+                       open_page: Callable[[str], object] = webbrowser.open) -> bool:
+    """Get a usable patcher into tools_dir: one already downloaded, or, with the player's
+    yes, the download page and a wait for the zip. True when the patcher is usable."""
+    ask = ask or ask_to_download
+    wait = wait or wait_for_download
+    _take(tools_dir)
+    problem = patcher_problem(tools_dir, game_dir)
+    if problem is None:
+        return True
+    log.info(f"[LTK] The patcher is {problem}; asking the player to download ltk_patcher.zip")
+    if not ask(problem):
+        log.info("[LTK] The player put off downloading the patcher")
+        return False
+
+    def ready() -> bool:
+        _take(tools_dir)
+        return patcher_problem(tools_dir, game_dir) is None
+
+    open_page(PATCHER_URL)
+    if wait(ready):
+        log.info("[LTK] Patcher installed from the download")
+        try:
+            from launcher import lust_hub
+            lust_hub.toast("LTK patcher kuruldu: skinler hazır.")
+        except Exception:  # noqa: BLE001
+            pass
+        return True
+    log.info("[LTK] No usable patcher arrived in Downloads")
+    return False
 
 
 def startup_check(tools_dir: Path) -> None:
@@ -388,7 +207,6 @@ def startup_check(tools_dir: Path) -> None:
     from config import get_config_option
 
     league_path = get_config_option("General", "leaguePath")
-    take_downloaded_patcher(tools_dir)
     ensure_ltk_patcher(tools_dir, Path(league_path) if league_path else None)
     warn_if_host_locked(tools_dir)
 
@@ -401,9 +219,9 @@ TD_INFORMATION_ICON = 0xFFFD
 TDF_ENABLE_HYPERLINKS = 0x0001
 TDF_SHOW_MARQUEE_PROGRESS_BAR = 0x0400
 TDF_CALLBACK_TIMER = 0x0800
-TDCBF_OK_BUTTON, TDCBF_CANCEL_BUTTON = 0x0001, 0x0008
+TDCBF_CANCEL_BUTTON = 0x0008
 TDN_CREATED, TDN_HYPERLINK_CLICKED, TDN_TIMER = 0, 3, 4
-TDM_CLICK_BUTTON, TDM_SET_PROGRESS_BAR_MARQUEE, TDM_ENABLE_BUTTON = 0x0466, 0x046B, 0x046F
+TDM_CLICK_BUTTON, TDM_SET_PROGRESS_BAR_MARQUEE = 0x0466, 0x046B
 IDCANCEL = 2
 
 
@@ -413,7 +231,6 @@ def _run_task_dialog(title, instruction, content, buttons=(), flags=0, common=0,
     if sys.platform != "win32":
         return None
     import ctypes
-    import webbrowser
     from ctypes import wintypes
 
     class Button(ctypes.Structure):
@@ -483,43 +300,53 @@ def _message_box(text, title, flags) -> int:
     return ctypes.windll.user32.MessageBoxW(0, text, title, flags | 0x00040000)  # MB_TOPMOST
 
 
-ASK_TEXT = {
-    "install": ("Lust needs the LTK patcher to put skins in game. It comes with LTK Manager, "
-                "a free mod manager by League Toolkit.\n\n"
-                "Lust can download the LTK Manager installer from its official GitHub page, "
-                "check that it is signed by League Toolkit, and open it for you."),
-    "update": ("League has updated past the date your LTK patcher supports, so skins will not "
-               "load until it is updated.\n\n"
-               "Lust can download the latest LTK Manager installer from its official GitHub page, "
-               "check that it is signed by League Toolkit, and open it for you."),
+ASK_TITLE = {
+    "missing": "Skinler için LTK patcher gerekli",
+    "locked": "Bu LTK patcher Lust'la çalışmıyor",
+    "expired": "LTK patcher'ın süresi doldu",
 }
+ASK_TEXT = (
+    "Lust skinleri oyuna LTK patcher ile koyar. LTK Manager'ın yeni sürümleri Lust'la çalışmıyor; "
+    "çalışan patcher, Rose Discord'unun #tutorial kanalında paylaşılan ltk_patcher.zip.\n\n"
+    "\"İndirme sayfasını aç\"a bas ve açılan sayfadan ltk_patcher.zip'i indir. Lust onu İndirilenler "
+    "klasöründe bulur, League Toolkit imzasını kontrol eder ve kendisi kurar. Yeniden başlatmana gerek yok."
+)
 
 
-def ask_to_install(kind: str) -> bool:
-    get_id, later_id = 1001, 1002
-    instruction = "Get LTK Manager?" if kind == "install" else "Update the LTK patcher?"
-    footer = f'LTK Manager: <a href="{LTK_MANAGER_URL}">github.com/LeagueToolkit/ltk-manager</a>'
+def ask_to_download(problem: str) -> bool:
+    open_id, later_id = 1001, 1002
+    instruction = ASK_TITLE.get(problem, ASK_TITLE["missing"])
+    footer = f'<a href="{PATCHER_URL}">ltk_patcher.zip</a> (Rose Discord, #tutorial)'
     pressed = _run_task_dialog(
-        "Lust", instruction, ASK_TEXT[kind],
-        buttons=((get_id, "Download and open the installer"), (later_id, "Not now")), footer=footer,
+        "Lust", instruction, ASK_TEXT,
+        buttons=((open_id, "İndirme sayfasını aç"), (later_id, "Sonra")), footer=footer,
     )
     if pressed is None:
-        return _message_box(f"{instruction}\n\n{ASK_TEXT[kind]}\n\n{LTK_MANAGER_URL}",
+        return _message_box(f"{instruction}\n\n{ASK_TEXT}\n\n{PATCHER_URL}",
                             "Lust", 0x00000004 | 0x00000020) == 6  # MB_YESNO | ICONQUESTION, IDYES
-    return pressed == get_id
+    return pressed == open_id
 
 
-def with_progress(work: Callable):
-    """Run work() in a thread behind a marquee dialog; return its result or raise its error."""
-    outcome = {}
+def wait_for_download(ready: Callable[[], bool], timeout_s: float = WAIT_S, poll_s: float = POLL_S) -> bool:
+    """Check ready() every few seconds behind a marquee dialog until it is True, the
+    player cancels, or the time is up. True when it became ready."""
+    done = threading.Event()
+    stop = threading.Event()
+    outcome = {"ready": False}
 
-    def target():
-        try:
-            outcome["result"] = work()
-        except Exception as e:
-            outcome["error"] = e
+    def poll():
+        deadline = time.monotonic() + timeout_s
+        while not stop.is_set() and time.monotonic() < deadline:
+            try:
+                if ready():
+                    outcome["ready"] = True
+                    break
+            except Exception as e:  # noqa: BLE001 - a half-written download, read again next time
+                log.debug(f"[LTK] Waiting for the patcher: {e}")
+            stop.wait(poll_s)
+        done.set()
 
-    worker = threading.Thread(target=target, daemon=True)
+    worker = threading.Thread(target=poll, daemon=True, name="LtkWait")
     worker.start()
 
     def on_event(hwnd, notification):
@@ -527,28 +354,16 @@ def with_progress(work: Callable):
         send = ctypes.windll.user32.SendMessageW
         if notification == TDN_CREATED:
             send(hwnd, TDM_SET_PROGRESS_BAR_MARQUEE, 1, 30)
-            send(hwnd, TDM_ENABLE_BUTTON, IDCANCEL, 0)
-        elif notification == TDN_TIMER and not worker.is_alive():
-            send(hwnd, TDM_ENABLE_BUTTON, IDCANCEL, 1)
+        elif notification == TDN_TIMER and done.is_set():
             send(hwnd, TDM_CLICK_BUTTON, IDCANCEL, 0)
 
     _run_task_dialog(
-        "Lust", "Downloading LTK Manager...",
-        "Getting the installer from LTK Manager's official GitHub page and checking its signature.",
+        "Lust", "ltk_patcher.zip bekleniyor...",
+        "İndirme bitince Lust dosyayı İndirilenler klasöründe bulur ve kurar. "
+        "Bu pencere kendiliğinden kapanır.",
         flags=TDF_SHOW_MARQUEE_PROGRESS_BAR | TDF_CALLBACK_TIMER, common=TDCBF_CANCEL_BUTTON,
         on_event=on_event,
     )
-    worker.join()  # also when no dialog could be shown
-    error = outcome.get("error")
-    if error is not None:
-        if isinstance(error, SetupError):
-            raise error
-        raise SetupError(f"Could not get LTK Manager: {error}")
-    return outcome.get("result")
-
-
-def show_error(message: str) -> None:
-    text = (f"{message}\n\nYou can install LTK Manager yourself from {LTK_MANAGER_URL}, "
-            "then restart Lust.")
-    if _run_task_dialog("Lust", "Could not get LTK Manager", text, common=TDCBF_OK_BUTTON) is None:
-        _message_box(text, "Lust", 0x00000030)  # MB_ICONWARNING
+    stop.set()  # the player closed the window, or none could be shown: don't hold Lust's start
+    worker.join()
+    return outcome["ready"]

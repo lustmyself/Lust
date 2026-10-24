@@ -1,6 +1,8 @@
 {
-  "version": "1.4.9.49",
+  "version": "1.4.9.50",
   "en": [
+    "No patcher? Lust opens the ltk_patcher.zip download (Rose Discord, #tutorial) and installs it as soon as it lands in Downloads, no restart",
+    "Lust no longer installs or updates LTK Manager: its patchers since 1.30 don't work with Lust",
     "Uninstalling Lust no longer leaves a dead \"Lust\" in Windows' Apps list, and the list shows the version you run",
     "The patcher from the Rose Discord is found in Downloads whether you keep the zip or extract it, even with a (1) in the file names or a Downloads folder moved to another drive",
     "Skins not loading after LTK Manager 1.30? Download ltk_patcher.zip from the Rose Discord (#latest-version) into Downloads and restart Lust: it checks the League Toolkit signature and installs the patcher itself",
@@ -19,6 +21,8 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "Patcher yok mu? Lust ltk_patcher.zip indirme sayfasını (Rose Discord, #tutorial) açıyor ve dosya İndirilenler'e iner inmez kuruyor, yeniden başlatmaya gerek yok",
+    "Lust artık LTK Manager'ı kurmuyor ve güncellemiyor: 1.30'dan beri onun patcher'ları Lust'la çalışmıyor",
     "Lust'ı kaldırmak artık Windows'un Uygulamalar listesinde ölü bir \"Lust\" bırakmıyor, liste de çalışan sürümü gösteriyor",
     "Rose Discord'undaki patcher, zip'i ister sakla ister çıkar, dosya adlarında (1) olsa da, İndirilenler klasörü başka bir sürücüye taşınmış olsa da bulunuyor",
     "LTK Manager 1.30'dan sonra skinler yüklenmiyor mu? Rose Discord'undaki (#latest-version) ltk_patcher.zip'i İndirilenler'e indir ve Lust'ı yeniden başlat: Lust League Toolkit imzasını kontrol edip patcher'ı kendisi kurar",

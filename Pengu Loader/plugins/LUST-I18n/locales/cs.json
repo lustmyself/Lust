@@ -1,6 +1,6 @@
 {
   "What happened: this LTK patcher only runs inside LTK Manager, so it refused Lust and the game started without skins.": "What happened: this LTK patcher only runs inside LTK Manager, so it refused Lust and the game started without skins.",
-  "Fix: download ltk_patcher.zip from the Rose Discord (discord.com/invite/roseskins, #latest-version) into your Downloads folder and restart Lust: it checks the League Toolkit signature and installs it. Or put both files in %LOCALAPPDATA%\\Lust\\ltk-patcher.": "Fix: download ltk_patcher.zip from the Rose Discord (discord.com/invite/roseskins, #latest-version) into your Downloads folder and restart Lust: it checks the League Toolkit signature and installs it. Or put both files in %LOCALAPPDATA%\\Lust\\ltk-patcher.",
+  "Fix: download ltk_patcher.zip (www.mediafire.com/file/g0lzcgpr97jd9r3/ltk_patcher.zip/file, shared in the Rose Discord #tutorial) into your Downloads folder and restart Lust: it checks the League Toolkit signature and installs it. Or put both files in %LOCALAPPDATA%\\Lust\\ltk-patcher.": "Fix: download ltk_patcher.zip (www.mediafire.com/file/g0lzcgpr97jd9r3/ltk_patcher.zip/file, shared in the Rose Discord #tutorial) into your Downloads folder and restart Lust: it checks the League Toolkit signature and installs it. Or put both files in %LOCALAPPDATA%\\Lust\\ltk-patcher.",
   "Base Skin": "Základní skin",
   "Disable custom skin mod": "Vypnout mod skinu",
   "Custom Skin {number}": "Vlastní skin {number}",

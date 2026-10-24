@@ -283,34 +283,34 @@ EDITS = [
 EDITS += [
     ('main/__init__.py',
      '    """Return (title, status_title, status_body, steps) for an LTK patcher problem."""\n    source = "Get both files from LTK Manager."\n',
-     '    """Return (title, status_title, status_body, steps) for an LTK patcher problem."""\n    # Lust copies the patcher from an LTK Manager install by itself (injection/tools/ltk_manager.py)\n    install = (\n        "1. Install LTK Manager from github.com/LeagueToolkit/ltk-manager/releases\\n"\n        "2. Restart Lust: it copies both files from LTK Manager by itself.\\n"\n        "(Or put both files in Lust\'s tools folder yourself.)"\n    )\n'),
+     '    """Return (title, status_title, status_body, steps) for an LTK patcher problem."""\n    # Lust installs a downloaded ltk_patcher.zip by itself (injection/tools/ltk_manager_setup.py)\n    install = (\n        "1. Download ltk_patcher.zip: https://www.mediafire.com/file/g0lzcgpr97jd9r3/ltk_patcher.zip/file\\n"\n        "2. Leave it in your Downloads folder (zipped or extracted).\\n"\n        "3. Restart Lust: it checks the files and installs them by itself."\n    )\n'),
     ('main/__init__.py',
      '            f"The ltk_patcher_dll.dll in Lust\'s tools folder does not support game builds released after {detail}, and League has updated since.",\n            f"1. Update LTK Manager, then get both files from it.\\n"\n            "2. Open Lust\'s tools folder.\\n"\n            "3. Replace both files, then restart Lust.",\n',
-     '            f"The ltk_patcher_dll.dll in Lust\'s tools folder does not support game builds released after {detail}, and League has updated since.",\n            "1. Update LTK Manager.\\n"\n            "2. Restart Lust: it copies the new files by itself.",\n'),
+     '            f"The ltk_patcher_dll.dll in Lust\'s tools folder does not support game builds released after {detail}, and League has updated since.",\n            "1. Download the newer ltk_patcher.zip that Rose\'s Discord shares (#tutorial) into your Downloads folder.\\n"\n            "2. Restart Lust: it checks the files and installs them by itself.",\n'),
     ('main/__init__.py',
      '            "The ltk_patcher_dll.dll in Lust\'s tools folder is not a recognized LTK patcher DLL.",\n            f"1. {source}\\n"\n            "2. Open Lust\'s tools folder.\\n"\n            "3. Replace both files, then restart Lust.",\n',
      '            "The ltk_patcher_dll.dll in Lust\'s tools folder is not a recognized LTK patcher DLL.",\n            install,\n'),
     ('main/__init__.py',
      '        "One Lust component is missing",\n        f"Lust needs {detail or \'the LTK patcher\'} in its tools folder before it can start.",\n        f"1. {source}\\n"\n        "2. Open Lust\'s tools folder.\\n"\n        "3. Place both files there, then restart Lust.",\n',
-     '        "One Lust component is missing",\n        f"Lust needs {detail or \'the LTK patcher\'} from LTK Manager before it can start.",\n        install,\n'),
+     '        "One Lust component is missing",\n        f"Lust needs {detail or \'the LTK patcher\'} (ltk_patcher.zip) before it can start.",\n        install,\n'),
     ('main/__init__.py',
      '    )\n    footer = "Please do not request or share this file in Discord. Lust cannot distribute it because of licensing restrictions."\n',
-     '    )\n    footer = (\'Get LTK Manager only from its <a href="https://github.com/LeagueToolkit/ltk-manager/releases/latest">\'\n              "official GitHub page</a>: look-alike copies elsewhere can be malware.")\n'),
+     '    )\n    footer = (\'<a href="https://www.mediafire.com/file/g0lzcgpr97jd9r3/ltk_patcher.zip/file">ltk_patcher.zip</a> \'\n              "(Rose\'s Discord, #tutorial). Lust only installs files signed by League Toolkit.")\n'),
     ('main/__init__.py',
      '        f"{status_title}\\n\\n{status_body}\\n\\nHow to fix it:\\n{steps}\\n\\n"\n        "Please do not request or share this file in Discord.\\n"\n        "Discord: https://discord.gg/roseskins\\n\\n"\n',
-     '        f"{status_title}\\n\\n{status_body}\\n\\nHow to fix it:\\n{steps}\\n\\n"\n        "Get LTK Manager only from its official GitHub page:\\n"\n        "https://github.com/LeagueToolkit/ltk-manager/releases/latest\\n\\n"\n'),
+     '        f"{status_title}\\n\\n{status_body}\\n\\nHow to fix it:\\n{steps}\\n\\n"\n        "Lust only installs patcher files signed by League Toolkit.\\n\\n"\n'),
     ('main/__init__.py',
      '    _sync_cslol_stub(tools_dir)\n    status = check_ltk_patcher(tools_dir)\n',
-     '    _sync_cslol_stub(tools_dir)\n    try:\n        # Copies the patcher from LTK Manager, offering to get LTK Manager when needed\n        from injection.tools.ltk_manager_setup import startup_check\n        startup_check(tools_dir)\n    except Exception as e:\n        log.warning(f"[LTK] Could not set up the patcher from LTK Manager: {e}")\n    status = check_ltk_patcher(tools_dir)\n'),
+     '    _sync_cslol_stub(tools_dir)\n    try:\n        # Takes a downloaded ltk_patcher.zip, or opens its download page and waits for it\n        from injection.tools.ltk_manager_setup import startup_check\n        startup_check(tools_dir)\n    except Exception as e:\n        log.warning(f"[LTK] Could not set up the patcher: {e}")\n    status = check_ltk_patcher(tools_dir)\n'),
     ('README.md',
      '- **League of Legends** installed\n- **LTK patcher** - You must provide it yourself (see below)\n',
-     '- **League of Legends** installed\n- **LTK Manager** installed, for its LTK patcher (see below)\n'),
+     '- **League of Legends** installed\n- **LTK patcher** - `ltk_patcher.zip`, which Lust asks you to download (see below)\n'),
     ('README.md',
      '\nDue to DMCA restrictions, Lust cannot distribute the LTK patcher. Get its two files, `ltk_patcher_host.exe` and `ltk_patcher_dll.dll`, from an LTK Manager install.\n',
-     '\nLust injects with the LTK patcher (`ltk_patcher_host.exe` and `ltk_patcher_dll.dll`) that ships with [LTK Manager](https://github.com/LeagueToolkit/ltk-manager/releases/latest). Install LTK Manager and Lust copies both files from it by itself on startup, and again whenever LTK Manager has a newer patcher. Only download LTK Manager from its official GitHub page.\n'),
+     '\nLust injects with the LTK patcher (`ltk_patcher_host.exe` and `ltk_patcher_dll.dll`). LTK Manager\'s own builds since 1.30 refuse every program but LTK Manager, so Lust uses the [ltk_patcher.zip](https://www.mediafire.com/file/g0lzcgpr97jd9r3/ltk_patcher.zip/file) that Rose\'s Discord shares (#tutorial). When the patcher is missing, Lust opens that page: download the zip and Lust finds it in your Downloads folder, checks that both files are signed by League Toolkit, and installs them.\n'),
     ('README.md',
      '\nOn first launch, Lust asks for these files and opens its tools folder, where they go. The patcher stops working with game builds released after its end-of-life date: Lust then tells you to update LTK Manager and replace both files.\n',
-     '\nThe patcher stops working with game builds released after its end-of-life date: update LTK Manager and restart Lust.\n'),
+     '\nThe patcher stops working with game builds released after its end-of-life date: Lust then asks for the newer ltk_patcher.zip the same way.\n'),
 ]
 
 # One click on the LUST label toggled the panel twice (nav item + section listeners),
@@ -794,7 +794,7 @@ EDITS += [
     ('Pengu Loader/plugins/LUST-SettingsPanel/index.js',
      "            crashed: () => t('Fix: the LTK patcher crashed. Retry the next game. If it crashes every game, update your LTK patcher files.'),\n",
      "            crashed: () => t('Fix: the LTK patcher crashed. Retry the next game. If it crashes every game, update your LTK patcher files.'),\n"
-     r'            locked: () => t("Fix: download ltk_patcher.zip from the Rose Discord (discord.com/invite/roseskins, #latest-version) into your Downloads folder and restart Lust: it checks the League Toolkit signature and installs it. Or put both files in %LOCALAPPDATA%\\Lust\\ltk-patcher."),'
+     r'            locked: () => t("Fix: download ltk_patcher.zip (www.mediafire.com/file/g0lzcgpr97jd9r3/ltk_patcher.zip/file, shared in the Rose Discord #tutorial) into your Downloads folder and restart Lust: it checks the League Toolkit signature and installs it. Or put both files in %LOCALAPPDATA%\\Lust\\ltk-patcher."),'
      '\n'),
     ('Pengu Loader/plugins/LUST-SettingsPanel/index.js',
      "              detail ? t('What happened: {detail}', { detail }) : t('What happened: the LTK patcher reported an error.'),\n",
@@ -807,12 +807,12 @@ EDITS += [
 LOCALE_STRINGS = {
     "What happened: this LTK patcher only runs inside LTK Manager, so it refused Lust and the game started without skins.":
         {"tr": "Ne oldu: bu LTK patcher yalnızca LTK Manager içinde çalışıyor; Lust'ı reddetti ve oyun skinsiz açıldı."},
-    "Fix: download ltk_patcher.zip from the Rose Discord (discord.com/invite/roseskins, #latest-version) into your "
-    "Downloads folder and restart Lust: it checks the League Toolkit signature and installs it. Or put both files in "
-    "%LOCALAPPDATA%\\Lust\\ltk-patcher.":
-        {"tr": "Çözüm: Rose Discord'undaki (discord.com/invite/roseskins, #latest-version) ltk_patcher.zip'i "
-               "İndirilenler klasörüne indir ve Lust'ı yeniden başlat: Lust League Toolkit imzasını kontrol edip "
-               "kendisi kurar. Ya da iki dosyayı %LOCALAPPDATA%\\Lust\\ltk-patcher klasörüne koy."},
+    "Fix: download ltk_patcher.zip (www.mediafire.com/file/g0lzcgpr97jd9r3/ltk_patcher.zip/file, shared in the Rose "
+    "Discord #tutorial) into your Downloads folder and restart Lust: it checks the League Toolkit signature and "
+    "installs it. Or put both files in %LOCALAPPDATA%\\Lust\\ltk-patcher.":
+        {"tr": "Çözüm: ltk_patcher.zip'i (www.mediafire.com/file/g0lzcgpr97jd9r3/ltk_patcher.zip/file, Rose "
+               "Discord'u #tutorial) İndirilenler klasörüne indir ve Lust'ı yeniden başlat: Lust League Toolkit "
+               "imzasını kontrol edip kendisi kurar. Ya da iki dosyayı %LOCALAPPDATA%\\Lust\\ltk-patcher klasörüne koy."},
 }
 
 

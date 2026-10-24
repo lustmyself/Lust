@@ -294,33 +294,73 @@ def ensure_ltk_patcher(tools_dir: Path, game_dir: Optional[Path],
         log.info("[LTK] LTK Manager setup closed without a usable patcher")
 
 
+def _downloads_dir() -> Path:
+    """The Downloads folder where Windows keeps it (players move it to another drive)."""
+    if sys.platform == "win32":
+        try:
+            import ctypes
+            import uuid
+            folder_id = (ctypes.c_byte * 16).from_buffer_copy(
+                uuid.UUID("374DE290-123F-4565-9164-39C4925E467B").bytes_le)  # FOLDERID_Downloads
+            path = ctypes.c_wchar_p()
+            if ctypes.windll.shell32.SHGetKnownFolderPath(ctypes.byref(folder_id), 0, None, ctypes.byref(path)) == 0:
+                try:
+                    return Path(path.value)
+                finally:
+                    ctypes.windll.ole32.CoTaskMemFree(path)
+        except (OSError, AttributeError, ValueError):
+            pass
+    return Path.home() / "Downloads"
+
+
+def _plain_name(name: str) -> str:
+    """A browser's second copy ("ltk_patcher_dll (1).dll") under its real name."""
+    return re.sub(r"\s*\(\d+\)(?=\.[^.]+$)", "", name).lower()
+
+
+def _read_patcher(source: Path) -> Optional[dict]:
+    """Both patcher files from a zip or a folder, by name, or None when it has not both."""
+    names = (LTK_PATCHER_DLL, LTK_PATCHER_HOST)
+    if source.is_file():
+        with zipfile.ZipFile(source) as zipped:
+            found = {_plain_name(Path(info.filename).name): info for info in zipped.infolist() if not info.is_dir()}
+            if all(name in found and found[name].file_size <= MAX_PATCHER_BYTES for name in names):
+                return {name: zipped.read(found[name]) for name in names}
+        return None
+    found = {_plain_name(path.name): path for path in source.iterdir() if path.is_file()}
+    if all(name in found and found[name].stat().st_size <= MAX_PATCHER_BYTES for name in names):
+        return {name: found[name].read_bytes() for name in names}
+    return None
+
+
 def take_downloaded_patcher(tools_dir: Path, downloads: Optional[Path] = None,
                             signature: Callable[[Path], tuple] = signature_of) -> bool:
-    """An ltk_patcher*.zip the player downloaded (Rose's Discord shares one) goes to Lust's
-    ltk-patcher folder, where the import takes it: only when both files are signed by League
+    """The LTK patcher the player downloaded (Rose's Discord shares ltk_patcher.zip) goes to
+    Lust's ltk-patcher folder, where the import takes it: from ltk_patcher*.zip, an extracted
+    ltk_patcher* folder or loose files in Downloads, only when both files are signed by League
     Toolkit and the DLL runs outside LTK Manager. True when it was taken."""
-    # shortcut: looks in the default Downloads folder only, add the Known Folder lookup if players move it
-    downloads = downloads or Path.home() / "Downloads"
+    downloads = downloads or _downloads_dir()
     try:
-        archives = sorted(downloads.glob("ltk_patcher*.zip"), key=lambda p: p.stat().st_mtime, reverse=True)
+        sources = sorted((p for p in downloads.iterdir() if p.name.lower().startswith("ltk_patcher")
+                          and (p.is_dir() or p.suffix.lower() == ".zip")),
+                         key=lambda p: p.stat().st_mtime, reverse=True) + [downloads]
     except OSError:
         return False
     names = (LTK_PATCHER_DLL, LTK_PATCHER_HOST)
-    for archive in archives:
+    for source in sources:
         work = Path(tempfile.mkdtemp(prefix="lust-ltk-zip-"))
         try:
-            with zipfile.ZipFile(archive) as zipped:
-                members = {Path(info.filename).name.lower(): info for info in zipped.infolist() if not info.is_dir()}
-                if not all(name in members and members[name].file_size <= MAX_PATCHER_BYTES for name in names):
-                    continue
-                for name in names:
-                    (work / name).write_bytes(zipped.read(members[name]))
+            files = _read_patcher(source)
+            if files is None:
+                continue
+            for name, data in files.items():
+                (work / name).write_bytes(data)
             if host_locked(work, tools_dir):
-                log.info(f"[LTK] {archive.name} only runs inside LTK Manager; not taken")
+                log.info(f"[LTK] {source.name} only runs inside LTK Manager; not taken")
                 continue
             unsigned = [name for name in names if not _signed_by_ltk(signature(work / name))]
             if unsigned:
-                log.warning(f"[LTK] {archive.name}: {', '.join(unsigned)} not signed by League Toolkit; not taken")
+                log.warning(f"[LTK] {source.name}: {', '.join(unsigned)} not signed by League Toolkit; not taken")
                 continue
             target = user_patcher_dir()
             if all((target / name).is_file() and (target / name).read_bytes() == (work / name).read_bytes()
@@ -329,10 +369,10 @@ def take_downloaded_patcher(tools_dir: Path, downloads: Optional[Path] = None,
             target.mkdir(parents=True, exist_ok=True)
             for name in names:
                 shutil.copyfile(work / name, target / name)
-            log.info(f"[LTK] Took the LTK patcher from {archive}")
+            log.info(f"[LTK] Took the LTK patcher from {source}")
             return True
         except (OSError, zipfile.BadZipFile) as e:
-            log.info(f"[LTK] Could not read {archive.name}: {e}")
+            log.info(f"[LTK] Could not read {source.name}: {e}")
         finally:
             shutil.rmtree(work, ignore_errors=True)
     return False

@@ -195,6 +195,20 @@ class DownloadedZipTests(unittest.TestCase):
         self._zip(name="skins.zip")
         self.assertFalse(self._take())
 
+    def test_an_extracted_folder_is_taken(self):
+        folder = self.downloads / "ltk_patcher"
+        folder.mkdir()
+        (folder / LTK_PATCHER_DLL).write_bytes(b"dll ok")
+        (folder / LTK_PATCHER_HOST).write_bytes(b"host ok")
+        self.assertTrue(self._take())
+        self.assertEqual((self.target / LTK_PATCHER_DLL).read_bytes(), b"dll ok")
+
+    def test_loose_files_with_a_browser_copy_number_are_taken(self):
+        (self.downloads / "ltk_patcher_dll (1).dll").write_bytes(b"dll ok")
+        (self.downloads / LTK_PATCHER_HOST).write_bytes(b"host ok")
+        self.assertTrue(self._take())
+        self.assertEqual((self.target / LTK_PATCHER_DLL).read_bytes(), b"dll ok")
+
 
 if __name__ == "__main__":
     unittest.main()

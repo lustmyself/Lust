@@ -146,5 +146,55 @@ class HostLockedImportTests(unittest.TestCase):
         self.told.assert_called_once()
 
 
+class DownloadedZipTests(unittest.TestCase):
+    def setUp(self):
+        from injection.tools import ltk_manager_setup as setup
+        self.setup = setup
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        self.downloads, self.tools, self.target = root / "Downloads", root / "tools", root / "ltk-patcher"
+        self.downloads.mkdir()
+        p = patch.object(setup, "user_patcher_dir", return_value=self.target)
+        p.start()
+        self.addCleanup(p.stop)
+
+    def _zip(self, dll=b"dll ok", host=b"host ok", name="ltk_patcher.zip", folder="ltk_patcher/"):
+        import zipfile
+        with zipfile.ZipFile(self.downloads / name, "w") as z:
+            if dll is not None:
+                z.writestr(folder + LTK_PATCHER_DLL, dll)
+            z.writestr(folder + LTK_PATCHER_HOST, host)
+
+    def _take(self, signer="CN=Natoken LLC, O=Natoken LLC", status="Valid"):
+        return self.setup.take_downloaded_patcher(self.tools, self.downloads, signature=lambda path: (status, signer))
+
+    def test_a_signed_unlocked_zip_is_taken_once(self):
+        self._zip()
+        self.assertTrue(self._take())
+        self.assertEqual((self.target / LTK_PATCHER_DLL).read_bytes(), b"dll ok")
+        self.assertEqual((self.target / LTK_PATCHER_HOST).read_bytes(), b"host ok")
+        self.assertFalse(self._take())  # the same files at the next start
+
+    def test_a_locked_zip_is_not_taken(self):
+        self._zip(dll=LOCKED_DLL.encode())
+        self.assertFalse(self._take())
+        self.assertFalse(self.target.exists())
+
+    def test_an_unsigned_zip_is_not_taken(self):
+        self._zip()
+        self.assertFalse(self._take(status="NotSigned", signer=""))
+        self.assertFalse(self._take(signer="CN=Someone Else"))
+        self.assertFalse(self.target.exists())
+
+    def test_a_zip_without_both_files_is_not_taken(self):
+        self._zip(dll=None)
+        self.assertFalse(self._take())
+
+    def test_other_zips_are_ignored(self):
+        self._zip(name="skins.zip")
+        self.assertFalse(self._take())
+
+
 if __name__ == "__main__":
     unittest.main()

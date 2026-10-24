@@ -794,7 +794,7 @@ EDITS += [
     ('Pengu Loader/plugins/LUST-SettingsPanel/index.js',
      "            crashed: () => t('Fix: the LTK patcher crashed. Retry the next game. If it crashes every game, update your LTK patcher files.'),\n",
      "            crashed: () => t('Fix: the LTK patcher crashed. Retry the next game. If it crashes every game, update your LTK patcher files.'),\n"
-     r'            locked: () => t("Fix: put LTK patcher files without host verification (ltk_patcher_host.exe and ltk_patcher_dll.dll) in %LOCALAPPDATA%\\Lust\\ltk-patcher, then restart Lust. Lust never copies a locked patcher over a working one."),'
+     r'            locked: () => t("Fix: download ltk_patcher.zip from the Rose Discord (discord.com/invite/roseskins, #latest-version) into your Downloads folder and restart Lust: it checks the League Toolkit signature and installs it. Or put both files in %LOCALAPPDATA%\\Lust\\ltk-patcher."),'
      '\n'),
     ('Pengu Loader/plugins/LUST-SettingsPanel/index.js',
      "              detail ? t('What happened: {detail}', { detail }) : t('What happened: the LTK patcher reported an error.'),\n",
@@ -807,11 +807,12 @@ EDITS += [
 LOCALE_STRINGS = {
     "What happened: this LTK patcher only runs inside LTK Manager, so it refused Lust and the game started without skins.":
         {"tr": "Ne oldu: bu LTK patcher yalnızca LTK Manager içinde çalışıyor; Lust'ı reddetti ve oyun skinsiz açıldı."},
-    "Fix: put LTK patcher files without host verification (ltk_patcher_host.exe and ltk_patcher_dll.dll) in "
-    "%LOCALAPPDATA%\\Lust\\ltk-patcher, then restart Lust. Lust never copies a locked patcher over a working one.":
-        {"tr": "Çözüm: host doğrulaması olmayan LTK patcher dosyalarını (ltk_patcher_host.exe ve ltk_patcher_dll.dll) "
-               "%LOCALAPPDATA%\\Lust\\ltk-patcher klasörüne koy, sonra Lust'ı yeniden başlat. "
-               "Lust kilitli bir patcher'ı çalışan bir patcher'ın üstüne asla kopyalamaz."},
+    "Fix: download ltk_patcher.zip from the Rose Discord (discord.com/invite/roseskins, #latest-version) into your "
+    "Downloads folder and restart Lust: it checks the League Toolkit signature and installs it. Or put both files in "
+    "%LOCALAPPDATA%\\Lust\\ltk-patcher.":
+        {"tr": "Çözüm: Rose Discord'undaki (discord.com/invite/roseskins, #latest-version) ltk_patcher.zip'i "
+               "İndirilenler klasörüne indir ve Lust'ı yeniden başlat: Lust League Toolkit imzasını kontrol edip "
+               "kendisi kurar. Ya da iki dosyayı %LOCALAPPDATA%\\Lust\\ltk-patcher klasörüne koy."},
 }
 
 

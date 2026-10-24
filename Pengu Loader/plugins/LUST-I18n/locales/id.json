@@ -1,6 +1,6 @@
 {
   "What happened: this LTK patcher only runs inside LTK Manager, so it refused Lust and the game started without skins.": "What happened: this LTK patcher only runs inside LTK Manager, so it refused Lust and the game started without skins.",
-  "Fix: put LTK patcher files without host verification (ltk_patcher_host.exe and ltk_patcher_dll.dll) in %LOCALAPPDATA%\\Lust\\ltk-patcher, then restart Lust. Lust never copies a locked patcher over a working one.": "Fix: put LTK patcher files without host verification (ltk_patcher_host.exe and ltk_patcher_dll.dll) in %LOCALAPPDATA%\\Lust\\ltk-patcher, then restart Lust. Lust never copies a locked patcher over a working one.",
+  "Fix: download ltk_patcher.zip from the Rose Discord (discord.com/invite/roseskins, #latest-version) into your Downloads folder and restart Lust: it checks the League Toolkit signature and installs it. Or put both files in %LOCALAPPDATA%\\Lust\\ltk-patcher.": "Fix: download ltk_patcher.zip from the Rose Discord (discord.com/invite/roseskins, #latest-version) into your Downloads folder and restart Lust: it checks the League Toolkit signature and installs it. Or put both files in %LOCALAPPDATA%\\Lust\\ltk-patcher.",
   "Base Skin": "Skin dasar",
   "Disable custom skin mod": "Nonaktifkan mod skin",
   "Custom Skin {number}": "Skin kustom {number}",

@@ -23,6 +23,7 @@ import sys
 import tempfile
 import time
 import threading
+import zipfile
 from pathlib import Path
 from typing import Callable, Optional
 
@@ -30,8 +31,8 @@ import requests
 
 from utils.core.logging import get_logger
 
-from .ltk_manager import LTK_MANAGER_URL, import_from_ltk_manager, warn_if_host_locked
-from .patcher import check_ltk_patcher
+from .ltk_manager import LTK_MANAGER_URL, host_locked, import_from_ltk_manager, user_patcher_dir, warn_if_host_locked
+from .patcher import LTK_PATCHER_DLL, LTK_PATCHER_HOST, check_ltk_patcher
 
 log = get_logger()
 
@@ -40,6 +41,7 @@ DOWNLOAD_PREFIX = "https://github.com/LeagueToolkit/ltk-manager/releases/downloa
 SETUP_ASSET_RE = re.compile(r"^LTK\.Manager_[0-9][0-9A-Za-z.\-]*_x64-setup\.exe$")
 # League Toolkit's code signing identity (Azure Trusted Signing profile "Natoken")
 SIGNER_SUBJECT = "O=Natoken LLC"
+MAX_PATCHER_BYTES = 32 * 1024 * 1024  # each patcher file is ~1 MB; a larger zip member is not one
 MAX_SETUP_BYTES = 200 * 1024 * 1024
 
 
@@ -292,11 +294,61 @@ def ensure_ltk_patcher(tools_dir: Path, game_dir: Optional[Path],
         log.info("[LTK] LTK Manager setup closed without a usable patcher")
 
 
+def take_downloaded_patcher(tools_dir: Path, downloads: Optional[Path] = None,
+                            signature: Callable[[Path], tuple] = signature_of) -> bool:
+    """An ltk_patcher*.zip the player downloaded (Rose's Discord shares one) goes to Lust's
+    ltk-patcher folder, where the import takes it: only when both files are signed by League
+    Toolkit and the DLL runs outside LTK Manager. True when it was taken."""
+    # shortcut: looks in the default Downloads folder only, add the Known Folder lookup if players move it
+    downloads = downloads or Path.home() / "Downloads"
+    try:
+        archives = sorted(downloads.glob("ltk_patcher*.zip"), key=lambda p: p.stat().st_mtime, reverse=True)
+    except OSError:
+        return False
+    names = (LTK_PATCHER_DLL, LTK_PATCHER_HOST)
+    for archive in archives:
+        work = Path(tempfile.mkdtemp(prefix="lust-ltk-zip-"))
+        try:
+            with zipfile.ZipFile(archive) as zipped:
+                members = {Path(info.filename).name.lower(): info for info in zipped.infolist() if not info.is_dir()}
+                if not all(name in members and members[name].file_size <= MAX_PATCHER_BYTES for name in names):
+                    continue
+                for name in names:
+                    (work / name).write_bytes(zipped.read(members[name]))
+            if host_locked(work, tools_dir):
+                log.info(f"[LTK] {archive.name} only runs inside LTK Manager; not taken")
+                continue
+            unsigned = [name for name in names if not _signed_by_ltk(signature(work / name))]
+            if unsigned:
+                log.warning(f"[LTK] {archive.name}: {', '.join(unsigned)} not signed by League Toolkit; not taken")
+                continue
+            target = user_patcher_dir()
+            if all((target / name).is_file() and (target / name).read_bytes() == (work / name).read_bytes()
+                   for name in names):
+                return False  # taken at an earlier start
+            target.mkdir(parents=True, exist_ok=True)
+            for name in names:
+                shutil.copyfile(work / name, target / name)
+            log.info(f"[LTK] Took the LTK patcher from {archive}")
+            return True
+        except (OSError, zipfile.BadZipFile) as e:
+            log.info(f"[LTK] Could not read {archive.name}: {e}")
+        finally:
+            shutil.rmtree(work, ignore_errors=True)
+    return False
+
+
+def _signed_by_ltk(result: tuple) -> bool:
+    status, subject = result
+    return status == "Valid" and SIGNER_SUBJECT in subject
+
+
 def startup_check(tools_dir: Path) -> None:
     """Entry point from Lust's startup patcher check."""
     from config import get_config_option
 
     league_path = get_config_option("General", "leaguePath")
+    take_downloaded_patcher(tools_dir)
     ensure_ltk_patcher(tools_dir, Path(league_path) if league_path else None)
     warn_if_host_locked(tools_dir)
 

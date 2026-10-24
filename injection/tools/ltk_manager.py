@@ -207,10 +207,12 @@ def import_from_ltk_manager(tools_dir: Path, extra_dirs: Iterable[Path] = ()) ->
 def _locked_text() -> tuple:
     folder = user_patcher_dir()
     turkish = ("Skinler yüklenmiyor: LTK Manager'ın yeni patcher'ı yalnızca LTK Manager içinde çalışıyor "
-               "ve Lust'ı reddediyor. Kilitsiz (eski) ltk_patcher_host.exe ve ltk_patcher_dll.dll "
-               f"dosyalarını {folder} klasörüne koy, sonra Lust'ı yeniden başlat.")
-    english = ("Put an LTK patcher without host verification (ltk_patcher_host.exe and ltk_patcher_dll.dll) "
-               f"in {folder}, then restart Lust. Lust no longer copies a locked patcher over a working one.")
+               "ve Lust'ı reddediyor. Rose'un Discord'undaki (discord.com/invite/roseskins) #latest-version "
+               "kanalından ltk_patcher.zip'i İndirilenler klasörüne indir ve Lust'ı yeniden başlat: Lust "
+               f"imzasını kontrol edip kendisi kurar. Ya da iki dosyayı {folder} klasörüne koy.")
+    english = ("Download ltk_patcher.zip from Rose's Discord (discord.com/invite/roseskins, #latest-version) "
+               "into your Downloads folder and restart Lust: Lust checks its League Toolkit signature and installs "
+               f"it. Or put ltk_patcher_host.exe and ltk_patcher_dll.dll in {folder}.")
     return turkish, english
 
 

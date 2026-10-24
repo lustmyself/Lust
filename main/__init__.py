@@ -481,11 +481,17 @@ def _update_registry_version() -> None:
         return
     try:
         import winreg
-        key_path = r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Lust"
-        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path, 0, winreg.KEY_SET_VALUE) as key:
-            winreg.SetValueEx(key, "DisplayVersion", 0, winreg.REG_SZ, APP_VERSION)
-    except Exception:
-        pass
+    except ImportError:
+        return
+    uninstall = r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
+    # Inno's entry is named after the AppId as written (AppId={{...}} keeps the closing }}); the
+    # duplicate Uninstall\Lust of older installers is kept in sync while it exists
+    for name in ("{18B5D16F-154B-43C8-A6DF-21CB903DE869}}_is1", "Lust"):
+        try:
+            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, rf"{uninstall}\{name}", 0, winreg.KEY_SET_VALUE) as key:
+                winreg.SetValueEx(key, "DisplayVersion", 0, winreg.REG_SZ, APP_VERSION)
+        except Exception:
+            pass
 
 def _schedule_restart() -> bool:
     """Spawn a detached helper that relaunches Lust after this process exits.

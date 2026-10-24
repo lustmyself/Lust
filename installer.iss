@@ -2,8 +2,8 @@
 ; This creates a proper Windows installer that registers the app
 
 #define MyAppName "Lust"
-#define MyAppVersion "1.4.9.48"
-#define MyAppVersionInfo "1.4.9.48"
+#define MyAppVersion "1.4.9.49"
+#define MyAppVersionInfo "1.4.9.49"
 #define MyAppPublisher "Lust Team"
 #define MyAppURL "https://github.com/lustmyself/Lust"
 #define MyAppExeName "Lust.exe"
@@ -238,6 +238,27 @@ begin
     RegDeleteKeyIncludingSubkeys(HKLM, IfeoKey);
 end;
 
+const
+  LegacyUninstallKey = 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppName}';
+
+procedure _CleanupLegacyUninstallEntry();
+var
+  InstallLocation: string;
+  DisplayName: string;
+  Publisher: string;
+begin
+  { Inno owns the AppId-based Apps entry. Remove only our duplicate from older
+    installers, and only when it belongs to this installation. }
+  if RegQueryStringValue(HKLM, LegacyUninstallKey, 'InstallLocation', InstallLocation) and
+     RegQueryStringValue(HKLM, LegacyUninstallKey, 'DisplayName', DisplayName) and
+     RegQueryStringValue(HKLM, LegacyUninstallKey, 'Publisher', Publisher) and
+     (CompareText(AddBackslash(InstallLocation), AddBackslash(ExpandConstant('{app}'))) = 0) and
+     (DisplayName = '{#MyAppName}') and (Publisher = '{#MyAppPublisher}') then
+  begin
+    RegDeleteKeyIncludingSubkeys(HKLM, LegacyUninstallKey);
+  end;
+end;
+
 procedure _DeleteLocalAppDataLust();
 begin
   { Ensure user data is removed before running external cleanup }
@@ -249,6 +270,7 @@ begin
   if CurUninstallStep = usUninstall then
   begin
     _CleanupStartupRegistry();
+    _CleanupLegacyUninstallEntry();
   end;
 
   if CurUninstallStep = usPostUninstall then
@@ -269,15 +291,7 @@ begin
     { Clean up a dead hook left by an older Lust uninstall }
     _RemoveDeadPenguIfeo();
 
-    // Create registry entries for Windows Apps list
-    RegWriteStringValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppName}', 'DisplayName', '{#MyAppName}');
-    RegWriteStringValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppName}', 'DisplayVersion', '{#MyAppVersion}');
-    RegWriteStringValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppName}', 'Publisher', '{#MyAppPublisher}');
-    RegWriteStringValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppName}', 'URLInfoAbout', '{#MyAppURL}');
-    RegWriteStringValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppName}', 'InstallLocation', ExpandConstant('{app}'));
-    RegWriteStringValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppName}', 'UninstallString', ExpandConstant('{uninstallexe}'));
-    RegWriteDWordValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppName}', 'NoModify', 1);
-    RegWriteDWordValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppName}', 'NoRepair', 1);
-    RegWriteStringValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppName}', 'DisplayIcon', ExpandConstant('{app}\{#MyAppExeName}'));
+    { Inno writes the Apps entry itself: drop the duplicate older installers wrote }
+    _CleanupLegacyUninstallEntry();
   end;
 end;

@@ -852,6 +852,80 @@ EDITS += [
 ]
 
 
+# The installer wrote a second Apps entry (Uninstall\Lust) beside Inno's own AppId entry and nothing
+# removed it, so a dead "Lust" stayed in Windows' Apps list after an uninstall. As Rose's main
+# (d0ae51d2, 459f7e4b): no duplicate, the old one goes on install and uninstall, and Lust writes its
+# running version to Inno's entry.
+EDITS += [
+    ('installer.iss',
+     "procedure _DeleteLocalAppDataLust();\n",
+     "const\n"
+     "  LegacyUninstallKey = 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{#MyAppName}';\n"
+     "\n"
+     "procedure _CleanupLegacyUninstallEntry();\n"
+     "var\n"
+     "  InstallLocation: string;\n"
+     "  DisplayName: string;\n"
+     "  Publisher: string;\n"
+     "begin\n"
+     "  { Inno owns the AppId-based Apps entry. Remove only our duplicate from older\n"
+     "    installers, and only when it belongs to this installation. }\n"
+     "  if RegQueryStringValue(HKLM, LegacyUninstallKey, 'InstallLocation', InstallLocation) and\n"
+     "     RegQueryStringValue(HKLM, LegacyUninstallKey, 'DisplayName', DisplayName) and\n"
+     "     RegQueryStringValue(HKLM, LegacyUninstallKey, 'Publisher', Publisher) and\n"
+     "     (CompareText(AddBackslash(InstallLocation), AddBackslash(ExpandConstant('{app}'))) = 0) and\n"
+     "     (DisplayName = '{#MyAppName}') and (Publisher = '{#MyAppPublisher}') then\n"
+     "  begin\n"
+     "    RegDeleteKeyIncludingSubkeys(HKLM, LegacyUninstallKey);\n"
+     "  end;\n"
+     "end;\n"
+     "\n"
+     "procedure _DeleteLocalAppDataLust();\n"),
+    ('installer.iss',
+     "  if CurUninstallStep = usUninstall then\n"
+     "  begin\n"
+     "    _CleanupStartupRegistry();\n",
+     "  if CurUninstallStep = usUninstall then\n"
+     "  begin\n"
+     "    _CleanupStartupRegistry();\n"
+     "    _CleanupLegacyUninstallEntry();\n"),
+    ('installer.iss',
+     "    // Create registry entries for Windows Apps list\n"
+     "    RegWriteStringValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{#MyAppName}', 'DisplayName', '{#MyAppName}');\n"
+     "    RegWriteStringValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{#MyAppName}', 'DisplayVersion', '{#MyAppVersion}');\n"
+     "    RegWriteStringValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{#MyAppName}', 'Publisher', '{#MyAppPublisher}');\n"
+     "    RegWriteStringValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{#MyAppName}', 'URLInfoAbout', '{#MyAppURL}');\n"
+     "    RegWriteStringValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{#MyAppName}', 'InstallLocation', ExpandConstant('{app}'));\n"
+     "    RegWriteStringValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{#MyAppName}', 'UninstallString', ExpandConstant('{uninstallexe}'));\n"
+     "    RegWriteDWordValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{#MyAppName}', 'NoModify', 1);\n"
+     "    RegWriteDWordValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{#MyAppName}', 'NoRepair', 1);\n"
+     "    RegWriteStringValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{#MyAppName}', 'DisplayIcon', ExpandConstant('{app}\\{#MyAppExeName}'));\n",
+     "    { Inno writes the Apps entry itself: drop the duplicate older installers wrote }\n"
+     "    _CleanupLegacyUninstallEntry();\n"),
+    ('main/__init__.py',
+     '    try:\n'
+     '        import winreg\n'
+     '        key_path = r"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Lust"\n'
+     '        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path, 0, winreg.KEY_SET_VALUE) as key:\n'
+     '            winreg.SetValueEx(key, "DisplayVersion", 0, winreg.REG_SZ, APP_VERSION)\n'
+     '    except Exception:\n'
+     '        pass\n',
+     '    try:\n'
+     '        import winreg\n'
+     '    except ImportError:\n'
+     '        return\n'
+     '    uninstall = r"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall"\n'
+     "    # Inno's entry is named after the AppId as written (AppId={{...}} keeps the closing }}); the\n"
+     "    # duplicate Uninstall\\Lust of older installers is kept in sync while it exists\n"
+     '    for name in ("{18B5D16F-154B-43C8-A6DF-21CB903DE869}}_is1", "Lust"):\n'
+     '        try:\n'
+     '            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, rf"{uninstall}\\{name}", 0, winreg.KEY_SET_VALUE) as key:\n'
+     '                winreg.SetValueEx(key, "DisplayVersion", 0, winreg.REG_SZ, APP_VERSION)\n'
+     '        except Exception:\n'
+     '            pass\n'),
+]
+
+
 # Update check without GitHub's API when its hourly limit is used up (60 calls per IP,
 # shared with the skin downloader): releases/latest redirects to the newest tag, and the
 # update package's name follows from it

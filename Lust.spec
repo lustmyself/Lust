@@ -302,6 +302,8 @@ hiddenimports = [
     'launcher.lust_spotify',
     'tkinter',
     'launcher.lust_offline',
+    'launcher.lust_maps',
+    'injection.tools.patcher_manifest',
     'launcher.autostart_default',
     'pengu.communication.lust_assets',
     'launcher.core.launcher',

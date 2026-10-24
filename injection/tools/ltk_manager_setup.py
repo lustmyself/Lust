@@ -26,8 +26,9 @@ from typing import Callable, Optional
 
 from utils.core.logging import get_logger
 
-from .ltk_manager import PATCHER_URL, host_locked, import_from_ltk_manager, user_patcher_dir, warn_if_host_locked
+from .ltk_manager import PATCHER_URL, host_locked, import_from_ltk_manager, user_patcher_dir, warn_if_host_locked  # noqa: F401
 from .patcher import LTK_PATCHER_DLL, LTK_PATCHER_HOST, check_ltk_patcher
+from .patcher_manifest import download_url, known_build, manifest, newest_eol, sha256_of
 
 log = get_logger()
 
@@ -36,6 +37,10 @@ SIGNER_SUBJECT = "O=Natoken LLC"
 MAX_PATCHER_BYTES = 32 * 1024 * 1024  # each patcher file is ~1 MB; a larger zip member is not one
 WAIT_S = 15 * 60
 POLL_S = 3
+# Warn this long before the patcher's end of life (League's next update then stops it)
+EOL_WARN_S = 5 * 24 * 60 * 60
+
+_tools_dir: Optional[Path] = None  # the tools folder startup_check looked at, for the hub
 
 
 def signature_of(path: Path) -> tuple:
@@ -126,10 +131,13 @@ def take_downloaded_patcher(tools_dir: Path, downloads: Optional[Path] = None,
             if host_locked(work, tools_dir):
                 log.info(f"[LTK] {source.name} only runs inside LTK Manager; not taken")
                 continue
-            unsigned = [name for name in names if not _signed_by_ltk(signature(work / name))]
-            if unsigned:
-                log.warning(f"[LTK] {source.name}: {', '.join(unsigned)} not signed by League Toolkit; not taken")
-                continue
+            # A build lust/patcher.json lists by hash needs no signature (redistributed copies drop it)
+            if known_build(work / LTK_PATCHER_DLL, work / LTK_PATCHER_HOST) is None:
+                unsigned = [name for name in names if not _signed_by_ltk(signature(work / name))]
+                if unsigned:
+                    log.warning(f"[LTK] {source.name}: {', '.join(unsigned)} not signed by League Toolkit "
+                                "and not listed in the patcher manifest; not taken")
+                    continue
             target = user_patcher_dir()
             if all((target / name).is_file() and (target / name).read_bytes() == (work / name).read_bytes()
                    for name in names):
@@ -137,7 +145,8 @@ def take_downloaded_patcher(tools_dir: Path, downloads: Optional[Path] = None,
             target.mkdir(parents=True, exist_ok=True)
             for name in names:
                 shutil.copyfile(work / name, target / name)
-            log.info(f"[LTK] Took the LTK patcher from {source}")
+            log.info(f"[LTK] Took the LTK patcher from {source} (dll sha256 {sha256_of(target / LTK_PATCHER_DLL)}, "
+                     f"host sha256 {sha256_of(target / LTK_PATCHER_HOST)})")
             return True
         except (OSError, zipfile.BadZipFile) as e:
             log.info(f"[LTK] Could not read {source.name}: {e}")
@@ -189,7 +198,7 @@ def ensure_ltk_patcher(tools_dir: Path, game_dir: Optional[Path],
         _take(tools_dir)
         return patcher_problem(tools_dir, game_dir) is None
 
-    open_page(PATCHER_URL)
+    open_page(download_url())
     if wait(ready):
         log.info("[LTK] Patcher installed from the download")
         try:
@@ -202,13 +211,117 @@ def ensure_ltk_patcher(tools_dir: Path, game_dir: Optional[Path],
     return False
 
 
+def expiring_soon(tools_dir: Path, game_dir: Optional[Path], now: Optional[float] = None) -> Optional[int]:
+    """The patcher's end-of-life date when it is close or past but League has not updated
+    yet (the game's next update then stops it), else None."""
+    status = check_ltk_patcher(tools_dir)
+    if status.missing or status.eol is None or status.expired_for(game_dir):
+        return None
+    now = time.time() if now is None else now
+    return status.eol if status.eol - now <= EOL_WARN_S else None
+
+
+def _date(timestamp: int) -> str:
+    return time.strftime("%d.%m.%Y", time.localtime(timestamp))
+
+
+def warn_if_expiring(tools_dir: Path, game_dir: Optional[Path]) -> bool:
+    """Tell the player ahead of time that the patcher is about to stop working."""
+    eol = expiring_soon(tools_dir, game_dir)
+    if eol is None:
+        return False
+    newer = (newest_eol() or 0) > eol
+    turkish = (f"LTK patcher'ın süresi {_date(eol)} tarihinde doluyor: League'in bir sonraki güncellemesinden "
+               "sonra skinler yüklenmez. ")
+    turkish += ("Yeni ltk_patcher.zip çıktı: hub'daki \"İndirme sayfasını aç\" düğmesine bas." if newer else
+                "Rose Discord'unda (#tutorial) yeni ltk_patcher.zip paylaşılınca indir.")
+    log.warning(f"[LTK] The patcher reaches its end of life on {_date(eol)}"
+                + ("; a newer build is listed" if newer else ""))
+    try:
+        from launcher import lust_hub
+        lust_hub.toast(turkish)
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        from utils.core.issue_reporter import report_issue
+        report_issue("LTK_PATCHER_EXPIRING", "warning",
+                     f"The LTK patcher stops working with game builds after {_date(eol)}.",
+                     hint=f"Download the newer ltk_patcher.zip ({download_url()}) into your Downloads folder.")
+    except Exception:  # noqa: BLE001
+        pass
+    return True
+
+
+def _game_dir() -> Optional[Path]:
+    from config import get_config_option
+    league_path = get_config_option("General", "leaguePath")
+    return Path(league_path) if league_path else None
+
+
 def startup_check(tools_dir: Path) -> None:
     """Entry point from Lust's startup patcher check."""
-    from config import get_config_option
+    global _tools_dir
+    _tools_dir = tools_dir
+    manifest(refresh=True)  # a new link or build in lust/patcher.json reaches players without a release
+    game_dir = _game_dir()
+    ensure_ltk_patcher(tools_dir, game_dir)
+    if not warn_if_host_locked(tools_dir):
+        warn_if_expiring(tools_dir, game_dir)
 
-    league_path = get_config_option("General", "leaguePath")
-    ensure_ltk_patcher(tools_dir, Path(league_path) if league_path else None)
-    warn_if_host_locked(tools_dir)
+
+# ---------------------------------------------------------------------------
+# The hub's patcher card
+# ---------------------------------------------------------------------------
+
+_hub_wait = threading.Event()
+
+
+def hub_status() -> dict:
+    """What the hub's patcher card shows: state ok, missing, locked, expired or expiring."""
+    if _tools_dir is None:
+        return {"state": "ok"}
+    game_dir = _game_dir()
+    problem = patcher_problem(_tools_dir, game_dir)
+    eol = check_ltk_patcher(_tools_dir).eol
+    state = problem or ("expiring" if expiring_soon(_tools_dir, game_dir) else "ok")
+    return {"state": state, "eol": _date(eol) if eol else "", "waiting": _hub_wait.is_set(),
+            "newer": bool(eol and (newest_eol() or 0) > eol)}
+
+
+def hub_download(open_page: Callable[[str], object] = webbrowser.open) -> str:
+    """The hub's button: open the download page and take the zip once it lands in Downloads."""
+    if _tools_dir is None:
+        return ""
+    tools_dir, game_dir = _tools_dir, _game_dir()
+    open_page(download_url())
+    if _hub_wait.is_set():
+        return "ltk_patcher.zip bekleniyor"
+    _hub_wait.set()
+    before = sha256_of(tools_dir / LTK_PATCHER_DLL)
+
+    def watch():
+        deadline = time.monotonic() + WAIT_S
+        try:
+            while time.monotonic() < deadline:
+                try:
+                    _take(tools_dir)
+                    changed = sha256_of(tools_dir / LTK_PATCHER_DLL) != before
+                    if changed and patcher_problem(tools_dir, game_dir) is None:
+                        log.info("[LTK] Patcher installed from the hub's download")
+                        try:
+                            from launcher import lust_hub
+                            lust_hub.toast("LTK patcher kuruldu: skinler hazır.")
+                        except Exception:  # noqa: BLE001
+                            pass
+                        return
+                except Exception as e:  # noqa: BLE001 - a half-written download, read again next time
+                    log.debug(f"[LTK] Waiting for the patcher: {e}")
+                time.sleep(POLL_S)
+        finally:
+            _hub_wait.clear()
+
+    threading.Thread(target=watch, daemon=True, name="LtkHubWait").start()
+    return "İndirme sayfası açıldı: zip İndirilenler'e inince Lust kurar"
 
 
 # ---------------------------------------------------------------------------
@@ -316,13 +429,14 @@ ASK_TEXT = (
 def ask_to_download(problem: str) -> bool:
     open_id, later_id = 1001, 1002
     instruction = ASK_TITLE.get(problem, ASK_TITLE["missing"])
-    footer = f'<a href="{PATCHER_URL}">ltk_patcher.zip</a> (Rose Discord, #tutorial)'
+    url = download_url()
+    footer = f'<a href="{url}">ltk_patcher.zip</a> (Rose Discord, #tutorial)'
     pressed = _run_task_dialog(
         "Lust", instruction, ASK_TEXT,
         buttons=((open_id, "İndirme sayfasını aç"), (later_id, "Sonra")), footer=footer,
     )
     if pressed is None:
-        return _message_box(f"{instruction}\n\n{ASK_TEXT}\n\n{PATCHER_URL}",
+        return _message_box(f"{instruction}\n\n{ASK_TEXT}\n\n{url}",
                             "Lust", 0x00000004 | 0x00000020) == 6  # MB_YESNO | ICONQUESTION, IDYES
     return pressed == open_id
 

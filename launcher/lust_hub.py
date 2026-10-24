@@ -261,6 +261,22 @@ def _rose_uninstall() -> str:
     return lust_rose.uninstall()
 
 
+def _patcher_status():
+    from injection.tools.ltk_manager_setup import hub_status
+    return hub_status()
+
+
+def _patcher_download() -> str:
+    from injection.tools.ltk_manager_setup import hub_download
+    _cache.pop("patcher", None)
+    return hub_download()
+
+
+def _maps():
+    from launcher import lust_maps
+    return lust_maps
+
+
 def _spotify_status():
     from launcher import lust_spotify
     return lust_spotify.status()
@@ -309,6 +325,7 @@ def snapshot() -> dict:
         news=_cached("news", 300, _news) or {"version": "", "items": []},
         spotify=_cached("spotify", 5, _spotify_status) or {},
         rose=_cached("rose", 20, _rose_status) or {},
+        patcher=_cached("patcher", 10, _patcher_status) or {"state": "ok"},
         auto_update=_cached("auto_update", 5, _auto_update_on),
         pending=_auto_update_pending(),
         hero=_hero(),
@@ -408,6 +425,11 @@ ACTIONS: dict[str, Callable[[dict], str]] = {
     "spotify_apply": lambda body: _spotify_apply(str(body.get("theme") or "")),
     "spotify_auto": lambda body: _spotify_auto(),
     "rose_uninstall": lambda body: _rose_uninstall(),
+    "patcher_download": lambda body: _patcher_download(),
+    "map_select": lambda body: _maps().select(body.get("id") or None),
+    "map_delete": lambda body: _maps().delete(str(body.get("id") or "")),
+    "map_install": lambda body: _maps().install(str(body.get("id") or "")),
+    "map_folder": lambda body: _maps().open_folder(),
     "auto_update": lambda body: _toggle_auto_update(),
     "setting": lambda body: _set_setting(body),
     "clear_cache": lambda body: _clear_cache(),

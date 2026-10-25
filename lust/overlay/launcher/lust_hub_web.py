@@ -51,6 +51,7 @@ ICONS = {
     "download": '<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>',
     "check": '<path d="M20 6 9 17l-5-5"/>',
     "map": '<path d="M9 4 3 6.5v13.5L9 17.5l6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/>',
+    "shirt": '<path d="M20.4 3.5 16 2a4 4 0 0 1-8 0L3.6 3.5a2 2 0 0 0-1.3 2.2l.6 3.5a1 1 0 0 0 1 .8H6v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V10h2.2a1 1 0 0 0 1-.8l.6-3.5a2 2 0 0 0-1.4-2.2z"/>',
 }
 
 PAGE = r"""<!doctype html>
@@ -101,6 +102,9 @@ PAGE = r"""<!doctype html>
   .tab[data-page="maps"] { color: #5eead4; background: rgba(94, 234, 212, .1); }
   .tab[data-page="maps"]:hover { background: rgba(94, 234, 212, .2); color: #99f6e4; }
   .tab[data-page="maps"].active { background: linear-gradient(135deg, #0f766e, #2dd4bf); color: #04201d; box-shadow: 0 6px 16px rgba(45, 212, 191, .35); }
+  .tab[data-page="skins"] { color: #f472b6; background: rgba(244, 114, 182, .1); }
+  .tab[data-page="skins"]:hover { background: rgba(244, 114, 182, .2); color: #fbcfe8; }
+  .tab[data-page="skins"].active { background: linear-gradient(135deg, #be185d, #f472b6); color: #2a0718; box-shadow: 0 6px 16px rgba(244, 114, 182, .35); }
   .tab[data-page="settings"] { color: #c8aa6e; background: rgba(200, 170, 110, .1); }
   .tab[data-page="settings"]:hover { background: rgba(200, 170, 110, .2); color: #f0e6d2; }
   .tab[data-page="settings"].active { background: linear-gradient(135deg, #785a28, #c8aa6e); color: #1e2328;
@@ -391,6 +395,48 @@ PAGE = r"""<!doctype html>
   .drop svg { width: 22px; height: 22px; color: #5eead4; flex: none; }
   .drop .btn { margin-left: auto; }
   .empty { color: var(--faint); font-size: 12px; padding: 6px 2px; }
+  /* Custom skins: one row per file, the champion it plays on and its switch */
+  .sk-head { display: flex; align-items: center; gap: 10px; margin: 4px 2px 10px; }
+  .sk-head .section { margin: 0; }
+  .sk-head input { margin-left: auto; width: 190px; background: #1d1a29; border: 1px solid var(--line); border-radius: 99px;
+    color: var(--text); font: inherit; font-size: 12px; padding: 7px 14px; outline: none; }
+  .sk-head input:focus { border-color: #f472b6; }
+  .sk-off { display: none; margin-bottom: 10px; padding: 10px 14px; border-radius: 12px; font-size: 12px;
+    background: rgba(245, 177, 76, .1); color: var(--amber); border: 1px solid rgba(245, 177, 76, .25); }
+  .sk-off.show { display: block; }
+  .skins { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .skr { position: relative; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 16px;
+    background: var(--card); border: 1.5px solid transparent; transition: border-color .15s, transform .15s; }
+  .skr:hover { transform: translateY(-2px); }
+  .skr.on { border-color: #f472b6; box-shadow: 0 8px 22px rgba(244, 114, 182, .14); }
+  .skr .ic { width: 46px; height: 46px; border-radius: 50%; flex: none; background: #2c2840 center / cover;
+    display: grid; place-items: center; color: #f472b6; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .06); }
+  .skr.on .ic { box-shadow: 0 0 0 2px #f472b6; }
+  .skr .ic.img svg { display: none; }
+  .skr .tx { min-width: 0; flex: 1; }
+  .skr b { display: block; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .skr span { display: block; color: var(--sub); font-size: 11px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .skr span.bad { color: #f87171; }
+  .skr select { display: block; margin-top: 5px; max-width: 100%; background: #2c2840; color: var(--text); border: 1px solid var(--line);
+    border-radius: 8px; font: inherit; font-size: 11.5px; padding: 3px 6px; outline: none; cursor: pointer; }
+  .skr select.need { border-color: #f472b6; }
+  .skr .switch { flex: none; cursor: pointer; }
+  .skr .switch.on { background: #f472b6; }
+  .skr .switch.lock { opacity: .35; cursor: default; }
+  .skr .del { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; border-radius: 8px; display: grid; place-items: center;
+    background: #2c2840; color: var(--sub); opacity: 0; transition: opacity .15s; cursor: pointer; }
+  .skr:hover .del { opacity: 1; }
+  .skr .del:hover { color: #f87171; }
+  .skr .del svg { width: 12px; height: 12px; }
+  .skr .st { display: flex; width: fit-content; align-items: center; gap: 6px; margin-top: 4px; font-size: 10.5px; font-weight: 700;
+    padding: 2px 8px; border-radius: 99px; }
+  .skr .st.ok { background: rgba(74, 222, 128, .12); color: var(--green); }
+  .skr .st.untested, .skr .st.old { background: rgba(245, 177, 76, .12); color: var(--amber); }
+  .skr .st.crashed { background: rgba(248, 113, 113, .14); color: #f87171; }
+  .skr .st a { color: inherit; text-decoration: underline; cursor: pointer; font-weight: 600; }
+  .skr.crashed { border-color: rgba(248, 113, 113, .35); }
+  #skin-drop.over { border-color: #f472b6; background: rgba(244, 114, 182, .07); }
+  #skin-drop svg { color: #f472b6; }
 
   #toast { position: fixed; left: 50%; bottom: 22px; transform: translate(-50%, 20px); opacity: 0; transition: .25s;
     background: #2a2540; border: 1px solid #4b3f73; color: var(--text); padding: 10px 18px; border-radius: 99px; max-width: 80%; pointer-events: none; }
@@ -500,6 +546,7 @@ PAGE = r"""<!doctype html>
   <div class="tab active" data-page="lol" data-label="LoL">__lol__</div>
   <div class="tab" data-page="spotify" data-label="Spotify">__spotify__</div>
   <div class="tab" data-page="maps" data-label="Haritalar">__map__</div>
+  <div class="tab" data-page="skins" data-label="Custom skinler">__shirt__</div>
   <div class="tab" data-page="settings" data-label="Ayarlar">__gear__</div>
   <div class="spacer"></div>
   <div class="dot" id="dot" title=""></div>
@@ -603,6 +650,17 @@ PAGE = r"""<!doctype html>
     <div class="section" id="cat-h" hidden>Lust kataloğu</div>
     <div class="maps" id="catalog"></div>
     <div class="note">Seçtiğin harita bir sonraki maçta yüklenir. LoL istemcisindeki LUST panelinin Maps sekmesi de aynı listeyi kullanır.</div>
+  </section>
+
+  <section class="page" id="page-skins">
+    <div class="sk-off" id="sk-off">Custom skinler Ayarlar'da kapalı: açık olanlar da oyunda yüklenmez.</div>
+    <div class="sk-head"><div class="section" id="sk-count">Custom skinler</div>
+      <input id="sk-find" type="search" placeholder="Skin veya şampiyon ara" autocomplete="off"></div>
+    <div class="skins" id="skins"></div>
+    <div class="drop" id="skin-drop">__download__<div><b>Custom skin ekle</b><br>.zip, .fantome veya .modpkg dosyasını buraya sürükle</div>
+      <button class="btn" data-act="skin_folder">Klasörü aç</button>
+    </div>
+    <div class="note">Açık bir skin, o şampiyonla varsayılan skininde oyuna girince yüklenir; her şampiyonda bir skin açık olabilir. LoL istemcisindeki LUST panelinin Custom skins sekmesi de aynı listeyi kullanır.</div>
   </section>
 
   <section class="page" id="page-spotify">
@@ -1005,9 +1063,10 @@ async function poll() {
 function showPage(name) {
   document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t.dataset.page === name));
   document.querySelectorAll(".page").forEach((p) => p.classList.toggle("active", p.id === `page-${name}`));
-  $("title").textContent = { lol: "LoL", spotify: "Spotify", maps: "Haritalar" }[name] || "Ayarlar";
+  $("title").textContent = { lol: "LoL", spotify: "Spotify", maps: "Haritalar", skins: "Custom skinler" }[name] || "Ayarlar";
   $("tip").hidden = name !== "lol";
   if (name === "maps") loadMaps();
+  if (name === "skins") loadSkins();
 }
 
 // ---- map skins ----
@@ -1082,6 +1141,127 @@ drop.addEventListener("drop", async (e) => {
     } catch (err) { showToast("Eklenemedi"); }
   }
   mapsKey = ""; loadMaps();
+});
+
+// ---- custom skins ----
+const ICON_SHIRT = `__shirt__`;
+const CHAMP_ICON = (id) => `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${id}.png`;
+let skinsData = null, skinsKey = "";
+// [badge, tooltip] for each patch status (pengu/communication/lust_custom_skins.status)
+const SKIN_STATUS = {
+  ok: ["Bu yamada çalıştı", "Bu League sürümünde oyunu sorunsuz açtı"],
+  untested: ["League güncellendi, denenmedi", "Eski yamada çalışıyordu; yeni yamada henüz oynanmadı"],
+  old: ["Eski olabilir", "Bu yamadan aylar önce paketlenmiş; oyunu çökertebilir"],
+  crashed: ["Bu yamada oyunu çökertti", "Lust bu skini kapattı. Skinin yeni yama için güncellenmiş sürümünü bulup klasöre ekle"],
+};
+function skinRow(s, champions) {
+  const row = document.createElement("div");
+  row.className = "skr" + (s.enabled ? " on" : "");
+  const ic = document.createElement("div");
+  ic.className = "ic"; ic.innerHTML = ICON_SHIRT;
+  if (s.championId) { ic.classList.add("img"); ic.style.backgroundImage = `url("${CHAMP_ICON(s.championId)}")`; }
+  const tx = document.createElement("div"); tx.className = "tx";
+  const b = document.createElement("b"); b.textContent = s.title; b.title = s.name;
+  const span = document.createElement("span");
+  if (s.broken) { span.className = "bad"; span.textContent = "Bu dosya okunamıyor"; }
+  else span.textContent = s.name;
+  tx.append(b, span);
+  const st = SKIN_STATUS[s.status];
+  if (st && !s.broken) {
+    const tag = document.createElement("div");
+    tag.className = `st ${s.status}`;
+    tag.textContent = st[0];
+    tag.title = st[1] + (s.made ? ` (paketlenme: ${new Date(s.made * 1000).toLocaleDateString("tr-TR")})` : "");
+    if (s.status !== "ok") {
+      const a = document.createElement("a");
+      a.textContent = "Güncelini ara";
+      a.addEventListener("click", () => act("skin_search", { name: s.name }));
+      tag.appendChild(a);
+    }
+    tx.appendChild(tag);
+    if (s.status === "crashed") row.classList.add("crashed");
+  }
+  if (!s.broken) {
+    const pick = document.createElement("select");
+    pick.className = s.championId ? "" : "need";
+    const none = document.createElement("option");
+    none.value = "0"; none.textContent = "Şampiyonu seç";
+    pick.appendChild(none);
+    champions.forEach((c) => {
+      const o = document.createElement("option");
+      o.value = String(c.id); o.textContent = c.name; o.selected = c.id === s.championId;
+      pick.appendChild(o);
+    });
+    if (s.championId && !champions.some((c) => c.id === s.championId)) {
+      const o = document.createElement("option");
+      o.value = String(s.championId); o.textContent = s.champion || `#${s.championId}`; o.selected = true;
+      pick.appendChild(o);
+    }
+    pick.addEventListener("change", () => act("skin_champion", { name: s.name, championId: Number(pick.value) }).then(() => setTimeout(loadSkins, 250)));
+    tx.appendChild(pick);
+  }
+  const sw = document.createElement("div");
+  sw.className = "switch" + (s.enabled ? " on" : "") + (s.championId ? "" : " lock");
+  sw.title = s.championId ? (s.enabled ? "Açık" : "Kapalı") : "Önce şampiyonu seç";
+  sw.addEventListener("click", () => {
+    if (!s.championId) { showToast("Önce şampiyonu seç"); return; }
+    act("skin_toggle", { name: s.name, enabled: !s.enabled }).then(() => setTimeout(loadSkins, 250));
+  });
+  const del = document.createElement("div");
+  del.className = "del"; del.title = "Sil"; del.innerHTML = ICON_TRASH;
+  del.addEventListener("click", () => {
+    if (del.dataset.armed && Date.now() - Number(del.dataset.armed) < 3000) {
+      act("skin_delete", { name: s.name }).then(() => setTimeout(loadSkins, 250));
+    } else { del.dataset.armed = Date.now(); showToast("Silmek için tekrar bas"); }
+  });
+  row.append(ic, tx, sw, del);
+  return row;
+}
+function drawSkins() {
+  if (!skinsData) return;
+  const find = $("sk-find").value.trim().toLocaleLowerCase("tr");
+  const list = $("skins");
+  list.innerHTML = "";
+  const on = skinsData.skins.filter((s) => s.enabled).length;
+  $("sk-count").textContent = skinsData.skins.length ? `${skinsData.skins.length} custom skin · ${on} açık` : "Custom skinler";
+  $("sk-off").classList.toggle("show", !skinsData.on);
+  const shown = skinsData.skins.filter((s) => !find || `${s.title} ${s.name} ${s.champion}`.toLocaleLowerCase("tr").includes(find));
+  if (!skinsData.skins.length) {
+    const e = document.createElement("div"); e.className = "empty";
+    e.textContent = "Henüz custom skin yok. Aşağıya bir dosya sürükle ya da klasörü açıp içine kopyala.";
+    list.appendChild(e);
+  } else if (!shown.length) {
+    const e = document.createElement("div"); e.className = "empty"; e.textContent = "Eşleşen skin yok.";
+    list.appendChild(e);
+  }
+  shown.forEach((s) => list.appendChild(skinRow(s, skinsData.champions)));
+}
+async function loadSkins() {
+  let data;
+  try { data = await api("/api/skins"); } catch (e) { return; }
+  const key = JSON.stringify(data);
+  if (key === skinsKey) return;
+  skinsKey = key; skinsData = data;
+  if (document.activeElement && document.activeElement.tagName === "SELECT" && $("skins").contains(document.activeElement)) return;
+  drawSkins();
+}
+$("sk-find").addEventListener("input", drawSkins);
+// Files copied into the folder show up while the page is open
+setInterval(() => { if ($("page-skins").classList.contains("active")) loadSkins(); }, 3000);
+const skinDrop = $("skin-drop");
+["dragenter", "dragover"].forEach((t) => skinDrop.addEventListener(t, (e) => { e.preventDefault(); skinDrop.classList.add("over"); }));
+["dragleave", "drop"].forEach((t) => skinDrop.addEventListener(t, (e) => { e.preventDefault(); skinDrop.classList.remove("over"); }));
+skinDrop.addEventListener("drop", async (e) => {
+  for (const file of e.dataTransfer.files) {
+    showToast(`${file.name} ekleniyor…`);
+    try {
+      const r = await fetch(`/api/skins/upload?name=${encodeURIComponent(file.name)}`,
+        { method: "POST", headers: { "X-Lust-Hub": TOKEN }, body: file });
+      const out = await r.json();
+      if (out.message) showToast(out.message);
+    } catch (err) { showToast("Eklenemedi"); }
+  }
+  skinsKey = ""; loadSkins();
 });
 
 const ICON_SYNC = `__sync__`, ICON_DOWNLOAD = `__download__`;

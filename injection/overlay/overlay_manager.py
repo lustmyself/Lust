@@ -492,6 +492,12 @@ class OverlayManager:
                         elif parts[2] == "exited" and session.get("injected_at"):
                             quick = time.monotonic() - session.pop("injected_at") < QUICK_EXIT_S
                             session["quick_exits"] = session.get("quick_exits", 0) + 1 if quick else 0
+                            if not quick:
+                                try:
+                                    from pengu.communication.lust_custom_skins import game_ran_fine
+                                    game_ran_fine()
+                                except Exception as e:
+                                    log.debug(f"[INJECT] Custom skin check failed: {e}")
                             if session["quick_exits"] >= QUICK_EXITS_TO_STOP and not session.get("crash_loop"):
                                 session["crash_loop"] = True
                                 session["error"] = "the game closed right after loading the mods, every time"

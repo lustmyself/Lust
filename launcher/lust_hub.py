@@ -277,6 +277,11 @@ def _maps():
     return lust_maps
 
 
+def _skins():
+    from launcher import lust_skins
+    return lust_skins
+
+
 def _spotify_status():
     from launcher import lust_spotify
     return lust_spotify.status()
@@ -430,6 +435,11 @@ ACTIONS: dict[str, Callable[[dict], str]] = {
     "map_delete": lambda body: _maps().delete(str(body.get("id") or "")),
     "map_install": lambda body: _maps().install(str(body.get("id") or "")),
     "map_folder": lambda body: _maps().open_folder(),
+    "skin_toggle": lambda body: _skins().toggle(str(body.get("name") or ""), bool(body.get("enabled"))),
+    "skin_champion": lambda body: _skins().set_champion(str(body.get("name") or ""), body.get("championId")),
+    "skin_delete": lambda body: _skins().delete(str(body.get("name") or "")),
+    "skin_folder": lambda body: _skins().open_folder(),
+    "skin_search": lambda body: _skins().search_update(str(body.get("name") or "")),
     "auto_update": lambda body: _toggle_auto_update(),
     "setting": lambda body: _set_setting(body),
     "clear_cache": lambda body: _clear_cache(),

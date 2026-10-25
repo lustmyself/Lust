@@ -1,6 +1,9 @@
 {
-  "version": "1.4.9.51",
+  "version": "1.4.9.52",
   "en": [
+    "New Custom skins tab in the hub: pick each skin's champion, switch it on or off, delete, search, or drop a .zip, .fantome or .modpkg on it to add one",
+    "Each custom skin shows whether it works on the current League patch: worked, not tried since League updated, may be old, or crashed the game, with a link to find an updated version",
+    "A crash in a game without a custom skin no longer switches off the skin from the game before",
     "New Maps tab in the hub: pick the map skin for your next game, drop a .zip, .fantome or .modpkg on it to add one, and get maps from Lust's catalog",
     "The patcher's download link and the builds Lust trusts now come from Lust's GitHub, so a new ltk_patcher.zip link reaches you without an update",
     "Lust warns you a few days before the patcher stops working, and the hub shows a patcher card with a download button when something is wrong",
@@ -24,6 +27,9 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "Hub'da yeni Custom skinler sekmesi: her skinin şampiyonunu seç, aç/kapat, sil, ara ya da .zip, .fantome veya .modpkg dosyasını sürükleyip ekle",
+    "Her custom skin bu League yamasında çalışıp çalışmadığını gösteriyor: çalıştı, League güncellendi denenmedi, eski olabilir ya da oyunu çökertti; yanında güncelini aratan bir bağlantı var",
+    "Custom skin açık olmayan bir maçta oyun çökerse önceki maçın skini artık kapatılmıyor",
     "Hub'da yeni Haritalar sekmesi: sonraki maçın harita skinini seç, .zip, .fantome veya .modpkg dosyasını sürükleyip ekle, Lust kataloğundan harita indir",
     "Patcher'ın indirme linki ve Lust'ın güvendiği sürümler artık Lust'ın GitHub'ından geliyor: yeni ltk_patcher.zip linki güncelleme beklemeden sana ulaşır",
     "Patcher'ın süresi dolmadan birkaç gün önce Lust uyarır; bir sorun olunca hub'da indirme düğmeli bir patcher kartı çıkar",

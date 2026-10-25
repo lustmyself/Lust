@@ -701,6 +701,8 @@ def attach(tray_manager) -> None:
     from launcher import lust_cleanup, lust_rose
     threading.Thread(target=lust_cleanup.run, daemon=True, name="LustCleanup").start()
     lust_rose.keep_rose_off()
+    from launcher import lust_perf
+    lust_perf.start()
     from launcher import lust_hero
     lust_hero.start()
 

@@ -874,6 +874,8 @@ function drawMedia() {
   }
 }
 function tickMedia() {
+  // Off the Spotify page (or during a match) nothing moves: check twice a second, draw nothing
+  if (!spotifyVisible()) { setTimeout(() => requestAnimationFrame(tickMedia), 500); return; }
   if (media.available) {
     const pos = Math.min(media.duration || 0, (media.position || 0) + (media.playing ? (Date.now() - mediaAt) / 1000 : 0));
     $("np-pos").textContent = clock(pos);

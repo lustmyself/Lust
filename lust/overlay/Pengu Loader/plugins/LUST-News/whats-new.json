@@ -1,6 +1,8 @@
 {
-  "version": "1.4.9.52",
+  "version": "1.4.9.53",
   "en": [
+    "Less work for your PC during a match: a minute into the game Lust and the hub drop to below normal priority, so the game always comes first",
+    "Lust's main loop and the hub's Spotify visualizer stay quiet while you play",
     "New Custom skins tab in the hub: pick each skin's champion, switch it on or off, delete, search, or drop a .zip, .fantome or .modpkg on it to add one",
     "Each custom skin shows whether it works on the current League patch: worked, not tried since League updated, may be old, or crashed the game, with a link to find an updated version",
     "A crash in a game without a custom skin no longer switches off the skin from the game before",
@@ -27,6 +29,8 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "Maç sırasında bilgisayarına daha az yük: oyuna girdikten bir dakika sonra Lust ve hub düşük önceliğe geçiyor, işlemcide her zaman önce oyun çalışıyor",
+    "Lust'ın ana döngüsü ve hub'daki Spotify animasyonu oynarken sessiz kalıyor",
     "Hub'da yeni Custom skinler sekmesi: her skinin şampiyonunu seç, aç/kapat, sil, ara ya da .zip, .fantome veya .modpkg dosyasını sürükleyip ekle",
     "Her custom skin bu League yamasında çalışıp çalışmadığını gösteriyor: çalıştı, League güncellendi denenmedi, eski olabilir ya da oyunu çökertti; yanında güncelini aratan bir bağlantı var",
     "Custom skin açık olmayan bir maçta oyun çökerse önceki maçın skini artık kapatılmıyor",

@@ -8,6 +8,11 @@ Ahri.wad.client); the tab matches that to the client's champion list, or the
 player picks the champion. A switched-on skin plays whenever that champion goes
 into a game with its default skin: the injection trigger asks custom_mod_for().
 One skin per champion is on at a time.
+
+Skins made for an older League version can crash the game. Each skin remembers the game
+build (the game executable's build stamp, new every patch) it last played on without a crash,
+and the one it crashed on, so the hub can tell "works on this patch", "not tried since League
+updated", "crashed on this patch" and "made long before this patch" apart.
 """
 
 from __future__ import annotations
@@ -16,6 +21,7 @@ import base64
 import json
 import re
 import threading
+import time
 from pathlib import Path
 from typing import Optional
 
@@ -31,12 +37,59 @@ BAD_NAME = re.compile(r'[\\/:*?"<>|]|^\.|\.\.')
 WAD_RE = re.compile(r"(?:^|/)([A-Za-z0-9_]+)\.wad(?:\.client)?(?:/|$)", re.IGNORECASE)
 _lock = threading.RLock()
 _playing: Optional[str] = None  # the custom skin of the injection in progress
+_playing_build: Optional[int] = None
+OLD_AFTER_S = 90 * 24 * 60 * 60  # made this long before the game build: likely outdated
+_build_cache: dict = {"at": 0.0, "build": None}
 
 
 def folder() -> Path:
     path = get_user_data_dir() / "custom skins"
     path.mkdir(parents=True, exist_ok=True)
     return path
+
+
+def game_build() -> Optional[int]:
+    """The installed game's build stamp (changes with every League patch), None when unknown."""
+    if time.monotonic() - _build_cache["at"] < 60:
+        return _build_cache["build"]
+    build = None
+    try:
+        from injection.config.config_manager import ConfigManager
+        from injection.tools.patcher import read_game_build
+        league = ConfigManager().load_league_path()
+        build = read_game_build(Path(league)) if league else None
+    except Exception as exc:  # noqa: BLE001
+        log.debug(f"[CustomSkins] Could not read the game build: {exc}")
+    _build_cache.update(at=time.monotonic(), build=build)
+    return build
+
+
+def status(entry: dict, build: Optional[int]) -> str:
+    """ok, crashed, untested (worked before League updated), old (made long before this patch) or new."""
+    if entry.get("crashed_build") and (build is None or entry["crashed_build"] == build):
+        return "crashed"
+    if build is not None and entry.get("worked_build") == build:
+        return "ok"
+    if entry.get("worked_build"):
+        return "untested"
+    made = entry.get("made")
+    if build is not None and isinstance(made, (int, float)) and made and build - made > OLD_AFTER_S:
+        return "old"
+    return "new"
+
+
+def _made(path: Path) -> Optional[int]:
+    """When the mod was packed: its newest file's date inside the archive."""
+    if path.suffix.lower() not in {".zip", ".fantome"}:
+        return None
+    try:
+        import zipfile
+        with zipfile.ZipFile(path) as archive:
+            stamps = [time.mktime(info.date_time + (0, 0, -1)) for info in archive.infolist()
+                      if info.date_time[0] > 1980]
+        return int(max(stamps)) if stamps else None
+    except Exception:  # noqa: BLE001
+        return None
 
 
 def _valid_name(name: str) -> bool:
@@ -82,7 +135,7 @@ def inspect(path: Path) -> dict:
                     title = str(info.get("Name") or info.get("name") or "")[:80]
         except Exception:  # noqa: BLE001
             pass
-    return {"wads": wads, "title": title, "broken": False}
+    return {"wads": wads, "title": title, "broken": False, "made": _made(path)}
 
 
 def list_skins() -> list[dict]:
@@ -91,12 +144,13 @@ def list_skins() -> list[dict]:
         files = sorted((p for p in folder().iterdir() if p.is_file() and _valid_name(p.name)),
                        key=lambda p: p.name.casefold())
         changed = False
+        build = game_build()
         skins = []
         for path in files:
             stat = path.stat()
             entry = state.get(path.name) if isinstance(state.get(path.name), dict) else {}
             key = f"{stat.st_size}:{int(stat.st_mtime)}"
-            if entry.get("key") != key:
+            if entry.get("key") != key or "made" not in entry:
                 entry = {**entry, **inspect(path), "key": key}
                 state[path.name] = entry
                 changed = True
@@ -109,6 +163,8 @@ def list_skins() -> list[dict]:
                 "championId": entry.get("championId"),
                 "enabled": bool(entry.get("enabled")),
                 "auto": entry.get("auto", True),
+                "made": entry.get("made"),
+                "status": status(entry, build),
             })
         # Forget files that were removed from the folder
         for name in [n for n in state if n not in {p.name for p in files}]:
@@ -202,6 +258,8 @@ def handle(payload: dict) -> dict:
 
 def custom_mod_for(champion_id, skin_id) -> Optional[dict]:
     """The switched-on custom skin for a champion going in with its default skin, as a selected custom mod."""
+    global _playing
+    _playing = None  # a new game: only a skin picked for it can be blamed for a crash
     try:
         champion_id = int(champion_id)
         skin_id = int(skin_id)
@@ -222,8 +280,9 @@ def custom_mod_for(champion_id, skin_id) -> Optional[dict]:
             continue
         safe = re.sub(r"[^A-Za-z0-9_.-]+", "_", path.stem)[:60] or "skin"
         log.info(f"[CustomSkins] {name} plays on champion {champion_id}'s default skin")
-        global _playing
+        global _playing_build
         _playing = name
+        _playing_build = game_build()
         return {
             "skin_id": skin_id,
             "storage_skin_id": skin_id,
@@ -238,6 +297,21 @@ def custom_mod_for(champion_id, skin_id) -> Optional[dict]:
     return None
 
 
+def game_ran_fine() -> None:
+    """The game ran past the crash window with the mods in: the custom skin in play works on this patch."""
+    name, build = _playing, _playing_build
+    if not name or not build:
+        return
+    with _lock:
+        state = _load()
+        entry = state.get(name)
+        if isinstance(entry, dict) and (entry.get("worked_build") != build or entry.get("crashed_build")):
+            entry["worked_build"] = build
+            entry.pop("crashed_build", None)
+            _save(state)
+            log.info(f"[CustomSkins] {name} works on game build {build}")
+
+
 def game_keeps_crashing() -> None:
     """The game closed right after loading its mods, again and again: tell the player, and
     switch off the custom skin in play (made for an older game version, most of the time)."""
@@ -250,11 +324,14 @@ def game_keeps_crashing() -> None:
             entry = state.get(name)
             if isinstance(entry, dict) and entry.get("enabled"):
                 entry["enabled"] = False
+                if _playing_build:
+                    entry["crashed_build"] = _playing_build
                 title = entry.get("title") or Path(name).stem
                 _save(state)
                 log.warning(f"[CustomSkins] {name} crashed the game; switched off")
     tr_text = (f"Oyun \"{title}\" yüzünden açılmıyordu; bu özel skin kapatıldı. Oyun artık modsuz açılacak. "
-               "Skin büyük ihtimalle eski bir oyun sürümü için yapılmış." if title else
+               "Skin büyük ihtimalle eski bir oyun sürümü için yapılmış: hub'daki Custom skinler sekmesinden "
+               "güncelini arayabilirsin." if title else
                "Oyun modlar yüklenince kapanıyordu; enjeksiyon durduruldu, oyun modsuz açılacak.")
     try:
         from launcher import lust_hub

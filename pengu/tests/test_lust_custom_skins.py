@@ -1,6 +1,7 @@
 import base64
 import json
 import tempfile
+import time
 import unittest
 import zipfile
 from pathlib import Path
@@ -24,6 +25,10 @@ class CustomSkinsTests(unittest.TestCase):
         patcher.start()
         self.addCleanup(patcher.stop)
         self.addCleanup(self.tmp.cleanup)
+        self.build = int(time.time())
+        patcher = patch.object(skins, "game_build", side_effect=lambda: self.build)
+        patcher.start()
+        self.addCleanup(patcher.stop)
 
     def test_lists_mod_files_with_their_champion_wad_and_title(self):
         _fantome(skins.folder() / "arcade.fantome")
@@ -89,6 +94,42 @@ class CustomSkinsTests(unittest.TestCase):
         self.assertIn("Arcade Ahri", toast.call_args.args[0])
         self.assertEqual(report.call_args.args[0], "LUST_MOD_CRASH")
         self.assertIsNone(skins.custom_mod_for(103, 103000))
+
+    def _play(self, name="a.fantome"):
+        skins.handle({"action": "set", "name": name, "championId": 103})
+        skins.handle({"action": "set", "name": name, "enabled": True})
+        self.assertIsNotNone(skins.custom_mod_for(103, 103000))
+
+    def test_patch_status_follows_games_played(self):
+        _fantome(skins.folder() / "a.fantome")
+        self.assertEqual(skins.list_skins()[0]["status"], "new")
+        self._play()
+        skins.game_ran_fine()
+        self.assertEqual(skins.list_skins()[0]["status"], "ok")
+        self.build += 1  # League updated
+        self.assertEqual(skins.list_skins()[0]["status"], "untested")
+        self.assertIsNotNone(skins.custom_mod_for(103, 103000))
+        with patch("utils.core.issue_reporter.report_issue"), patch("launcher.lust_hub.toast"):
+            skins.game_keeps_crashing()
+        listed = skins.list_skins()[0]
+        self.assertEqual((listed["status"], listed["enabled"]), ("crashed", False))
+        self.build += 1  # crashed on the patch before: not known for this one
+        self.assertEqual(skins.list_skins()[0]["status"], "untested")
+
+    def test_a_game_without_the_skin_does_not_blame_it(self):
+        _fantome(skins.folder() / "a.fantome")
+        self._play()
+        self.assertIsNone(skins.custom_mod_for(266, 266000))  # next game, another champion
+        with patch("utils.core.issue_reporter.report_issue"), patch("launcher.lust_hub.toast"):
+            skins.game_keeps_crashing()
+        self.assertTrue(skins.list_skins()[0]["enabled"])
+
+    def test_skin_packed_long_before_the_patch_looks_old(self):
+        _fantome(skins.folder() / "a.fantome")  # packed now
+        self.assertEqual(skins.list_skins()[0]["status"], "new")
+        self.assertIsInstance(skins.list_skins()[0]["made"], int)
+        self.build = skins.list_skins()[0]["made"] + skins.OLD_AFTER_S + 1
+        self.assertEqual(skins.list_skins()[0]["status"], "old")
 
     def test_removed_file_stops_playing(self):
         _fantome(skins.folder() / "a.fantome")

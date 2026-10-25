@@ -417,7 +417,7 @@ PAGE = r"""<!doctype html>
   .skr b { display: block; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .skr span { display: block; color: var(--sub); font-size: 11px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .skr span.bad { color: #f87171; }
-  .skr select { margin-top: 5px; max-width: 100%; background: #2c2840; color: var(--text); border: 1px solid var(--line);
+  .skr select { display: block; margin-top: 5px; max-width: 100%; background: #2c2840; color: var(--text); border: 1px solid var(--line);
     border-radius: 8px; font: inherit; font-size: 11.5px; padding: 3px 6px; outline: none; cursor: pointer; }
   .skr select.need { border-color: #f472b6; }
   .skr .switch { flex: none; cursor: pointer; }
@@ -428,6 +428,13 @@ PAGE = r"""<!doctype html>
   .skr:hover .del { opacity: 1; }
   .skr .del:hover { color: #f87171; }
   .skr .del svg { width: 12px; height: 12px; }
+  .skr .st { display: flex; width: fit-content; align-items: center; gap: 6px; margin-top: 4px; font-size: 10.5px; font-weight: 700;
+    padding: 2px 8px; border-radius: 99px; }
+  .skr .st.ok { background: rgba(74, 222, 128, .12); color: var(--green); }
+  .skr .st.untested, .skr .st.old { background: rgba(245, 177, 76, .12); color: var(--amber); }
+  .skr .st.crashed { background: rgba(248, 113, 113, .14); color: #f87171; }
+  .skr .st a { color: inherit; text-decoration: underline; cursor: pointer; font-weight: 600; }
+  .skr.crashed { border-color: rgba(248, 113, 113, .35); }
   #skin-drop.over { border-color: #f472b6; background: rgba(244, 114, 182, .07); }
   #skin-drop svg { color: #f472b6; }
 
@@ -1140,6 +1147,13 @@ drop.addEventListener("drop", async (e) => {
 const ICON_SHIRT = `__shirt__`;
 const CHAMP_ICON = (id) => `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${id}.png`;
 let skinsData = null, skinsKey = "";
+// [badge, tooltip] for each patch status (pengu/communication/lust_custom_skins.status)
+const SKIN_STATUS = {
+  ok: ["Bu yamada çalıştı", "Bu League sürümünde oyunu sorunsuz açtı"],
+  untested: ["League güncellendi, denenmedi", "Eski yamada çalışıyordu; yeni yamada henüz oynanmadı"],
+  old: ["Eski olabilir", "Bu yamadan aylar önce paketlenmiş; oyunu çökertebilir"],
+  crashed: ["Bu yamada oyunu çökertti", "Lust bu skini kapattı. Skinin yeni yama için güncellenmiş sürümünü bulup klasöre ekle"],
+};
 function skinRow(s, champions) {
   const row = document.createElement("div");
   row.className = "skr" + (s.enabled ? " on" : "");
@@ -1152,6 +1166,21 @@ function skinRow(s, champions) {
   if (s.broken) { span.className = "bad"; span.textContent = "Bu dosya okunamıyor"; }
   else span.textContent = s.name;
   tx.append(b, span);
+  const st = SKIN_STATUS[s.status];
+  if (st && !s.broken) {
+    const tag = document.createElement("div");
+    tag.className = `st ${s.status}`;
+    tag.textContent = st[0];
+    tag.title = st[1] + (s.made ? ` (paketlenme: ${new Date(s.made * 1000).toLocaleDateString("tr-TR")})` : "");
+    if (s.status !== "ok") {
+      const a = document.createElement("a");
+      a.textContent = "Güncelini ara";
+      a.addEventListener("click", () => act("skin_search", { name: s.name }));
+      tag.appendChild(a);
+    }
+    tx.appendChild(tag);
+    if (s.status === "crashed") row.classList.add("crashed");
+  }
   if (!s.broken) {
     const pick = document.createElement("select");
     pick.className = s.championId ? "" : "need";

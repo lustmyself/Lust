@@ -119,6 +119,8 @@ def listing() -> dict:
             "championId": s["championId"],
             "champion": (by_id.get(s["championId"]) or {}).get("name", ""),
             "enabled": s["enabled"],
+            "status": s.get("status", "new"),
+            "made": s.get("made"),
         } for s in skins],
         "champions": [{"id": c["id"], "name": c["name"]} for c in champs],
         "on": on,
@@ -135,11 +137,34 @@ def _message(error: str) -> str:
     return ERRORS.get(error, error)
 
 
+def _entry(name: str) -> dict:
+    return next((s for s in _custom().list_skins() if s["name"] == name), {})
+
+
 def toggle(name: str, enabled: bool) -> str:
     error = _custom()._set(name, bool(enabled), None)
     if error:
         return _message(error)
-    return "Skin açıldı: o şampiyonun varsayılan skiniyle girince yüklenir" if enabled else ""
+    if not enabled:
+        return ""
+    state = _entry(name).get("status")
+    if state == "crashed":
+        return "Açıldı, ama bu skin bu yamada oyunu çökertmişti. Yine çökerse Lust onu kendisi kapatır."
+    if state in ("old", "untested"):
+        return "Açıldı. Bu yamada denenmedi: oyun açılmazsa Lust onu kendisi kapatır."
+    return "Skin açıldı: o şampiyonun varsayılan skiniyle girince yüklenir"
+
+
+def search_update(name: str) -> str:
+    """Look the skin up on the web, for a version made for the current patch."""
+    from urllib.parse import quote_plus
+    import webbrowser
+    entry = _entry(name)
+    if not entry:
+        return ""
+    title = entry.get("title") or Path(name).stem
+    webbrowser.open("https://www.google.com/search?q=" + quote_plus(f"{title} league of legends custom skin runeforge"))
+    return ""
 
 
 def set_champion(name: str, champion_id) -> str:

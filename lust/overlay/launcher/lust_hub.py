@@ -439,6 +439,7 @@ ACTIONS: dict[str, Callable[[dict], str]] = {
     "skin_champion": lambda body: _skins().set_champion(str(body.get("name") or ""), body.get("championId")),
     "skin_delete": lambda body: _skins().delete(str(body.get("name") or "")),
     "skin_folder": lambda body: _skins().open_folder(),
+    "skin_search": lambda body: _skins().search_update(str(body.get("name") or "")),
     "auto_update": lambda body: _toggle_auto_update(),
     "setting": lambda body: _set_setting(body),
     "clear_cache": lambda body: _clear_cache(),

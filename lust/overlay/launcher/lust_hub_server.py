@@ -99,6 +99,11 @@ class _Handler(BaseHTTPRequestHandler):
                 return self._send(403)
             from launcher import lust_maps
             return self._send(200, lust_maps.dumps_listing(), "application/json")
+        if path == "/api/skins":
+            if not self._authorized():
+                return self._send(403)
+            from launcher import lust_skins
+            return self._send(200, lust_skins.dumps_listing(), "application/json")
         if path == "/map-preview":
             from urllib.parse import parse_qs
             from launcher import lust_maps
@@ -143,6 +148,18 @@ class _Handler(BaseHTTPRequestHandler):
             except ValueError:
                 length = 0
             message = lust_maps.import_upload(name, self.rfile, length)
+            if message:
+                lust_hub.toast(message)
+            return self._send(200, json.dumps({"message": message}).encode("utf-8"), "application/json")
+        if self._authorized() and self.path.startswith("/api/skins/upload"):
+            from urllib.parse import parse_qs, unquote
+            from launcher import lust_hub, lust_skins
+            name = unquote((parse_qs(self.path.split("?", 1)[-1]).get("name") or [""])[0])
+            try:
+                length = int(self.headers.get("Content-Length") or 0)
+            except ValueError:
+                length = 0
+            message = lust_skins.import_upload(name, self.rfile, length)
             if message:
                 lust_hub.toast(message)
             return self._send(200, json.dumps({"message": message}).encode("utf-8"), "application/json")

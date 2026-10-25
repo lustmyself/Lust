@@ -1003,6 +1003,15 @@ EDITS += [
 ]
 
 
+# Performance: during a match the main loop has no skin UI to follow, so it wakes twice a
+# second instead of twenty times (launcher/lust_perf.py has the rest of performance mode)
+EDITS += [
+    ('main/runtime/loop.py',
+     '    return MAIN_LOOP_SLEEP if fast_loop else MAIN_LOOP_IDLE_SLEEP\n',
+     '    if not fast_loop and getattr(state, "phase", None) == "InProgress":\n        return 0.5  # Lust: a match is running\n    return MAIN_LOOP_SLEEP if fast_loop else MAIN_LOOP_IDLE_SLEEP\n'),
+]
+
+
 # Rose's files that Lust doesn't use: dropped from the tree on every sync
 REMOVE = [
     "relay-worker",  # Rose's party relay server (Cloudflare worker); Lust runs no relay

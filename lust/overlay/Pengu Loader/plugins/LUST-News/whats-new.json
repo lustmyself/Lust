@@ -1,6 +1,7 @@
 {
-  "version": "1.4.9.54",
+  "version": "1.4.9.55",
   "en": [
+    "Fixed a black screen when you alt-tab during the loading screen: Lust now lowers its priority only once the game has loaded, and the hub window keeps its normal priority",
     "New Profile background tab in the hub: put any champion's skin behind your League profile (Overview), owned or not; friends who open your profile see it too",
     "Picked while League is closed, the background is set as soon as the client opens",
     "The LUST theme shows the profile background again (you can still hide it in the theme settings)",
@@ -32,6 +33,7 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "Yükleme ekranında alt-tab atınca oluşan siyah ekran düzeldi: Lust önceliğini artık oyun yüklendikten sonra düşürüyor, hub penceresi normal öncelikte kalıyor",
     "Hub'da yeni Profil arka planı sekmesi: LoL profilinin (Genel Bakış) arka planına istediğin şampiyonun istediğin skinini koy, sahip olmasan da olur; profiline bakan arkadaşların da görür",
     "LoL kapalıyken seçersen arka plan istemci açılır açılmaz konur",
     "LUST teması profil arka planını yeniden gösteriyor (istersen tema ayarlarından gizleyebilirsin)",

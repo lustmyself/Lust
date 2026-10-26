@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
 
 class PriorityTests(unittest.TestCase):
-    def test_only_lust_and_its_window_are_lowered_never_the_patcher(self):
+    def test_only_lust_is_lowered_never_webview2_or_the_patcher(self):
         import psutil
         def proc(name):
             p = mock.Mock()
@@ -61,7 +61,37 @@ class PriorityTests(unittest.TestCase):
         with mock.patch.object(psutil, "Process", return_value=me), \
                 mock.patch("sys.executable", "C:/Lust/Lust.exe"):
             procs = lust_perf._own_processes()
-        self.assertEqual(procs, [me, hub, webview])
+        self.assertEqual(procs, [me, hub])
+
+    def test_loading_screen_is_not_a_loaded_game(self):
+        import requests
+        loading = mock.Mock(status_code=404)
+        playing = mock.Mock(status_code=200)
+        playing.json.return_value = {"gameTime": 12.5}
+        with mock.patch.object(requests, "get", side_effect=requests.ConnectionError()):
+            self.assertFalse(lust_perf._game_loaded())
+        with mock.patch.object(requests, "get", return_value=loading):
+            self.assertFalse(lust_perf._game_loaded())
+        with mock.patch.object(requests, "get", return_value=playing):
+            self.assertTrue(lust_perf._game_loaded())
+
+    def test_priority_stays_normal_during_the_loading_screen(self):
+        clock = [1000.0]
+        stop = RuntimeError("stop")
+        sleeps = []
+        def sleep(_):
+            sleeps.append(1)
+            clock[0] += 61
+            if len(sleeps) >= 3:
+                raise stop
+        with mock.patch.object(lust_perf, "resting", return_value=True), \
+                mock.patch.object(lust_perf, "_game_loaded", return_value=False), \
+                mock.patch.object(lust_perf, "set_low_priority") as low, \
+                mock.patch.object(lust_perf.time, "time", side_effect=lambda: clock[0]), \
+                mock.patch.object(lust_perf.time, "sleep", side_effect=sleep):
+            with self.assertRaises(RuntimeError):
+                lust_perf._priority_watch()
+        low.assert_not_called()
 
     def test_low_and_back_to_normal(self):
         import psutil

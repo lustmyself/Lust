@@ -2,9 +2,11 @@
 
 The hub's card refresh, the Rose guard, release checks and downloads, Spotify's theme
 check and the hub window's watchdog wait for the match to end; Lust Offline's watcher
-looks five times less often, and Lust's own processes (Lust and the hub window) drop to
-below normal priority so the game always comes first for the CPU. Skin injection and the
-game tracking are not touched; the LTK patcher keeps its priority. Switched in the hub's
+looks five times less often, and Lust's own Lust.exe processes drop to below normal
+priority so the game always comes first for the CPU. That waits until the loading screen
+is over (the game's Live Client Data API answers with a game time): lowered during the
+load, alt-tab showed a black screen. The hub's WebView2 and the LTK patcher keep their
+priority. Skin injection and the game tracking are not touched. Switched in the hub's
 Settings ("performance_mode", on by default).
 """
 
@@ -17,7 +19,7 @@ GAME = "league of legends.exe"
 CHECK_EVERY_S = 5.0
 LOWER_AFTER_S = 60.0       # the game loads first: Lust's priority drops once a match has run this long
 PRIORITY_EVERY_S = 10.0
-OWN_NAMES = {"msedgewebview2.exe"}  # the hub window's WebView2, next to Lust's own exe
+LIVE_GAME_URL = "https://127.0.0.1:2999/liveclientdata/gamestats"  # answers once the load is over
 _lock = threading.Lock()
 _checked_at = 0.0
 _in_game = False
@@ -55,13 +57,25 @@ def resting() -> bool:
     return in_game()
 
 
+def _game_loaded() -> bool:
+    """The loading screen is over: the game's own local API reports a running game time."""
+    try:
+        import requests
+        import urllib3
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        resp = requests.get(LIVE_GAME_URL, timeout=1.0, verify=False)  # Riot's self-signed cert
+        return resp.status_code == 200 and float(resp.json().get("gameTime") or 0) > 0
+    except Exception:  # noqa: BLE001 - not loaded yet, or no API: keep the normal priority
+        return False
+
+
 def _own_processes():
-    """Lust and its hub window (with its WebView2); never the LTK patcher or anything else."""
+    """Lust's own Lust.exe processes; never WebView2, the LTK patcher or anything else."""
     import os
     import sys
     import psutil
     me = psutil.Process()
-    names = OWN_NAMES | {os.path.basename(sys.executable).lower()}
+    names = {os.path.basename(sys.executable).lower()}
     procs = [me]
     for child in me.children(recursive=True):
         try:
@@ -92,7 +106,7 @@ def _priority_watch() -> None:
         try:
             if resting():
                 since = since or time.time()
-                if not lowered and time.time() - since >= LOWER_AFTER_S:
+                if not lowered and time.time() - since >= LOWER_AFTER_S and _game_loaded():
                     set_low_priority(True)
                     lowered = True
                     log.info("[Perf] Match running: Lust runs at below normal priority")

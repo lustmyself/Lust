@@ -1,6 +1,7 @@
 {
-  "version": "1.4.9.53",
+  "version": "1.4.9.54",
   "en": [
+    "Fixed a black screen when you alt-tab during the loading screen: Lust now lowers its priority only once the game has loaded, and the hub window keeps its normal priority",
     "Less work for your PC during a match: a minute into the game Lust and the hub drop to below normal priority, so the game always comes first",
     "Lust's main loop and the hub's Spotify visualizer stay quiet while you play",
     "New Custom skins tab in the hub: pick each skin's champion, switch it on or off, delete, search, or drop a .zip, .fantome or .modpkg on it to add one",
@@ -29,6 +30,7 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "Yükleme ekranında alt-tab atınca oluşan siyah ekran düzeldi: Lust önceliğini artık oyun yüklendikten sonra düşürüyor, hub penceresi normal öncelikte kalıyor",
     "Maç sırasında bilgisayarına daha az yük: oyuna girdikten bir dakika sonra Lust ve hub düşük önceliğe geçiyor, işlemcide her zaman önce oyun çalışıyor",
     "Lust'ın ana döngüsü ve hub'daki Spotify animasyonu oynarken sessiz kalıyor",
     "Hub'da yeni Custom skinler sekmesi: her skinin şampiyonunu seç, aç/kapat, sil, ara ya da .zip, .fantome veya .modpkg dosyasını sürükleyip ekle",

@@ -3539,6 +3539,10 @@ class AddCss {
   };
   componentsCss = () => {
     let cssImports = "";
+    if (!LustData.get("lust-profile-background-shown")) {
+      LustData.set("lust-profile-background-shown", true);
+      LustData.set("hide-profile-background", false);
+    }
     let addonCssList = {
       "componentsCss": [
         {

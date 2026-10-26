@@ -1,7 +1,10 @@
 {
-  "version": "1.4.9.54",
+  "version": "1.4.9.55",
   "en": [
     "Fixed a black screen when you alt-tab during the loading screen: Lust now lowers its priority only once the game has loaded, and the hub window keeps its normal priority",
+    "New Profile background tab in the hub: put any champion's skin behind your League profile (Overview), owned or not; friends who open your profile see it too",
+    "Picked while League is closed, the background is set as soon as the client opens",
+    "The LUST theme shows the profile background again (you can still hide it in the theme settings)",
     "Less work for your PC during a match: a minute into the game Lust and the hub drop to below normal priority, so the game always comes first",
     "Lust's main loop and the hub's Spotify visualizer stay quiet while you play",
     "New Custom skins tab in the hub: pick each skin's champion, switch it on or off, delete, search, or drop a .zip, .fantome or .modpkg on it to add one",
@@ -31,6 +34,9 @@
   ],
   "tr": [
     "Yükleme ekranında alt-tab atınca oluşan siyah ekran düzeldi: Lust önceliğini artık oyun yüklendikten sonra düşürüyor, hub penceresi normal öncelikte kalıyor",
+    "Hub'da yeni Profil arka planı sekmesi: LoL profilinin (Genel Bakış) arka planına istediğin şampiyonun istediğin skinini koy, sahip olmasan da olur; profiline bakan arkadaşların da görür",
+    "LoL kapalıyken seçersen arka plan istemci açılır açılmaz konur",
+    "LUST teması profil arka planını yeniden gösteriyor (istersen tema ayarlarından gizleyebilirsin)",
     "Maç sırasında bilgisayarına daha az yük: oyuna girdikten bir dakika sonra Lust ve hub düşük önceliğe geçiyor, işlemcide her zaman önce oyun çalışıyor",
     "Lust'ın ana döngüsü ve hub'daki Spotify animasyonu oynarken sessiz kalıyor",
     "Hub'da yeni Custom skinler sekmesi: her skinin şampiyonunu seç, aç/kapat, sil, ara ya da .zip, .fantome veya .modpkg dosyasını sürükleyip ekle",

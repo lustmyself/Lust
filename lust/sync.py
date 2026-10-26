@@ -1003,6 +1003,11 @@ EDITS += [
 ]
 
 
+# Profile background in the hub (launcher/lust_profile.py): PyInstaller takes it
+EDITS += [
+    ("Lust.spec", "    'launcher.lust_maps',\n", "    'launcher.lust_maps',\n    'launcher.lust_profile',\n"),
+]
+
 # Performance: during a match the main loop has no skin UI to follow, so it wakes twice a
 # second instead of twenty times (launcher/lust_perf.py has the rest of performance mode)
 EDITS += [

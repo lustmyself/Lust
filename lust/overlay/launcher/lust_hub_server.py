@@ -104,6 +104,18 @@ class _Handler(BaseHTTPRequestHandler):
                 return self._send(403)
             from launcher import lust_skins
             return self._send(200, lust_skins.dumps_listing(), "application/json")
+        if path == "/api/profile":
+            if not self._authorized():
+                return self._send(403)
+            from launcher import lust_profile
+            return self._send(200, lust_profile.dumps_listing(), "application/json")
+        if path == "/api/profile/skins":
+            if not self._authorized():
+                return self._send(403)
+            from urllib.parse import parse_qs
+            from launcher import lust_profile
+            champion = (parse_qs(self.path.split("?", 1)[-1]).get("champion") or [""])[0]
+            return self._send(200, lust_profile.dumps_skins(champion), "application/json")
         if path == "/map-preview":
             from urllib.parse import parse_qs
             from launcher import lust_maps

@@ -53,7 +53,7 @@ export default {
 	"sidebar-transparent"           : false,
 	"lobby-transparent-filter"      : true,
 	"settings-dialogs-transparent"  : false,
-	"hide-profile-background"       : true,
+	"hide-profile-background"       : false,
 	"hide-champions-splash-art"     : false,
 	"hide-vertical-lines"           : true,
 	"custom-rp"                     : false,

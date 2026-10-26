@@ -51,6 +51,7 @@ ICONS = {
     "download": '<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>',
     "check": '<path d="M20 6 9 17l-5-5"/>',
     "map": '<path d="M9 4 3 6.5v13.5L9 17.5l6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/>',
+    "frame": '<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="12" cy="10" r="3"/><path d="M6.5 20a5.5 5.5 0 0 1 11 0"/>',
     "shirt": '<path d="M20.4 3.5 16 2a4 4 0 0 1-8 0L3.6 3.5a2 2 0 0 0-1.3 2.2l.6 3.5a1 1 0 0 0 1 .8H6v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V10h2.2a1 1 0 0 0 1-.8l.6-3.5a2 2 0 0 0-1.4-2.2z"/>',
 }
 
@@ -105,6 +106,9 @@ PAGE = r"""<!doctype html>
   .tab[data-page="skins"] { color: #f472b6; background: rgba(244, 114, 182, .1); }
   .tab[data-page="skins"]:hover { background: rgba(244, 114, 182, .2); color: #fbcfe8; }
   .tab[data-page="skins"].active { background: linear-gradient(135deg, #be185d, #f472b6); color: #2a0718; box-shadow: 0 6px 16px rgba(244, 114, 182, .35); }
+  .tab[data-page="profile"] { color: #fb923c; background: rgba(251, 146, 60, .1); }
+  .tab[data-page="profile"]:hover { background: rgba(251, 146, 60, .2); color: #fed7aa; }
+  .tab[data-page="profile"].active { background: linear-gradient(135deg, #c2410c, #fb923c); color: #2a1004; box-shadow: 0 6px 16px rgba(251, 146, 60, .35); }
   .tab[data-page="settings"] { color: #c8aa6e; background: rgba(200, 170, 110, .1); }
   .tab[data-page="settings"]:hover { background: rgba(200, 170, 110, .2); color: #f0e6d2; }
   .tab[data-page="settings"].active { background: linear-gradient(135deg, #785a28, #c8aa6e); color: #1e2328;
@@ -435,6 +439,48 @@ PAGE = r"""<!doctype html>
   .skr .st.crashed { background: rgba(248, 113, 113, .14); color: #f87171; }
   .skr .st a { color: inherit; text-decoration: underline; cursor: pointer; font-weight: 600; }
   .skr.crashed { border-color: rgba(248, 113, 113, .35); }
+  /* Profile background: the splash on the profile now, a champion strip and that champion's skins */
+  .pf-hero { position: relative; height: 172px; border-radius: 18px; overflow: hidden; background: #1d1a29 center 20% / cover;
+    display: flex; align-items: flex-end; padding: 18px 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
+  .pf-hero::before { content: ""; position: absolute; inset: 0;
+    background: linear-gradient(90deg, rgba(14, 12, 22, .92) 0%, rgba(14, 12, 22, .55) 45%, rgba(14, 12, 22, 0) 80%),
+      linear-gradient(0deg, rgba(14, 12, 22, .7), transparent 60%); }
+  .pf-hero > * { position: relative; }
+  .pf-hero small { display: block; color: #fdba74; font-size: 10.5px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; }
+  .pf-hero h2 { margin: 3px 0 8px; font-size: 22px; font-weight: 700; text-shadow: 0 2px 12px rgba(0, 0, 0, .6); }
+  .pf-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 600;
+    background: rgba(255, 255, 255, .1); color: var(--sub); backdrop-filter: blur(6px); }
+  .pf-chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--faint); }
+  .pf-chip.on { color: #bbf7d0; } .pf-chip.on::before { background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .pf-chip.wait { color: #fde68a; } .pf-chip.wait::before { background: var(--amber); }
+  .pf-head { display: flex; align-items: center; gap: 10px; margin: 16px 2px 10px; }
+  .pf-head .section { margin: 0; }
+  .pf-head input { margin-left: auto; width: 190px; background: #1d1a29; border: 1px solid var(--line); border-radius: 99px;
+    color: var(--text); font: inherit; font-size: 12px; padding: 7px 14px; outline: none; }
+  .pf-head input:focus { border-color: #fb923c; }
+  .champs { display: grid; grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); gap: 8px 6px; max-height: 172px; overflow-y: auto;
+    padding: 4px 2px; }
+  .chp { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; min-width: 0; }
+  .chp i { width: 46px; height: 46px; border-radius: 50%; background: #2c2840 center / cover; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .06);
+    transition: transform .15s, box-shadow .15s; }
+  .chp:hover i { transform: scale(1.1); }
+  .chp span { font-size: 10.5px; color: var(--sub); max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chp.sel i { box-shadow: 0 0 0 2px #fb923c, 0 4px 14px rgba(251, 146, 60, .4); }
+  .chp.sel span { color: #fed7aa; font-weight: 600; }
+  .pskins { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .psk { position: relative; border-radius: 14px; overflow: hidden; cursor: pointer; background: var(--card);
+    border: 1.5px solid transparent; transition: transform .15s, border-color .15s; }
+  .psk:hover { transform: translateY(-3px); }
+  .psk .art { aspect-ratio: 16 / 9; background: linear-gradient(135deg, #2a1f3d, #3a2418) center 20% / cover; }
+  .psk b { display: block; padding: 7px 10px 9px; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .psk.on { border-color: #fb923c; box-shadow: 0 8px 22px rgba(251, 146, 60, .2); }
+  .psk .tag { position: absolute; top: 8px; left: 8px; padding: 2px 8px; border-radius: 99px; font-size: 10.5px; font-weight: 700;
+    background: #fb923c; color: #2a1004; display: none; }
+  .psk.on .tag { display: block; }
+  .psk .use { position: absolute; inset: 0 0 auto 0; aspect-ratio: 16 / 9; display: grid; place-items: center; opacity: 0;
+    background: rgba(14, 12, 22, .45); transition: opacity .15s; font-weight: 700; font-size: 12px; }
+  .psk:hover .use { opacity: 1; }
+  .psk.on .use { display: none; }
   #skin-drop.over { border-color: #f472b6; background: rgba(244, 114, 182, .07); }
   #skin-drop svg { color: #f472b6; }
 
@@ -547,6 +593,7 @@ PAGE = r"""<!doctype html>
   <div class="tab" data-page="spotify" data-label="Spotify">__spotify__</div>
   <div class="tab" data-page="maps" data-label="Haritalar">__map__</div>
   <div class="tab" data-page="skins" data-label="Custom skinler">__shirt__</div>
+  <div class="tab" data-page="profile" data-label="Profil arka planı">__frame__</div>
   <div class="tab" data-page="settings" data-label="Ayarlar">__gear__</div>
   <div class="spacer"></div>
   <div class="dot" id="dot" title=""></div>
@@ -661,6 +708,18 @@ PAGE = r"""<!doctype html>
       <button class="btn" data-act="skin_folder">Klasörü aç</button>
     </div>
     <div class="note">Açık bir skin, o şampiyonla varsayılan skininde oyuna girince yüklenir; her şampiyonda bir skin açık olabilir. LoL istemcisindeki LUST panelinin Custom skins sekmesi de aynı listeyi kullanır.</div>
+  </section>
+
+  <section class="page" id="page-profile">
+    <div class="pf-hero" id="pf-hero"><div><small>Profil arka planı</small><h2 id="pf-name">…</h2>
+      <span class="pf-chip" id="pf-chip"></span></div></div>
+    <div class="pf-head"><div class="section">Şampiyon</div>
+      <input id="pf-find" type="search" placeholder="Şampiyon ara" autocomplete="off"></div>
+    <div class="champs" id="pf-champs"></div>
+    <div class="pf-head"><div class="section" id="pf-skins-title">Skinler</div></div>
+    <div class="pskins" id="pf-skins"></div>
+    <div class="note">Seçtiğin skin, LoL'deki profilinin (Genel Bakış) arka planı olur; sahip olmadığın skinler de seçilebilir.
+      Arka plan Riot'ta kaydedilir, profiline bakan arkadaşların da görür. LoL kapalıyken seçersen açılınca konur.</div>
   </section>
 
   <section class="page" id="page-spotify">
@@ -1065,10 +1124,11 @@ async function poll() {
 function showPage(name) {
   document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t.dataset.page === name));
   document.querySelectorAll(".page").forEach((p) => p.classList.toggle("active", p.id === `page-${name}`));
-  $("title").textContent = { lol: "LoL", spotify: "Spotify", maps: "Haritalar", skins: "Custom skinler" }[name] || "Ayarlar";
+  $("title").textContent = { lol: "LoL", spotify: "Spotify", maps: "Haritalar", skins: "Custom skinler", profile: "Profil arka planı" }[name] || "Ayarlar";
   $("tip").hidden = name !== "lol";
   if (name === "maps") loadMaps();
   if (name === "skins") loadSkins();
+  if (name === "profile") loadProfile();
 }
 
 // ---- map skins ----
@@ -1265,6 +1325,89 @@ skinDrop.addEventListener("drop", async (e) => {
   }
   skinsKey = ""; loadSkins();
 });
+
+// ---- profile background ----
+let profile = null, pfChampion = 0, pfSkins = [];
+const SPLASH = (s) => s && (s.splash || s.tile) ? `url("${s.splash || s.tile}")` : "";
+function drawProfileHero() {
+  const s = profile.skin;
+  $("pf-hero").style.backgroundImage = SPLASH(s);
+  $("pf-name").textContent = s ? s.name : (profile.current ? `Skin #${profile.current}` : "Henüz seçilmedi");
+  const chip = $("pf-chip");
+  chip.className = "pf-chip" + (profile.pending ? " wait" : profile.online ? " on" : "");
+  chip.textContent = profile.pending ? "LoL açılınca profiline konacak" : profile.online ? "Şu an profilinde" : "LoL kapalı: seçtiğin, açılınca konur";
+}
+function drawChampions() {
+  const find = $("pf-find").value.trim().toLocaleLowerCase("tr");
+  const list = $("pf-champs");
+  list.innerHTML = "";
+  profile.champions.filter((c) => !find || c.name.toLocaleLowerCase("tr").includes(find)).forEach((c) => {
+    const el = document.createElement("div");
+    el.className = "chp" + (c.id === pfChampion ? " sel" : "");
+    const i = document.createElement("i"); i.style.backgroundImage = `url("${CHAMP_ICON(c.id)}")`;
+    const n = document.createElement("span"); n.textContent = c.name;
+    el.append(i, n);
+    el.addEventListener("click", () => pickChampion(c.id));
+    list.appendChild(el);
+  });
+  if (!list.children.length) {
+    const e = document.createElement("div"); e.className = "empty";
+    e.textContent = profile.champions.length ? "Eşleşen şampiyon yok." : "Şampiyon listesi alınamadı: internet bağlantısını kontrol et.";
+    list.appendChild(e);
+  }
+}
+function drawProfileSkins() {
+  const champ = profile.champions.find((c) => c.id === pfChampion);
+  $("pf-skins-title").textContent = champ ? `${champ.name} · ${pfSkins.length} skin` : "Skinler";
+  const list = $("pf-skins");
+  list.innerHTML = "";
+  pfSkins.forEach((s) => {
+    const card = document.createElement("div");
+    card.className = "psk" + (s.id === profile.current ? " on" : "");
+    const art = document.createElement("div"); art.className = "art";
+    if (s.tile || s.splash) art.style.backgroundImage = `url("${s.tile || s.splash}")`;
+    const tag = document.createElement("div"); tag.className = "tag"; tag.textContent = "Profilinde";
+    const use = document.createElement("div"); use.className = "use"; use.textContent = "Arka plan yap";
+    const b = document.createElement("b"); b.textContent = s.name; b.title = s.name;
+    card.append(art, tag, use, b);
+    card.addEventListener("click", () => {
+      if (s.id === profile.current) return;
+      profile.current = s.id; profile.skin = s; drawProfileHero(); drawProfileSkins();
+      act("profile_background", { skinId: s.id }).then(() => setTimeout(loadProfile, 600));
+    });
+    list.appendChild(card);
+  });
+  if (champ && !pfSkins.length) {
+    const e = document.createElement("div"); e.className = "empty"; e.textContent = "Skinler yükleniyor…";
+    list.appendChild(e);
+  }
+}
+async function pickChampion(id) {
+  pfChampion = id; pfSkins = [];
+  drawChampions(); drawProfileSkins();
+  let data;
+  try { data = await api(`/api/profile/skins?champion=${id}`); } catch (e) { return; }
+  if (pfChampion !== id) return;
+  pfSkins = data.skins || [];
+  if (!pfSkins.length) $("pf-skins").innerHTML = '<div class="empty">Bu şampiyonun skinleri alınamadı.</div>';
+  else drawProfileSkins();
+}
+async function loadProfile() {
+  let data;
+  try { data = await api("/api/profile"); } catch (e) { return; }
+  const first = !profile;
+  profile = data;
+  drawProfileHero();
+  if (first || !pfChampion) {
+    const own = profile.current ? Math.floor(profile.current / 1000) : 0;
+    const start = profile.champions.find((c) => c.id === own) || profile.champions[0];
+    drawChampions();
+    if (start) pickChampion(start.id);
+    const sel = $("pf-champs").querySelector(".sel");
+    if (sel) sel.scrollIntoView({ block: "nearest" });
+  } else drawProfileSkins();
+}
+$("pf-find").addEventListener("input", () => profile && drawChampions());
 
 const ICON_SYNC = `__sync__`, ICON_DOWNLOAD = `__download__`;
 document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => showPage(t.dataset.page)));

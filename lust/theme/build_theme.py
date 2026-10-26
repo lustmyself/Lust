@@ -1288,6 +1288,17 @@ PATCHES = [
      '      ElainaData.set("Custom-Font", false);\n'
      '    }\n'
      '    if (!ElainaData.get("Custom-Font")) {\n'),
+    # The profile page shows its background splash (the hub's Profile background page picks
+    # it): shown by default, and shown once for players who had it hidden from the old default
+    ("config/datastoreDefault.js", '"hide-profile-background"       : true,',
+     '"hide-profile-background"       : false,'),
+    ("index.js",
+     '  componentsCss = () => {\n    let cssImports = "";\n',
+     '  componentsCss = () => {\n    let cssImports = "";\n'
+     '    if (!ElainaData.get("lust-profile-background-shown")) {\n'
+     '      ElainaData.set("lust-profile-background-shown", true);\n'
+     '      ElainaData.set("hide-profile-background", false);\n'
+     '    }\n'),
     # League's own status icons in the friend list: a flat green fill turned the round
     # masked online icon into a square, and position:relative moved it
     ("assets/styles/themes/rcp-fe-viewport-sidebar.css",

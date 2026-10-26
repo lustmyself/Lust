@@ -303,6 +303,7 @@ hiddenimports = [
     'tkinter',
     'launcher.lust_offline',
     'launcher.lust_maps',
+    'launcher.lust_profile',
     'injection.tools.patcher_manifest',
     'launcher.autostart_default',
     'pengu.communication.lust_assets',

@@ -1,5 +1,7 @@
+import tempfile
 import time
 import unittest
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from launcher import lust_offline
@@ -47,3 +49,38 @@ class LeagueWithoutProxyTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class LocalhostResolutionTests(unittest.TestCase):
+    def _run(self, hosts_text, resolves):
+        with tempfile.TemporaryDirectory() as tmp:
+            hosts = Path(tmp) / "hosts"
+            if hosts_text is not None:
+                hosts.write_text(hosts_text, encoding="utf-8")
+            with patch.object(lust_offline, "_hosts_file", return_value=hosts), \
+                 patch.object(lust_offline, "_resolves_to_loopback", return_value=resolves), \
+                 patch.object(lust_offline.subprocess, "run") as run:
+                ok = lust_offline.ensure_localhost_resolution()
+            return ok, (hosts.read_text(encoding="utf-8") if hosts.exists() else None), run
+
+    def test_entry_added_when_dns_fails(self):
+        ok, text, run = self._run("# hosts\n127.0.0.1 localhost", resolves=False)
+        self.assertTrue(ok)
+        self.assertEqual(text, "# hosts\n127.0.0.1 localhost\n127.0.0.1 deceive-localhost.molenzwiebel.xyz  # Lust Offline\n")
+        run.assert_called_once()
+
+    def test_nothing_written_when_dns_works(self):
+        ok, text, run = self._run("# hosts\n", resolves=True)
+        self.assertTrue(ok)
+        self.assertEqual(text, "# hosts\n")
+        run.assert_not_called()
+
+    def test_existing_entry_is_kept_once(self):
+        original = "127.0.0.1   Deceive-Localhost.molenzwiebel.xyz\n"
+        ok, text, _ = self._run(original, resolves=False)
+        self.assertTrue(ok)
+        self.assertEqual(text, original)
+
+    def test_commented_entry_does_not_count(self):
+        _, text, _ = self._run("# 127.0.0.1 deceive-localhost.molenzwiebel.xyz\n", resolves=False)
+        self.assertEqual(text.count("deceive-localhost"), 2)

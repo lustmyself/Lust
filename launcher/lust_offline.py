@@ -17,6 +17,7 @@ from __future__ import annotations
 import ctypes
 import os
 import re
+import socket
 import subprocess
 import sys
 import threading
@@ -84,7 +85,64 @@ def _close(names):
         time.sleep(2)  # the Riot Client takes a moment to release its ports
 
 
+# Lust Offline points the Riot Client's chat at this name, which public DNS answers with
+# 127.0.0.1. Some ISPs and routers (DNS rebinding protection) refuse such answers, and
+# Lust Offline then stops with "failing to resolve some required domains". Lust runs as
+# administrator, so it puts the name in the hosts file instead of making the player do it.
+LOCALHOST_DOMAIN = "deceive-localhost.molenzwiebel.xyz"
+HOSTS_ENTRY = f"127.0.0.1 {LOCALHOST_DOMAIN}"
+
+
+def _hosts_file() -> Path:
+    return Path(os.environ.get("SystemRoot", r"C:\Windows")) / "System32" / "drivers" / "etc" / "hosts"
+
+
+def _hosts_has_entry(text: str) -> bool:
+    for line in text.splitlines():
+        fields = line.split("#", 1)[0].split()
+        if len(fields) >= 2 and fields[0] == "127.0.0.1" and LOCALHOST_DOMAIN in (f.lower() for f in fields[1:]):
+            return True
+    return False
+
+
+def _resolves_to_loopback() -> bool:
+    try:
+        infos = socket.getaddrinfo(LOCALHOST_DOMAIN, None, socket.AF_INET)
+    except OSError:
+        return False
+    return any(info[4][0] == "127.0.0.1" for info in infos)
+
+
+def ensure_localhost_resolution() -> bool:
+    """Make LOCALHOST_DOMAIN resolve to 127.0.0.1, adding a hosts entry when DNS won't."""
+    hosts = _hosts_file()
+    try:
+        text = hosts.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        text = ""
+    if _hosts_has_entry(text) or _resolves_to_loopback():
+        return True
+    log.info(f"[LustOffline] {LOCALHOST_DOMAIN} does not resolve to 127.0.0.1; adding it to the hosts file")
+    try:
+        if hosts.exists():
+            os.chmod(hosts, 0o666)  # clears a read-only flag
+        with open(hosts, "a", encoding="utf-8") as f:
+            if text and not text.endswith("\n"):
+                f.write("\n")
+            f.write(f"{HOSTS_ENTRY}  # Lust Offline\n")
+    except OSError as exc:
+        log.warning(f"[LustOffline] Could not add {LOCALHOST_DOMAIN} to the hosts file: {exc}")
+        return False
+    try:
+        subprocess.run(["ipconfig", "/flushdns"], capture_output=True, timeout=10,
+                       creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    except (OSError, subprocess.SubprocessError):
+        pass
+    return True
+
+
 def _launch(exe) -> bool:
+    ensure_localhost_resolution()
     try:
         subprocess.Popen(
             [str(exe), "lol"],

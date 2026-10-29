@@ -85,7 +85,8 @@ jobs:
 
   dependency-review:
     name: Dependency review (PR)
-    if: github.event_name == 'pull_request'
+    # Needs the dependency graph, which a private repo only has with GitHub Advanced Security
+    if: github.event_name == 'pull_request' && !github.event.repository.private
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

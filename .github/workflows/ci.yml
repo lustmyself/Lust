@@ -85,11 +85,23 @@ jobs:
 
   dependency-review:
     name: Dependency review (PR)
-    # Needs the dependency graph, which a private repo only has with GitHub Advanced Security
-    if: github.event_name == 'pull_request' && !github.event.repository.private
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+      # The review needs the repo's dependency graph (Settings > Code security); skip it while that is off
+      - name: Check the dependency graph
+        id: graph
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          if gh api "repos/$REPO/dependency-graph/sbom" --silent 2>/dev/null; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Dependency graph is off for this repository; dependency review skipped"
+          fi
+      - if: steps.graph.outputs.enabled == 'true'
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
         with:
           fail-on-severity: moderate

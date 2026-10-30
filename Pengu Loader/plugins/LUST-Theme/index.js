@@ -5797,6 +5797,7 @@ function cleanRosePanel(panel) {
   return true;
 }
 function mountLustHub() {
+  window.lustOpenHub = openLustHub;
   const style = document.createElement("style");
   style.textContent = LUST_PANEL_CSS;
   document.head.appendChild(style);
@@ -12121,16 +12122,30 @@ async function init(context) {
   initThemeName(context);
   log("Initializing LustData storage");
   await LustData$1.init(context);
-  await restoreDefaultDataStore();
+  try {
+    await restoreDefaultDataStore();
+  } catch (err) {
+    error("Theme init: default data failed", err);
+  }
   LustData$1.set("start-time", Date.now());
-  log("Initializing file system for theme");
-  await fileSystem.init(context);
-  log("Initializing icon sync storage");
-  await syncUserIcons.init();
-  log("Initializing theme");
-  await initThemeDataCdn();
+  try {
+    Settings(context);
+  } catch (err) {
+    error("Lust hub failed to mount", err);
+  }
+  for (const [name, step] of [
+    ["file system", () => fileSystem.init(context)],
+    ["icon sync storage", () => syncUserIcons.init()],
+    ["theme data", () => initThemeDataCdn()]
+  ]) {
+    log(`Initializing ${name}`);
+    try {
+      await step();
+    } catch (err) {
+      error(`Theme init: ${name} failed`, err);
+    }
+  }
   initDebug();
-  Settings(context);
   transparentLobby(context);
 }
 class LustTheme {

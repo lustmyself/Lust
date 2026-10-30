@@ -52,6 +52,7 @@ ICONS = {
     "check": '<path d="M20 6 9 17l-5-5"/>',
     "map": '<path d="M9 4 3 6.5v13.5L9 17.5l6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/>',
     "frame": '<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="12" cy="10" r="3"/><path d="M6.5 20a5.5 5.5 0 0 1 11 0"/>',
+    "badge": '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/><path d="M6.8 18.4a6 6 0 0 1 10.4 0"/>',
     "shirt": '<path d="M20.4 3.5 16 2a4 4 0 0 1-8 0L3.6 3.5a2 2 0 0 0-1.3 2.2l.6 3.5a1 1 0 0 0 1 .8H6v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V10h2.2a1 1 0 0 0 1-.8l.6-3.5a2 2 0 0 0-1.4-2.2z"/>',
 }
 
@@ -109,6 +110,9 @@ PAGE = r"""<!doctype html>
   .tab[data-page="profile"] { color: #fb923c; background: rgba(251, 146, 60, .1); }
   .tab[data-page="profile"]:hover { background: rgba(251, 146, 60, .2); color: #fed7aa; }
   .tab[data-page="profile"].active { background: linear-gradient(135deg, #c2410c, #fb923c); color: #2a1004; box-shadow: 0 6px 16px rgba(251, 146, 60, .35); }
+  .tab[data-page="icon"] { color: #38bdf8; background: rgba(56, 189, 248, .1); }
+  .tab[data-page="icon"]:hover { background: rgba(56, 189, 248, .2); color: #bae6fd; }
+  .tab[data-page="icon"].active { background: linear-gradient(135deg, #0369a1, #38bdf8); color: #021a2a; box-shadow: 0 6px 16px rgba(56, 189, 248, .35); }
   .tab[data-page="settings"] { color: #c8aa6e; background: rgba(200, 170, 110, .1); }
   .tab[data-page="settings"]:hover { background: rgba(200, 170, 110, .2); color: #f0e6d2; }
   .tab[data-page="settings"].active { background: linear-gradient(135deg, #785a28, #c8aa6e); color: #1e2328;
@@ -481,6 +485,36 @@ PAGE = r"""<!doctype html>
     background: rgba(14, 12, 22, .45); transition: opacity .15s; font-weight: 700; font-size: 12px; }
   .psk:hover .use { opacity: 1; }
   .psk.on .use { display: none; }
+  /* Profile icon: the chosen icon large, then every icon in a searchable grid */
+  .ic-hero { position: relative; display: flex; align-items: center; gap: 18px; padding: 18px 20px; border-radius: 18px; overflow: hidden;
+    background: #14202b; box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
+  .ic-hero::before { content: ""; position: absolute; inset: -40px; background: var(--ic-art, none) center / cover; filter: blur(28px) saturate(1.3);
+    opacity: .45; }
+  .ic-hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(10, 16, 24, .85), rgba(10, 16, 24, .35)); }
+  .ic-hero > * { position: relative; z-index: 1; }
+  .ic-big { width: 92px; height: 92px; flex: none; border-radius: 50%; background: #1f2d3a center / cover;
+    box-shadow: 0 0 0 3px #38bdf8, 0 8px 24px rgba(56, 189, 248, .35); display: grid; place-items: center; color: var(--faint); }
+  .ic-big svg { width: 38px; height: 38px; }
+  .ic-hero small { display: block; color: #7dd3fc; font-size: 10.5px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; }
+  .ic-hero h2 { margin: 3px 0 8px; font-size: 21px; font-weight: 700; }
+  .ic-hero .btn { margin-left: auto; }
+  .ic-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 600;
+    background: rgba(255, 255, 255, .1); color: var(--sub); }
+  .ic-chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--faint); }
+  .ic-chip.on { color: #bae6fd; } .ic-chip.on::before { background: #38bdf8; box-shadow: 0 0 8px #38bdf8; }
+  .ic-head { display: flex; align-items: center; gap: 10px; margin: 16px 2px 10px; }
+  .ic-head .section { margin: 0; }
+  .ic-head input { margin-left: auto; width: 210px; background: #1d1a29; border: 1px solid var(--line); border-radius: 99px;
+    color: var(--text); font: inherit; font-size: 12px; padding: 7px 14px; outline: none; }
+  .ic-head input:focus { border-color: #38bdf8; }
+  .icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 10px; }
+  .ico { position: relative; aspect-ratio: 1; border-radius: 14px; cursor: pointer; background: #1f2d3a center / cover;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06); transition: transform .15s, box-shadow .15s; }
+  .ico:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 6px 16px rgba(0, 0, 0, .4); }
+  .ico.on { box-shadow: 0 0 0 2.5px #38bdf8, 0 6px 18px rgba(56, 189, 248, .4); }
+  .ico.on::after { content: ""; position: absolute; right: -4px; top: -4px; width: 16px; height: 16px; border-radius: 50%;
+    background: #38bdf8 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23021a2a' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center / 10px no-repeat; }
+  .ic-more { display: block; margin: 14px auto 0; }
   #skin-drop.over { border-color: #f472b6; background: rgba(244, 114, 182, .07); }
   #skin-drop svg { color: #f472b6; }
 
@@ -594,6 +628,7 @@ PAGE = r"""<!doctype html>
   <div class="tab" data-page="maps" data-label="Haritalar">__map__</div>
   <div class="tab" data-page="skins" data-label="Custom skinler">__shirt__</div>
   <div class="tab" data-page="profile" data-label="Profil arka planı">__frame__</div>
+  <div class="tab" data-page="icon" data-label="Profil simgesi">__badge__</div>
   <div class="tab" data-page="settings" data-label="Ayarlar">__gear__</div>
   <div class="spacer"></div>
   <div class="dot" id="dot" title=""></div>
@@ -720,6 +755,18 @@ PAGE = r"""<!doctype html>
     <div class="pskins" id="pf-skins"></div>
     <div class="note">Seçtiğin skin, LoL'deki profilinin (Genel Bakış) arka planı olur; sahip olmadığın skinler de seçilebilir.
       Arka plan Riot'ta kaydedilir, profiline bakan arkadaşların da görür. LoL kapalıyken seçersen açılınca konur.</div>
+  </section>
+
+  <section class="page" id="page-icon">
+    <div class="ic-hero" id="ic-hero"><div class="ic-big" id="ic-big">__user__</div>
+      <div><small>Profil simgesi</small><h2 id="ic-name">…</h2><span class="ic-chip" id="ic-chip"></span></div>
+      <button class="btn" id="ic-reset" hidden>Kendi simgeme dön</button></div>
+    <div class="ic-head"><div class="section" id="ic-count">Simgeler</div>
+      <input id="ic-find" type="search" placeholder="Simge ara (ad, yıl ya da numara)" autocomplete="off"></div>
+    <div class="icons" id="ic-list"></div>
+    <button class="btn ic-more" id="ic-more" hidden>Daha fazla göster</button>
+    <div class="note">Seçtiğin simge, sahip olmasan da LoL istemcisinde senin simgen olarak görünür: sağ üstte, profilinde, sohbette ve lobide.
+      Bu yalnızca senin ekranında olur; Riot'a gönderilmez, arkadaşların ve diğer oyuncular gerçek simgeni görmeye devam eder.</div>
   </section>
 
   <section class="page" id="page-spotify">
@@ -1124,11 +1171,12 @@ async function poll() {
 function showPage(name) {
   document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t.dataset.page === name));
   document.querySelectorAll(".page").forEach((p) => p.classList.toggle("active", p.id === `page-${name}`));
-  $("title").textContent = { lol: "LoL", spotify: "Spotify", maps: "Haritalar", skins: "Custom skinler", profile: "Profil arka planı" }[name] || "Ayarlar";
+  $("title").textContent = { lol: "LoL", spotify: "Spotify", maps: "Haritalar", skins: "Custom skinler", profile: "Profil arka planı", icon: "Profil simgesi" }[name] || "Ayarlar";
   $("tip").hidden = name !== "lol";
   if (name === "maps") loadMaps();
   if (name === "skins") loadSkins();
   if (name === "profile") loadProfile();
+  if (name === "icon") loadIcons();
 }
 
 // ---- map skins ----
@@ -1408,6 +1456,60 @@ async function loadProfile() {
   } else drawProfileSkins();
 }
 $("pf-find").addEventListener("input", () => profile && drawChampions());
+
+// ---- profile icon ----
+const ICON_IMG = (id) => `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${id}.jpg`;
+const IC_PAGE = 180;
+let iconData = null, icShown = IC_PAGE;
+function drawIconHero() {
+  const id = iconData.chosen, ic = iconData.icon;
+  const big = $("ic-big");
+  big.style.backgroundImage = id ? `url("${ICON_IMG(id)}")` : "";
+  big.querySelector("svg") && (big.querySelector("svg").style.display = id ? "none" : "");
+  $("ic-hero").style.setProperty("--ic-art", id ? `url("${ICON_IMG(id)}")` : "none");
+  $("ic-name").textContent = id ? (ic ? ic.title : `Simge #${id}`) : "Kendi simgen";
+  const chip = $("ic-chip");
+  chip.className = "ic-chip" + (id ? " on" : "");
+  chip.textContent = id ? `#${id} · LoL'de sadece sen görüyorsun` : "Bir simge seç, LoL'de hemen değişir";
+  $("ic-reset").hidden = !id;
+}
+function drawIcons() {
+  const find = $("ic-find").value.trim().toLocaleLowerCase("tr");
+  const all = iconData.icons.filter((i) => !find || i.title.toLocaleLowerCase("tr").includes(find)
+    || String(i.id) === find || (i.year && String(i.year) === find));
+  $("ic-count").textContent = find ? `${all.length} simge bulundu` : `${all.length} simge`;
+  const list = $("ic-list");
+  list.innerHTML = "";
+  all.slice(0, icShown).forEach((i) => {
+    const el = document.createElement("div");
+    el.className = "ico" + (i.id === iconData.chosen ? " on" : "");
+    el.style.backgroundImage = `url("${ICON_IMG(i.id)}")`;
+    el.title = `${i.title}${i.year ? ` · ${i.year}` : ""}`;
+    el.addEventListener("click", () => pickIcon(i.id));
+    list.appendChild(el);
+  });
+  $("ic-more").hidden = all.length <= icShown;
+  if (!all.length) {
+    const e = document.createElement("div"); e.className = "empty";
+    e.textContent = iconData.icons.length ? "Eşleşen simge yok." : "Simge listesi alınamadı: internet bağlantısını kontrol et.";
+    list.appendChild(e);
+  }
+}
+function pickIcon(id) {
+  if (id === iconData.chosen) return;
+  iconData.chosen = id; iconData.icon = iconData.icons.find((i) => i.id === id) || null;
+  drawIconHero(); drawIcons();
+  act("profile_icon", { iconId: id });
+}
+async function loadIcons() {
+  let data;
+  try { data = await api("/api/icon"); } catch (e) { return; }
+  iconData = data;
+  drawIconHero(); drawIcons();
+}
+$("ic-find").addEventListener("input", () => { icShown = IC_PAGE; if (iconData) drawIcons(); });
+$("ic-more").addEventListener("click", () => { icShown += IC_PAGE * 2; drawIcons(); });
+$("ic-reset").addEventListener("click", () => iconData && pickIcon(0));
 
 const ICON_SYNC = `__sync__`, ICON_DOWNLOAD = `__download__`;
 document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => showPage(t.dataset.page)));

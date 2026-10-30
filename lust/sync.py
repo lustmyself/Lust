@@ -1021,6 +1021,18 @@ EDITS += [
     ("Lust.spec", "    'launcher.lust_maps',\n", "    'launcher.lust_maps',\n    'launcher.lust_profile',\n"),
 ]
 
+# Profile icon (launcher/lust_icon.py): the LUST-ProfileIcon plugin asks for the chosen icon
+EDITS += [
+    ('pengu/communication/message_handler.py',
+     '        if payload_type == "lust-assets":\n',
+     '        if payload_type == "lust-profile-icon":\n'
+     '            from launcher.lust_icon import bridge_reply as _lust_icon_reply\n'
+     '            self._send_response(json.dumps(_lust_icon_reply()))\n'
+     '            return\n'
+     '        if payload_type == "lust-assets":\n'),
+    ("Lust.spec", "    'launcher.lust_profile',\n", "    'launcher.lust_profile',\n    'launcher.lust_icon',\n"),
+]
+
 # Performance: during a match the main loop has no skin UI to follow, so it wakes twice a
 # second instead of twenty times (launcher/lust_perf.py has the rest of performance mode)
 EDITS += [

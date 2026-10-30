@@ -287,6 +287,11 @@ def _skins():
     return lust_skins
 
 
+def _icon():
+    from launcher import lust_icon
+    return lust_icon
+
+
 def _profile():
     from launcher import lust_profile
     return lust_profile
@@ -454,6 +459,7 @@ ACTIONS: dict[str, Callable[[dict], str]] = {
     "skin_folder": lambda body: _skins().open_folder(),
     "skin_search": lambda body: _skins().search_update(str(body.get("name") or "")),
     "profile_background": lambda body: _profile().set_background(body.get("skinId")),
+    "profile_icon": lambda body: _icon().choose(body.get("iconId")),
     "auto_update": lambda body: _toggle_auto_update(),
     "setting": lambda body: _set_setting(body),
     "clear_cache": lambda body: _clear_cache(),

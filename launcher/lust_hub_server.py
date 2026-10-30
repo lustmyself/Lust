@@ -114,6 +114,11 @@ class _Handler(BaseHTTPRequestHandler):
                 return self._send(403)
             from launcher import lust_profile
             return self._send(200, lust_profile.dumps_listing(), "application/json")
+        if path == "/api/icon":
+            if not self._authorized():
+                return self._send(403)
+            from launcher import lust_icon
+            return self._send(200, lust_icon.dumps_listing(), "application/json")
         if path == "/api/profile/skins":
             if not self._authorized():
                 return self._send(403)

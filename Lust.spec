@@ -305,6 +305,7 @@ hiddenimports = [
     'launcher.lust_maps',
     'launcher.lust_fonts',
     'launcher.lust_profile',
+    'launcher.lust_icon',
     'injection.tools.patcher_manifest',
     'launcher.autostart_default',
     'pengu.communication.lust_assets',

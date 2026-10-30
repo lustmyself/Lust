@@ -114,9 +114,9 @@ PAGE = r"""<!doctype html>
   .tab[data-page="profile"] { color: #fb923c; background: rgba(251, 146, 60, .1); }
   .tab[data-page="profile"]:hover { background: rgba(251, 146, 60, .2); color: #fed7aa; }
   .tab[data-page="profile"].active { background: linear-gradient(135deg, #c2410c, #fb923c); color: #2a1004; box-shadow: 0 6px 16px rgba(251, 146, 60, .35); }
-  .tab[data-page="icon"] { color: #38bdf8; background: rgba(56, 189, 248, .1); }
-  .tab[data-page="icon"]:hover { background: rgba(56, 189, 248, .2); color: #bae6fd; }
-  .tab[data-page="icon"].active { background: linear-gradient(135deg, #0369a1, #38bdf8); color: #021a2a; box-shadow: 0 6px 16px rgba(56, 189, 248, .35); }
+  .tab[data-page="icon"] { color: #facc15; background: rgba(250, 204, 21, .1); }
+  .tab[data-page="icon"]:hover { background: rgba(250, 204, 21, .2); color: #fef08a; }
+  .tab[data-page="icon"].active { background: linear-gradient(135deg, #a16207, #facc15); color: #271d02; box-shadow: 0 6px 16px rgba(250, 204, 21, .35); }
   .tab[data-page="settings"] { color: #c8aa6e; background: rgba(200, 170, 110, .1); }
   .tab[data-page="settings"]:hover { background: rgba(200, 170, 110, .2); color: #f0e6d2; }
   .tab[data-page="settings"].active { background: linear-gradient(135deg, #785a28, #c8aa6e); color: #1e2328;
@@ -499,33 +499,33 @@ PAGE = r"""<!doctype html>
   .psk.on .use { display: none; }
   /* Profile icon: the chosen icon large, then every icon in a searchable grid */
   .ic-hero { position: relative; display: flex; align-items: center; gap: 18px; padding: 18px 20px; border-radius: 18px; overflow: hidden;
-    background: #14202b; box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
+    background: #1c1a14; box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
   .ic-hero::before { content: ""; position: absolute; inset: -40px; background: var(--ic-art, none) center / cover; filter: blur(28px) saturate(1.3);
     opacity: .45; }
   .ic-hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(10, 16, 24, .85), rgba(10, 16, 24, .35)); }
   .ic-hero > * { position: relative; z-index: 1; }
-  .ic-big { width: 92px; height: 92px; flex: none; border-radius: 50%; background: #1f2d3a center / cover;
-    box-shadow: 0 0 0 3px #38bdf8, 0 8px 24px rgba(56, 189, 248, .35); display: grid; place-items: center; color: var(--faint); }
+  .ic-big { width: 92px; height: 92px; flex: none; border-radius: 50%; background: #2a2618 center / cover;
+    box-shadow: 0 0 0 3px #facc15, 0 8px 24px rgba(250, 204, 21, .35); display: grid; place-items: center; color: var(--faint); }
   .ic-big svg { width: 38px; height: 38px; }
-  .ic-hero small { display: block; color: #7dd3fc; font-size: 10.5px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; }
+  .ic-hero small { display: block; color: #fde047; font-size: 10.5px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; }
   .ic-hero h2 { margin: 3px 0 8px; font-size: 21px; font-weight: 700; }
   .ic-hero .btn { margin-left: auto; }
   .ic-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 600;
     background: rgba(255, 255, 255, .1); color: var(--sub); }
   .ic-chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--faint); }
-  .ic-chip.on { color: #bae6fd; } .ic-chip.on::before { background: #38bdf8; box-shadow: 0 0 8px #38bdf8; }
+  .ic-chip.on { color: #fef08a; } .ic-chip.on::before { background: #facc15; box-shadow: 0 0 8px #facc15; }
   .ic-head { display: flex; align-items: center; gap: 10px; margin: 16px 2px 10px; }
   .ic-head .section { margin: 0; }
   .ic-head input { margin-left: auto; width: 210px; background: #1d1a29; border: 1px solid var(--line); border-radius: 99px;
     color: var(--text); font: inherit; font-size: 12px; padding: 7px 14px; outline: none; }
-  .ic-head input:focus { border-color: #38bdf8; }
+  .ic-head input:focus { border-color: #facc15; }
   .icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 10px; }
-  .ico { position: relative; aspect-ratio: 1; border-radius: 14px; cursor: pointer; background: #1f2d3a center / cover;
+  .picon { position: relative; aspect-ratio: 1; border-radius: 14px; cursor: pointer; background: #2a2618 center / cover;
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06); transition: transform .15s, box-shadow .15s; }
-  .ico:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 6px 16px rgba(0, 0, 0, .4); }
-  .ico.on { box-shadow: 0 0 0 2.5px #38bdf8, 0 6px 18px rgba(56, 189, 248, .4); }
-  .ico.on::after { content: ""; position: absolute; right: -4px; top: -4px; width: 16px; height: 16px; border-radius: 50%;
-    background: #38bdf8 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23021a2a' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center / 10px no-repeat; }
+  .picon:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 6px 16px rgba(0, 0, 0, .4); }
+  .picon.on { box-shadow: 0 0 0 2.5px #facc15, 0 6px 18px rgba(250, 204, 21, .4); }
+  .picon.on::after { content: ""; position: absolute; right: -4px; top: -4px; width: 16px; height: 16px; border-radius: 50%;
+    background: #facc15 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23271d02' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center / 10px no-repeat; }
   .ic-more { display: block; margin: 14px auto 0; }
   #skin-drop.over { border-color: #f472b6; background: rgba(244, 114, 182, .07); }
   #skin-drop svg { color: #f472b6; }
@@ -784,7 +784,7 @@ PAGE = r"""<!doctype html>
       <div><small>Profil simgesi</small><h2 id="ic-name">…</h2><span class="ic-chip" id="ic-chip"></span></div>
       <button class="btn" id="ic-reset" hidden>Kendi simgeme dön</button></div>
     <div class="ic-head"><div class="section" id="ic-count">Simgeler</div>
-      <input id="ic-find" type="search" placeholder="Simge ara (ad, yıl ya da numara)" autocomplete="off"></div>
+      <input id="ic-find" type="search" placeholder="Simge ara: ad, yıl, numara" autocomplete="off"></div>
     <div class="icons" id="ic-list"></div>
     <button class="btn ic-more" id="ic-more" hidden>Daha fazla göster</button>
     <div class="note">Seçtiğin simge, sahip olmasan da LoL istemcisinde senin simgen olarak görünür: sağ üstte, profilinde, sohbette ve lobide.
@@ -1193,11 +1193,7 @@ async function poll() {
 function showPage(name) {
   document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t.dataset.page === name));
   document.querySelectorAll(".page").forEach((p) => p.classList.toggle("active", p.id === `page-${name}`));
-<<<<<<< HEAD
-  $("title").textContent = { lol: "LoL", spotify: "Spotify", maps: "Haritalar", skins: "Custom skinler", profile: "Profil arka planı", icon: "Profil simgesi" }[name] || "Ayarlar";
-=======
-  $("title").textContent = { lol: "LoL", spotify: "Spotify", maps: "Haritalar", fonts: "Fontlar", skins: "Custom skinler", profile: "Profil arka planı" }[name] || "Ayarlar";
->>>>>>> origin/main
+  $("title").textContent = { lol: "LoL", spotify: "Spotify", maps: "Haritalar", fonts: "Fontlar", skins: "Custom skinler", profile: "Profil arka planı", icon: "Profil simgesi" }[name] || "Ayarlar";
   $("tip").hidden = name !== "lol";
   if (name === "maps") loadMaps();
   if (name === "fonts") loadFonts();
@@ -1567,7 +1563,7 @@ function drawIcons() {
   list.innerHTML = "";
   all.slice(0, icShown).forEach((i) => {
     const el = document.createElement("div");
-    el.className = "ico" + (i.id === iconData.chosen ? " on" : "");
+    el.className = "picon" + (i.id === iconData.chosen ? " on" : "");
     el.style.backgroundImage = `url("${ICON_IMG(i.id)}")`;
     el.title = `${i.title}${i.year ? ` · ${i.year}` : ""}`;
     el.addEventListener("click", () => pickIcon(i.id));

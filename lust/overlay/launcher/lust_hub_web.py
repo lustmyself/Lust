@@ -520,11 +520,11 @@ PAGE = r"""<!doctype html>
     color: var(--text); font: inherit; font-size: 12px; padding: 7px 14px; outline: none; }
   .ic-head input:focus { border-color: #facc15; }
   .icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 10px; }
-  .ico { position: relative; aspect-ratio: 1; border-radius: 14px; cursor: pointer; background: #2a2618 center / cover;
+  .picon { position: relative; aspect-ratio: 1; border-radius: 14px; cursor: pointer; background: #2a2618 center / cover;
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06); transition: transform .15s, box-shadow .15s; }
-  .ico:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 6px 16px rgba(0, 0, 0, .4); }
-  .ico.on { box-shadow: 0 0 0 2.5px #facc15, 0 6px 18px rgba(250, 204, 21, .4); }
-  .ico.on::after { content: ""; position: absolute; right: -4px; top: -4px; width: 16px; height: 16px; border-radius: 50%;
+  .picon:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 6px 16px rgba(0, 0, 0, .4); }
+  .picon.on { box-shadow: 0 0 0 2.5px #facc15, 0 6px 18px rgba(250, 204, 21, .4); }
+  .picon.on::after { content: ""; position: absolute; right: -4px; top: -4px; width: 16px; height: 16px; border-radius: 50%;
     background: #facc15 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23271d02' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center / 10px no-repeat; }
   .ic-more { display: block; margin: 14px auto 0; }
   #skin-drop.over { border-color: #f472b6; background: rgba(244, 114, 182, .07); }
@@ -784,7 +784,7 @@ PAGE = r"""<!doctype html>
       <div><small>Profil simgesi</small><h2 id="ic-name">…</h2><span class="ic-chip" id="ic-chip"></span></div>
       <button class="btn" id="ic-reset" hidden>Kendi simgeme dön</button></div>
     <div class="ic-head"><div class="section" id="ic-count">Simgeler</div>
-      <input id="ic-find" type="search" placeholder="Simge ara (ad, yıl ya da numara)" autocomplete="off"></div>
+      <input id="ic-find" type="search" placeholder="Simge ara: ad, yıl, numara" autocomplete="off"></div>
     <div class="icons" id="ic-list"></div>
     <button class="btn ic-more" id="ic-more" hidden>Daha fazla göster</button>
     <div class="note">Seçtiğin simge, sahip olmasan da LoL istemcisinde senin simgen olarak görünür: sağ üstte, profilinde, sohbette ve lobide.
@@ -1563,7 +1563,7 @@ function drawIcons() {
   list.innerHTML = "";
   all.slice(0, icShown).forEach((i) => {
     const el = document.createElement("div");
-    el.className = "ico" + (i.id === iconData.chosen ? " on" : "");
+    el.className = "picon" + (i.id === iconData.chosen ? " on" : "");
     el.style.backgroundImage = `url("${ICON_IMG(i.id)}")`;
     el.title = `${i.title}${i.year ? ` · ${i.year}` : ""}`;
     el.addEventListener("click", () => pickIcon(i.id));

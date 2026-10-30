@@ -1182,6 +1182,7 @@ function cleanRosePanel(panel) {
   return true;
 }
 function mountLustHub() {
+  window.lustOpenHub = openLustHub;
   const style = document.createElement("style");
   style.textContent = LUST_PANEL_CSS;
   document.head.appendChild(style);
@@ -1311,6 +1312,26 @@ PATCHES = [
     ("assets/styles/themes/elaina.css", '@import url("./theme-update-message.css");\n', ""),
     # No automation that plays for the player: auto find queue and honor skip.
     ("index.js", "  AutoQueue(context);\n  skipHonor(context);\n", ""),
+    # The hub goes up right after the theme's storage, before the steps that read files
+    # and load the theme data: when one of those was slow or failed, the hub was never
+    # mounted and the LUST tab opened Rose's settings panel instead.
+    ("index.js",
+     '  await restoreDefaultDataStore();\n  ElainaData$1.set("start-time", Date.now());\n'
+     '  log("Initializing file system for theme");\n  await fileSystem.init(context);\n'
+     '  log("Initializing icon sync storage");\n  await syncUserIcons.init();\n'
+     '  log("Initializing theme");\n  await initThemeDataCdn();\n  initDebug();\n'
+     '  Settings(context);\n  transparentLobby(context);\n}\n',
+     '  try {\n    await restoreDefaultDataStore();\n  } catch (err) {\n    error("Theme init: default data failed", err);\n  }\n'
+     '  ElainaData$1.set("start-time", Date.now());\n'
+     '  try {\n    Settings(context);\n  } catch (err) {\n    error("Lust hub failed to mount", err);\n  }\n'
+     '  for (const [name, step] of [\n'
+     '    ["file system", () => fileSystem.init(context)],\n'
+     '    ["icon sync storage", () => syncUserIcons.init()],\n'
+     '    ["theme data", () => initThemeDataCdn()]\n'
+     '  ]) {\n'
+     '    log(`Initializing ${name}`);\n'
+     '    try {\n      await step();\n    } catch (err) {\n      error(`Theme init: ${name} failed`, err);\n    }\n  }\n'
+     '  initDebug();\n  transparentLobby(context);\n}\n'),
     ("index.js", "        await queueSection(),\n", ""),
     # No fake mastery score or rank sent to friends.
     ("index.js",

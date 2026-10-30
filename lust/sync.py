@@ -808,6 +808,19 @@ EDITS += [
      "                : detail ? t('What happened: {detail}', { detail }) : t('What happened: the LTK patcher reported an error.'),\n"),
 ]
 
+# A click on LUST that reaches Rose's panel (the theme's hub didn't catch it) opens the hub
+# when the theme has one; only the hub's "Open core settings" opens Rose's panel.
+EDITS += [
+    ('Pengu Loader/plugins/LUST-SettingsPanel/index.js',
+     '    if (navItem) {\n      // Toggle: if panel is already open, close it\n',
+     '    const panelOpen = settingsPanel && document.getElementById(PANEL_ID);\n'
+     '    if (navItem && !panelOpen && !e.detail?.lustCore && typeof window.lustOpenHub === "function") {\n'
+     '      window.lustOpenHub();\n'
+     '      return;\n'
+     '    }\n'
+     '    if (navItem) {\n      // Toggle: if panel is already open, close it\n'),
+]
+
 # Lust's own texts in the client plugins' languages (LUST-I18n): Turkish where Lust has it,
 # English in the others, so every language keeps the same keys
 LOCALE_STRINGS = {

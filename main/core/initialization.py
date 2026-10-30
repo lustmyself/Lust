@@ -57,6 +57,12 @@ def initialize_core_components(args, injection_threshold: Optional[float] = None
             lust_maps.attach_state(state)
         except Exception as e:  # noqa: BLE001
             log.debug(f"[Maps] Hub map picks stay saved choices only: {e}")
+        try:
+            from launcher import lust_fonts
+            lust_fonts.attach_state(state)
+            lust_fonts.ensure_default()
+        except Exception as e:  # noqa: BLE001
+            log.debug(f"[Fonts] Default font not set up: {e}")
     except Exception as e:
         log.error("=" * 80)
         log.error("FATAL ERROR DURING INITIALIZATION")

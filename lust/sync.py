@@ -1030,6 +1030,22 @@ EDITS += [
 ]
 
 
+# Fonts in the hub (launcher/lust_fonts.py): the hub sees the shared state, the bundled Korean
+# font is added and picked once on a fresh install, PyInstaller takes the module
+EDITS += [
+    ("main/core/initialization.py",
+     '            log.debug(f"[Maps] Hub map picks stay saved choices only: {e}")\n',
+     '            log.debug(f"[Maps] Hub map picks stay saved choices only: {e}")\n'
+     '        try:\n'
+     '            from launcher import lust_fonts\n'
+     '            lust_fonts.attach_state(state)\n'
+     '            lust_fonts.ensure_default()\n'
+     '        except Exception as e:  # noqa: BLE001\n'
+     '            log.debug(f"[Fonts] Default font not set up: {e}")\n'),
+    ("Lust.spec", "    'launcher.lust_maps',\n", "    'launcher.lust_maps',\n    'launcher.lust_fonts',\n"),
+]
+
+
 # Rose's files that Lust doesn't use: dropped from the tree on every sync
 REMOVE = [
     "relay-worker",  # Rose's party relay server (Cloudflare worker); Lust runs no relay

@@ -51,6 +51,7 @@ ICONS = {
     "download": '<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>',
     "check": '<path d="M20 6 9 17l-5-5"/>',
     "map": '<path d="M9 4 3 6.5v13.5L9 17.5l6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/>',
+    "font": '<path d="M4 7V5h16v2M9 19h6M12 5v14"/>',
     "frame": '<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="12" cy="10" r="3"/><path d="M6.5 20a5.5 5.5 0 0 1 11 0"/>',
     "badge": '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/><path d="M6.8 18.4a6 6 0 0 1 10.4 0"/>',
     "shirt": '<path d="M20.4 3.5 16 2a4 4 0 0 1-8 0L3.6 3.5a2 2 0 0 0-1.3 2.2l.6 3.5a1 1 0 0 0 1 .8H6v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V10h2.2a1 1 0 0 0 1-.8l.6-3.5a2 2 0 0 0-1.4-2.2z"/>',
@@ -104,15 +105,18 @@ PAGE = r"""<!doctype html>
   .tab[data-page="maps"] { color: #5eead4; background: rgba(94, 234, 212, .1); }
   .tab[data-page="maps"]:hover { background: rgba(94, 234, 212, .2); color: #99f6e4; }
   .tab[data-page="maps"].active { background: linear-gradient(135deg, #0f766e, #2dd4bf); color: #04201d; box-shadow: 0 6px 16px rgba(45, 212, 191, .35); }
+  .tab[data-page="fonts"] { color: #93c5fd; background: rgba(147, 197, 253, .1); }
+  .tab[data-page="fonts"]:hover { background: rgba(147, 197, 253, .2); color: #dbeafe; }
+  .tab[data-page="fonts"].active { background: linear-gradient(135deg, #1d4ed8, #60a5fa); color: #06142e; box-shadow: 0 6px 16px rgba(96, 165, 250, .35); }
   .tab[data-page="skins"] { color: #f472b6; background: rgba(244, 114, 182, .1); }
   .tab[data-page="skins"]:hover { background: rgba(244, 114, 182, .2); color: #fbcfe8; }
   .tab[data-page="skins"].active { background: linear-gradient(135deg, #be185d, #f472b6); color: #2a0718; box-shadow: 0 6px 16px rgba(244, 114, 182, .35); }
   .tab[data-page="profile"] { color: #fb923c; background: rgba(251, 146, 60, .1); }
   .tab[data-page="profile"]:hover { background: rgba(251, 146, 60, .2); color: #fed7aa; }
   .tab[data-page="profile"].active { background: linear-gradient(135deg, #c2410c, #fb923c); color: #2a1004; box-shadow: 0 6px 16px rgba(251, 146, 60, .35); }
-  .tab[data-page="icon"] { color: #38bdf8; background: rgba(56, 189, 248, .1); }
-  .tab[data-page="icon"]:hover { background: rgba(56, 189, 248, .2); color: #bae6fd; }
-  .tab[data-page="icon"].active { background: linear-gradient(135deg, #0369a1, #38bdf8); color: #021a2a; box-shadow: 0 6px 16px rgba(56, 189, 248, .35); }
+  .tab[data-page="icon"] { color: #facc15; background: rgba(250, 204, 21, .1); }
+  .tab[data-page="icon"]:hover { background: rgba(250, 204, 21, .2); color: #fef08a; }
+  .tab[data-page="icon"].active { background: linear-gradient(135deg, #a16207, #facc15); color: #271d02; box-shadow: 0 6px 16px rgba(250, 204, 21, .35); }
   .tab[data-page="settings"] { color: #c8aa6e; background: rgba(200, 170, 110, .1); }
   .tab[data-page="settings"]:hover { background: rgba(200, 170, 110, .2); color: #f0e6d2; }
   .tab[data-page="settings"].active { background: linear-gradient(135deg, #785a28, #c8aa6e); color: #1e2328;
@@ -397,8 +401,16 @@ PAGE = r"""<!doctype html>
   .mapc .del:hover { color: #f87171; }
   .mapc .del svg { width: 13px; height: 13px; }
   .mapc .get { margin: 8px 3px 0; width: calc(100% - 6px); padding: 7px; }
+  .fontc .shot { background: linear-gradient(135deg, #10213f, #1b1a3a 60%, #24183a); color: #bfdbfe; font-size: 30px; font-weight: 700;
+    letter-spacing: .5px; }
+  .fontc.on { border-color: #60a5fa; box-shadow: 0 8px 22px rgba(96, 165, 250, .18); }
+  .fontc .tag { background: #60a5fa; color: #06142e; }
+  .fontc .tag.lust { left: auto; right: 13px; background: rgba(16, 14, 23, .75); color: #bfdbfe; }
+  .fontc:hover .tag.lust { opacity: 0; }
   .drop { margin-top: 12px; border: 1.5px dashed #3a3550; border-radius: 14px; padding: 16px; display: flex; align-items: center; gap: 14px;
     color: var(--sub); font-size: 12px; transition: border-color .15s, background .15s; }
+  #font-drop.over { border-color: #60a5fa; background: rgba(96, 165, 250, .07); }
+  #font-drop svg { color: #93c5fd; }
   .drop.over { border-color: #2dd4bf; background: rgba(45, 212, 191, .07); color: var(--text); }
   .drop svg { width: 22px; height: 22px; color: #5eead4; flex: none; }
   .drop .btn { margin-left: auto; }
@@ -487,33 +499,33 @@ PAGE = r"""<!doctype html>
   .psk.on .use { display: none; }
   /* Profile icon: the chosen icon large, then every icon in a searchable grid */
   .ic-hero { position: relative; display: flex; align-items: center; gap: 18px; padding: 18px 20px; border-radius: 18px; overflow: hidden;
-    background: #14202b; box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
+    background: #1c1a14; box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
   .ic-hero::before { content: ""; position: absolute; inset: -40px; background: var(--ic-art, none) center / cover; filter: blur(28px) saturate(1.3);
     opacity: .45; }
   .ic-hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(10, 16, 24, .85), rgba(10, 16, 24, .35)); }
   .ic-hero > * { position: relative; z-index: 1; }
-  .ic-big { width: 92px; height: 92px; flex: none; border-radius: 50%; background: #1f2d3a center / cover;
-    box-shadow: 0 0 0 3px #38bdf8, 0 8px 24px rgba(56, 189, 248, .35); display: grid; place-items: center; color: var(--faint); }
+  .ic-big { width: 92px; height: 92px; flex: none; border-radius: 50%; background: #2a2618 center / cover;
+    box-shadow: 0 0 0 3px #facc15, 0 8px 24px rgba(250, 204, 21, .35); display: grid; place-items: center; color: var(--faint); }
   .ic-big svg { width: 38px; height: 38px; }
-  .ic-hero small { display: block; color: #7dd3fc; font-size: 10.5px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; }
+  .ic-hero small { display: block; color: #fde047; font-size: 10.5px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; }
   .ic-hero h2 { margin: 3px 0 8px; font-size: 21px; font-weight: 700; }
   .ic-hero .btn { margin-left: auto; }
   .ic-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 600;
     background: rgba(255, 255, 255, .1); color: var(--sub); }
   .ic-chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--faint); }
-  .ic-chip.on { color: #bae6fd; } .ic-chip.on::before { background: #38bdf8; box-shadow: 0 0 8px #38bdf8; }
+  .ic-chip.on { color: #fef08a; } .ic-chip.on::before { background: #facc15; box-shadow: 0 0 8px #facc15; }
   .ic-head { display: flex; align-items: center; gap: 10px; margin: 16px 2px 10px; }
   .ic-head .section { margin: 0; }
   .ic-head input { margin-left: auto; width: 210px; background: #1d1a29; border: 1px solid var(--line); border-radius: 99px;
     color: var(--text); font: inherit; font-size: 12px; padding: 7px 14px; outline: none; }
-  .ic-head input:focus { border-color: #38bdf8; }
+  .ic-head input:focus { border-color: #facc15; }
   .icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 10px; }
-  .ico { position: relative; aspect-ratio: 1; border-radius: 14px; cursor: pointer; background: #1f2d3a center / cover;
+  .ico { position: relative; aspect-ratio: 1; border-radius: 14px; cursor: pointer; background: #2a2618 center / cover;
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06); transition: transform .15s, box-shadow .15s; }
   .ico:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 6px 16px rgba(0, 0, 0, .4); }
-  .ico.on { box-shadow: 0 0 0 2.5px #38bdf8, 0 6px 18px rgba(56, 189, 248, .4); }
+  .ico.on { box-shadow: 0 0 0 2.5px #facc15, 0 6px 18px rgba(250, 204, 21, .4); }
   .ico.on::after { content: ""; position: absolute; right: -4px; top: -4px; width: 16px; height: 16px; border-radius: 50%;
-    background: #38bdf8 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23021a2a' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center / 10px no-repeat; }
+    background: #facc15 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23271d02' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center / 10px no-repeat; }
   .ic-more { display: block; margin: 14px auto 0; }
   #skin-drop.over { border-color: #f472b6; background: rgba(244, 114, 182, .07); }
   #skin-drop svg { color: #f472b6; }
@@ -626,6 +638,7 @@ PAGE = r"""<!doctype html>
   <div class="tab active" data-page="lol" data-label="LoL">__lol__</div>
   <div class="tab" data-page="spotify" data-label="Spotify">__spotify__</div>
   <div class="tab" data-page="maps" data-label="Haritalar">__map__</div>
+  <div class="tab" data-page="fonts" data-label="Fontlar">__font__</div>
   <div class="tab" data-page="skins" data-label="Custom skinler">__shirt__</div>
   <div class="tab" data-page="profile" data-label="Profil arka planı">__frame__</div>
   <div class="tab" data-page="icon" data-label="Profil simgesi">__badge__</div>
@@ -732,6 +745,15 @@ PAGE = r"""<!doctype html>
     <div class="section" id="cat-h" hidden>Lust kataloğu</div>
     <div class="maps" id="catalog"></div>
     <div class="note">Seçtiğin harita bir sonraki maçta yüklenir. LoL istemcisindeki LUST panelinin Maps sekmesi de aynı listeyi kullanır.</div>
+  </section>
+
+  <section class="page" id="page-fonts">
+    <div class="section">Oyunun fontu</div>
+    <div class="maps" id="fonts"></div>
+    <div class="drop" id="font-drop">__download__<div><b>Font modu ekle</b><br>.zip, .fantome veya .modpkg dosyasını buraya sürükle</div>
+      <button class="btn" data-act="font_folder">Klasörü aç</button>
+    </div>
+    <div class="note">Seçtiğin font bir sonraki maçta yüklenir. LoL istemcisindeki LUST panelinin Fonts sekmesi de aynı listeyi kullanır.</div>
   </section>
 
   <section class="page" id="page-skins">
@@ -1171,9 +1193,10 @@ async function poll() {
 function showPage(name) {
   document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t.dataset.page === name));
   document.querySelectorAll(".page").forEach((p) => p.classList.toggle("active", p.id === `page-${name}`));
-  $("title").textContent = { lol: "LoL", spotify: "Spotify", maps: "Haritalar", skins: "Custom skinler", profile: "Profil arka planı", icon: "Profil simgesi" }[name] || "Ayarlar";
+  $("title").textContent = { lol: "LoL", spotify: "Spotify", maps: "Haritalar", fonts: "Fontlar", skins: "Custom skinler", profile: "Profil arka planı", icon: "Profil simgesi" }[name] || "Ayarlar";
   $("tip").hidden = name !== "lol";
   if (name === "maps") loadMaps();
+  if (name === "fonts") loadFonts();
   if (name === "skins") loadSkins();
   if (name === "profile") loadProfile();
   if (name === "icon") loadIcons();
@@ -1251,6 +1274,64 @@ drop.addEventListener("drop", async (e) => {
     } catch (err) { showToast("Eklenemedi"); }
   }
   mapsKey = ""; loadMaps();
+});
+
+// ---- fonts ----
+let fontsKey = "";
+function fontCard(f) {
+  const card = document.createElement("div");
+  card.className = "mapc fontc" + (f.selected ? " on" : "");
+  const shot = document.createElement("div");
+  shot.className = "shot";
+  shot.textContent = f.lust ? "가 Aa" : "Aa";
+  card.appendChild(shot);
+  const b = document.createElement("b"); b.textContent = f.name; card.appendChild(b);
+  const span = document.createElement("span");
+  span.textContent = f.description || (f.lust ? "Lust'ın varsayılan fontu" : f.id ? "Mod" : "League'in kendi fontu");
+  card.appendChild(span);
+  if (f.selected) { const tag = document.createElement("i"); tag.className = "tag"; tag.textContent = "Seçili"; card.appendChild(tag); }
+  if (f.lust) { const tag = document.createElement("i"); tag.className = "tag lust"; tag.textContent = "Lust"; card.appendChild(tag); }
+  card.addEventListener("click", () => act("font_select", { id: f.id || null }).then(() => setTimeout(loadFonts, 300)));
+  if (f.id) {
+    const del = document.createElement("div");
+    del.className = "del"; del.title = "Sil"; del.innerHTML = ICON_TRASH;
+    del.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (del.dataset.armed && Date.now() - Number(del.dataset.armed) < 3000) {
+        act("font_delete", { id: f.id }).then(() => setTimeout(loadFonts, 300));
+      } else { del.dataset.armed = Date.now(); showToast("Silmek için tekrar bas"); }
+    });
+    card.appendChild(del);
+  }
+  return card;
+}
+async function loadFonts() {
+  let data;
+  try { data = await api("/api/fonts"); } catch (e) { return; }
+  const key = JSON.stringify(data);
+  if (key === fontsKey) return;
+  fontsKey = key;
+  const list = $("fonts");
+  list.innerHTML = "";
+  data.installed.filter((f) => f.lust).forEach((f) => list.appendChild(fontCard(f)));
+  list.appendChild(fontCard({ id: "", name: "League", selected: !data.selected }));
+  data.installed.filter((f) => !f.lust).forEach((f) => list.appendChild(fontCard(f)));
+}
+setInterval(() => { if ($("page-fonts").classList.contains("active")) loadFonts(); }, 3000);
+const fontDrop = $("font-drop");
+["dragenter", "dragover"].forEach((t) => fontDrop.addEventListener(t, (e) => { e.preventDefault(); fontDrop.classList.add("over"); }));
+["dragleave", "drop"].forEach((t) => fontDrop.addEventListener(t, (e) => { e.preventDefault(); fontDrop.classList.remove("over"); }));
+fontDrop.addEventListener("drop", async (e) => {
+  for (const file of e.dataTransfer.files) {
+    showToast(`${file.name} ekleniyor…`);
+    try {
+      const r = await fetch(`/api/fonts/upload?name=${encodeURIComponent(file.name)}`,
+        { method: "POST", headers: { "X-Lust-Hub": TOKEN }, body: file });
+      const out = await r.json();
+      if (out.message) showToast(out.message);
+    } catch (err) { showToast("Eklenemedi"); }
+  }
+  fontsKey = ""; loadFonts();
 });
 
 // ---- custom skins ----

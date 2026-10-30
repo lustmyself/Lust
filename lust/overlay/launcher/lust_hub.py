@@ -277,6 +277,11 @@ def _maps():
     return lust_maps
 
 
+def _fonts():
+    from launcher import lust_fonts
+    return lust_fonts
+
+
 def _skins():
     from launcher import lust_skins
     return lust_skins
@@ -445,6 +450,9 @@ ACTIONS: dict[str, Callable[[dict], str]] = {
     "map_delete": lambda body: _maps().delete(str(body.get("id") or "")),
     "map_install": lambda body: _maps().install(str(body.get("id") or "")),
     "map_folder": lambda body: _maps().open_folder(),
+    "font_select": lambda body: _fonts().select(body.get("id") or None),
+    "font_delete": lambda body: _fonts().delete(str(body.get("id") or "")),
+    "font_folder": lambda body: _fonts().open_folder(),
     "skin_toggle": lambda body: _skins().toggle(str(body.get("name") or ""), bool(body.get("enabled"))),
     "skin_champion": lambda body: _skins().set_champion(str(body.get("name") or ""), body.get("championId")),
     "skin_delete": lambda body: _skins().delete(str(body.get("name") or "")),

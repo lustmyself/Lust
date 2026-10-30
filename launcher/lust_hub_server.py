@@ -99,6 +99,11 @@ class _Handler(BaseHTTPRequestHandler):
                 return self._send(403)
             from launcher import lust_maps
             return self._send(200, lust_maps.dumps_listing(), "application/json")
+        if path == "/api/fonts":
+            if not self._authorized():
+                return self._send(403)
+            from launcher import lust_fonts
+            return self._send(200, lust_fonts.dumps_listing(), "application/json")
         if path == "/api/skins":
             if not self._authorized():
                 return self._send(403)
@@ -165,6 +170,18 @@ class _Handler(BaseHTTPRequestHandler):
             except ValueError:
                 length = 0
             message = lust_maps.import_upload(name, self.rfile, length)
+            if message:
+                lust_hub.toast(message)
+            return self._send(200, json.dumps({"message": message}).encode("utf-8"), "application/json")
+        if self._authorized() and self.path.startswith("/api/fonts/upload"):
+            from urllib.parse import parse_qs, unquote
+            from launcher import lust_fonts, lust_hub
+            name = unquote((parse_qs(self.path.split("?", 1)[-1]).get("name") or [""])[0])
+            try:
+                length = int(self.headers.get("Content-Length") or 0)
+            except ValueError:
+                length = 0
+            message = lust_fonts.import_upload(name, self.rfile, length)
             if message:
                 lust_hub.toast(message)
             return self._send(200, json.dumps({"message": message}).encode("utf-8"), "application/json")

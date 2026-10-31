@@ -787,6 +787,14 @@ PAGE = r"""<!doctype html>
   .ht-sp-big { position: absolute; right: -34px; bottom: -48px; width: 200px; height: 200px; pointer-events: none;
     opacity: .9; filter: drop-shadow(0 10px 40px rgba(30, 215, 96, .35)); }
   .ht.playing .ht-sp-big { animation: sppulse 2.4s ease-in-out infinite; }
+  .ht-cover { position: absolute; right: 30px; top: 50%; width: 124px; height: 124px; margin-top: -92px; border-radius: 14px;
+    background: #0c2a1a center / cover; box-shadow: 0 18px 40px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .08);
+    transform: rotate(4deg); opacity: 0; transition: opacity .5s, transform .5s; pointer-events: none; }
+  #tile-spotify.cover .ht-cover { opacity: 1; }
+  #tile-spotify.cover:hover .ht-cover { transform: rotate(0deg) scale(1.04); }
+  #tile-spotify.cover .ht-sp-big { opacity: 0; }
+  #tile-spotify.cover .ht-bg { background-size: cover; background-position: center; filter: blur(28px) saturate(1.4) brightness(.55); inset: -40px; }
+  #tile-spotify.cover .ht-eq { right: 172px; }
   @keyframes sppulse { 50% { transform: scale(1.05); filter: drop-shadow(0 10px 50px rgba(30, 215, 96, .6)); } }
   @media (prefers-reduced-motion: reduce) { .ht-sp-big { animation: none; } }
   #tile-patch .ht-bg { background: radial-gradient(320px 200px at 85% 20%, rgba(245, 158, 11, .45), transparent 70%), linear-gradient(135deg, #3b2a0a, #0f1440); }
@@ -968,7 +976,7 @@ PAGE = r"""<!doctype html>
       <div class="ht-go">__arrow__</div>
     </div>
     <div class="ht" data-go="spotify" id="tile-spotify" style="--i:6;--c:30, 215, 96;--g:url(#hg7)">
-      <div class="ht-bg" id="t-spotify-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><svg class="ht-sp-big" viewBox="0 0 24 24"><defs><linearGradient id="spg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4ef08a"/><stop offset="1" stop-color="#0f8a3c"/></linearGradient></defs><circle cx="12" cy="12" r="11" fill="url(#spg)" stroke="none" opacity=".5"/><path d="M6.3 9.2c3.8-1.2 8.3-.9 11.6 1.1M6.9 12.5c3.1-.9 6.8-.6 9.5 1M7.5 15.6c2.5-.6 5.1-.4 7.2.8" stroke="#08130d" stroke-opacity=".75" stroke-width="1.9" stroke-linecap="round" fill="none"/></svg><span class="ht-eq" id="t-eq" hidden><i></i><i></i><i></i><i></i></span>
+      <div class="ht-bg" id="t-spotify-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><i class="ht-cover" id="t-sp-cover"></i><svg class="ht-sp-big" viewBox="0 0 24 24"><defs><linearGradient id="spg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4ef08a"/><stop offset="1" stop-color="#0f8a3c"/></linearGradient></defs><circle cx="12" cy="12" r="11" fill="url(#spg)" stroke="none" opacity=".5"/><path d="M6.3 9.2c3.8-1.2 8.3-.9 11.6 1.1M6.9 12.5c3.1-.9 6.8-.6 9.5 1M7.5 15.6c2.5-.6 5.1-.4 7.2.8" stroke="#08130d" stroke-opacity=".75" stroke-width="1.9" stroke-linecap="round" fill="none"/></svg><span class="ht-eq" id="t-eq" hidden><i></i><i></i><i></i><i></i></span>
       <div class="ht-in"><div class="ht-orb art"><svg class="sp-logo" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#1ed760" stroke="none"/><path d="M6.3 9.2c3.8-1.2 8.3-.9 11.6 1.1M6.9 12.5c3.1-.9 6.8-.6 9.5 1M7.5 15.6c2.5-.6 5.1-.4 7.2.8" stroke="#0b0b0b" stroke-width="1.9" fill="none"/></svg></div>
         <b class="ht-ttl">Spotify</b><span class="ht-st" id="t-spotify"></span></div>
       <div class="ht-go">__arrow__</div>
@@ -1686,6 +1694,13 @@ function drawTiles() {
   fill("t-spotify", on ? [["b", media.title || "Bilinmeyen şarkı"], media.artist ? ` · ${media.artist}` : ""] : ["Spotify'da bir şey çalmıyor"]);
   $("t-eq").hidden = !(on && media.playing);
   $("tile-spotify").classList.toggle("playing", !!(on && media.playing));
+  const cover = on && media.cover ? `/cover.jpg?v=${media.cover}` : "";
+  $("tile-spotify").classList.toggle("cover", !!cover);
+  if (cover && $("t-sp-cover").dataset.url !== cover) {
+    $("t-sp-cover").dataset.url = cover;
+    $("t-sp-cover").style.backgroundImage = `url("${cover}")`;
+    $("t-spotify-bg").style.backgroundImage = `url("${cover}")`;
+  } else if (!cover) { $("t-sp-cover").dataset.url = ""; $("t-spotify-bg").style.backgroundImage = ""; }
   const a = auto || {};
   const names = [["accept", "Accept"], ["ban", "Ban"], ["pick", "Pick"]];
   const reveal = !!((a.reveal || {}).on);

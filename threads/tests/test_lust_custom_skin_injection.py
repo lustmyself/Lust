@@ -43,6 +43,15 @@ class LustCustomSkinInjectionTests(unittest.TestCase):
         self.assertEqual(self.trigger._inject_custom_mod.call_args.args[0]["mod_folder_name"], "lust-custom-arcade")
         self.assertEqual(self.state.selected_custom_mod["mod_name"], "Arcade Ahri")
 
+    def test_a_chroma_counts_as_its_skin(self):
+        self.trigger.skin_scraper.cache.chroma_id_map = {103019: {"skinId": 103018}}
+        self.state.owned_skin_ids = {103000, 103018}
+        self.state.last_hovered_skin_id = 103018
+        self.state.selected_chroma_id = 103019
+        with patch("pengu.communication.lust_custom_skins.custom_mod_for", return_value=None) as pick:
+            self.trigger.trigger_injection("chroma_103019", ticker_id=1)
+        pick.assert_called_once_with(AHRI, 103018)
+
     def test_nothing_is_injected_without_a_switched_on_skin(self):
         self.state.last_hovered_skin_id = 103000
         with patch("pengu.communication.lust_custom_skins.custom_mod_for", return_value=None):

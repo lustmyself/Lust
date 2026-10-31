@@ -152,7 +152,7 @@ def toggle(name: str, enabled: bool) -> str:
         return "Açıldı, ama bu skin bu yamada oyunu çökertmişti. Yine çökerse Lust onu kendisi kapatır."
     if state in ("old", "untested"):
         return "Açıldı. Bu yamada denenmedi: oyun açılmazsa Lust onu kendisi kapatır."
-    return "Skin açıldı: o şampiyonun varsayılan skiniyle girince yüklenir"
+    return "Skin açıldı: o şampiyonla girince seçtiğin skinin üstüne yüklenir"
 
 
 def search_update(name: str) -> str:

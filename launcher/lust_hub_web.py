@@ -1196,7 +1196,7 @@ PAGE = r"""<!doctype html>
     <div class="drop" id="skin-drop">__download__<div><b>Custom skin ekle</b><br>.zip, .fantome veya .modpkg dosyasını buraya sürükle</div>
       <button class="btn" data-act="skin_folder">Klasörü aç</button>
     </div>
-    <div class="note">Açık bir skin, o şampiyonla varsayılan skininde oyuna girince yüklenir; her şampiyonda bir skin açık olabilir. LoL istemcisindeki LUST panelinin Custom skins sekmesi de aynı listeyi kullanır.</div>
+    <div class="note">Açık bir skin, o şampiyonla oyuna girince seçtiğin skinin üstüne yüklenir (bir skin için yapılmış modlarda o skini seç); her şampiyonda bir skin açık olabilir. LoL istemcisindeki LUST panelinin Custom skins sekmesi de aynı listeyi kullanır.</div>
   </section>
 
   <section class="page" id="page-profile">

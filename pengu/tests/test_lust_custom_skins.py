@@ -69,7 +69,8 @@ class CustomSkinsTests(unittest.TestCase):
         self.assertEqual(mod["skin_id"], 103000)
         self.assertEqual(Path(mod["mod_path"]).name, "a.fantome")
         self.assertIsNone(mod["relative_path"])
-        self.assertIsNone(skins.custom_mod_for(103, 103001))  # another skin
+        self.assertEqual(skins.custom_mod_for(103, 103001)["skin_id"], 103001)  # on the skin picked
+        self.assertIsNone(skins.custom_mod_for(103, 84001))  # a skin of another champion
         self.assertIsNone(skins.custom_mod_for(84, 84000))  # another champion
 
     def test_changing_the_champion_switches_it_off_and_stops_guessing(self):

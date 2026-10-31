@@ -6,7 +6,7 @@ files are copied and pasted in; files dropped on the tab are sent here in chunks
 Each file says which champion it is for (its WAD is named after the champion,
 Ahri.wad.client); the tab matches that to the client's champion list, or the
 player picks the champion. A switched-on skin plays whenever that champion goes
-into a game with its default skin: the injection trigger asks custom_mod_for().
+into a game, on the skin picked: the injection trigger asks custom_mod_for().
 One skin per champion is on at a time.
 
 Skins made for an older League version can crash the game. Each skin remembers the game
@@ -257,7 +257,9 @@ def handle(payload: dict) -> dict:
 
 
 def custom_mod_for(champion_id, skin_id) -> Optional[dict]:
-    """The switched-on custom skin for a champion going in with its default skin, as a selected custom mod."""
+    """The switched-on custom skin for a champion, as a selected custom mod on the skin picked in
+    champ select: a mod made for one of the champion's skins (EDG Aphelios, say) needs that skin
+    picked, one made for the default skin goes in with the default skin."""
     global _playing
     _playing = None  # a new game: only a skin picked for it can be blamed for a crash
     try:
@@ -265,7 +267,7 @@ def custom_mod_for(champion_id, skin_id) -> Optional[dict]:
         skin_id = int(skin_id)
     except (TypeError, ValueError):
         return None
-    if champion_id <= 0 or skin_id != champion_id * 1000:
+    if champion_id <= 0 or skin_id // 1000 != champion_id:
         return None
     from launcher.lust_settings import enabled
     if not enabled("custom_skins"):
@@ -279,7 +281,7 @@ def custom_mod_for(champion_id, skin_id) -> Optional[dict]:
         if not _valid_name(name) or not path.is_file():
             continue
         safe = re.sub(r"[^A-Za-z0-9_.-]+", "_", path.stem)[:60] or "skin"
-        log.info(f"[CustomSkins] {name} plays on champion {champion_id}'s default skin")
+        log.info(f"[CustomSkins] {name} plays on champion {champion_id}, skin {skin_id}")
         global _playing_build
         _playing = name
         _playing_build = game_build()

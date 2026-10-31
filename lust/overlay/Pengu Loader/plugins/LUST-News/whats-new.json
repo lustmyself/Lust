@@ -1,7 +1,7 @@
 {
-  "version": "1.4.9.74",
+  "version": "1.4.9.75",
   "en": [
-    "A picture wallpaper is stretched to fill the client, so all of it shows instead of being cut down",
+    "A picture wallpaper is stretched to fill the client left of the friends list, so all of it shows instead of being cut down",
     "Auto Ban and Auto Pick keep locking in through your whole turn instead of stopping after a few seconds, so they no longer wait for the timer",
     "New installs come with the Talon Acheron - Origin custom skin (by ikiryou) switched on: pick default Talon to play it",
     "A custom skin now goes in on whichever skin you pick in champ select, so a mod made for one skin (EDG Aphelios, say) works when you pick that skin",
@@ -69,7 +69,7 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
-    "Resim duvar kağıdı artık istemciyi dolduracak şekilde geriliyor, kesilmeden tamamı görünüyor",
+    "Resim duvar kağıdı artık arkadaş listesinin solundaki alanı dolduracak şekilde geriliyor, kesilmeden tamamı görünüyor",
     "Otomatik Ban ve Pick artık sıran boyunca kilitlemeyi denemeye devam ediyor, birkaç saniye sonra bırakıp sürenin bitmesini beklemiyor",
     "Yeni kurulumlarda Talon Acheron - Origin custom skini (ikiryou) hazır ve açık geliyor: oynamak için default Talon'u seç",
     "Custom skin artık champ select'te seçtiğin skinin üstüne yükleniyor: bir skin için yapılmış mod (ör. EDG Aphelios) o skini seçince çalışıyor",

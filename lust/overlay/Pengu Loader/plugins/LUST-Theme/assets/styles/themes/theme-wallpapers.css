@@ -15,7 +15,7 @@
 }
 
 #lust-static-bg {
-	width:100%;
+	width: calc(100% - 225px);
 	height: 100%;
 	object-fit: fill;
 	image-rendering: auto;

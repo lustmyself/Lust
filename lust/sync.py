@@ -1165,6 +1165,42 @@ def install(tree):
             path.rmdir()
 
 
+# The desktop app holds everything: the client shows no LUST tab (the skin wheel in champ
+# select stays). Lust's client panel (theme, wallpaper, plugins) opens from the app's
+# Settings, through the bridge; lust_auto runs Auto Accept/Ban/Pick from the app.
+HIDE_NAV_CSS = r"""    /* Lust: everything is in the desktop app, no LUST tab in the client */
+    lol-uikit-navigation-item.menu_item_Golden\\ Lust {
+      display: none !important;
+    }
+
+"""
+EDITS += [
+    (UI_JS, NAV_ACTIVE_ANCHOR, HIDE_NAV_CSS + NAV_ACTIVE_ANCHOR),
+    (UI_JS,
+     '      bridge.subscribe("phase-change", handlePhaseChangeFromPython);\n',
+     '      bridge.subscribe("phase-change", handlePhaseChangeFromPython);\n'
+     '      // Lust: the desktop app opens the client panel (the LUST tab is hidden)\n'
+     '      bridge.subscribe("lust-open-hub", () => {\n'
+     '        if (typeof window.lustOpenHub === "function") {\n'
+     '          window.lustOpenHub();\n'
+     '          return;\n'
+     '        }\n'
+     '        const navItem = document.querySelector("lol-uikit-navigation-item.menu_item_Golden.Lust");\n'
+     '        window.dispatchEvent(new CustomEvent("lust-open-settings", { detail: { navItem } }));\n'
+     '      });\n'),
+    ("main/core/initialization.py",
+     '            log.debug(f"[Fonts] Default font not set up: {e}")\n',
+     '            log.debug(f"[Fonts] Default font not set up: {e}")\n'
+     '        try:\n'
+     '            from launcher import lust_client\n'
+     '            lust_client.attach_state(state)\n'
+     '        except Exception as e:  # noqa: BLE001\n'
+     '            log.debug(f"[Client] The app cannot reach the client panel: {e}")\n'),
+    ("Lust.spec", "    'launcher.lust_fonts',\n",
+     "    'launcher.lust_fonts',\n    'launcher.lust_client',\n    'launcher.lust_patch',\n    'launcher.lust_auto',\n"),
+]
+
+
 LUST_PATCH = ROOT / "lust" / "lust_patch.txt"
 
 

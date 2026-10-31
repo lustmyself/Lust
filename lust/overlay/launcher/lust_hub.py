@@ -297,6 +297,100 @@ def _profile():
     return lust_profile
 
 
+def _patch():
+    from launcher import lust_patch
+    return lust_patch
+
+
+LINK_HOSTS = ("https://www.op.gg/", "https://op.gg/", "https://u.gg/", "https://porofessor.gg/",
+              "https://www.leagueoflegends.com/")
+
+
+def _open_link(url: str) -> str:
+    """Open a teammate's profile or the patch notes in the browser (only those sites)."""
+    if not url.startswith(LINK_HOSTS):
+        return ""
+    import webbrowser
+    webbrowser.open(url)
+    return ""
+
+
+def _auto():
+    from launcher import lust_auto
+    return lust_auto
+
+
+def _client_panel() -> str:
+    from launcher import lust_client
+    return lust_client.open_panel(bool(_cached("league", 2, _league_running)))
+
+
+def _tile_parts() -> dict:
+    """One line for each home tile, from the same lists the pages show. Each part on its own:
+    one that fails (no internet, no League) leaves the others."""
+    parts: dict = {}
+
+    def part(name, compute):
+        try:
+            parts[name] = compute()
+        except Exception as exc:  # noqa: BLE001
+            log.debug(f"[Hub] Tile {name}: {exc}")
+
+    def maps():
+        data = _maps().listing()
+        chosen = next((m for m in data["installed"] if m["id"] == data["selected"]), None)
+        return {"name": chosen["name"] if chosen else "", "count": len(data["installed"]),
+                "preview": bool(chosen and chosen.get("preview")), "id": chosen["id"] if chosen else ""}
+
+    def fonts():
+        data = _fonts().listing()
+        chosen = next((f for f in data["installed"] if f["id"] == data["selected"]), None)
+        return {"name": chosen["name"] if chosen else "", "count": len(data["installed"])}
+
+    def skins():
+        from pengu.communication import lust_custom_skins
+        listed = lust_custom_skins.list_skins()
+        return {"count": len(listed), "on": sum(1 for s in listed if s.get("enabled"))}
+
+    def icon():
+        chosen = _icon().chosen()
+        found = _icon().icon(chosen) if chosen else None
+        return {"id": chosen, "name": (found or {}).get("title", ""), "image": _icon().image_url(chosen) if chosen else ""}
+
+    def profile():
+        shown = _profile().pending() or _profile().current() or 0
+        found = _profile().skin(shown) if shown else None
+        return {"name": (found or {}).get("name", ""), "image": (found or {}).get("splash", "")}
+
+    part("maps", maps)
+    part("fonts", fonts)
+    part("skins", skins)
+    part("icon", icon)
+    part("profile", profile)
+    part("patch", lambda: _patch().summary())
+    return parts
+
+
+# The art on two tiles: (champion id, words in the skin's name)
+TILE_ART = {"icon": (40, "sacred sword"), "profile": (145, "ig ")}
+
+
+def _tile_art() -> dict:
+    """The square art and splash of Sacred Sword Janna and iG Kai'Sa, from CommunityDragon."""
+    art = {}
+    for key, (champion, words) in TILE_ART.items():
+        found = next((s for s in _profile().skins(champion) if words in (s["name"] + " ").casefold()), None)
+        if found:
+            art[key] = {"tile": found["tile"], "splash": found["splash"]}
+    return art
+
+
+def tiles() -> dict:
+    parts = dict(_cached("tiles", 8, _tile_parts) or {})
+    parts["art"] = _cached("tile_art", 3600, _tile_art) or {}
+    return parts
+
+
 def _spotify_status():
     from launcher import lust_spotify
     return lust_spotify.status()
@@ -465,6 +559,10 @@ ACTIONS: dict[str, Callable[[dict], str]] = {
     "setting": lambda body: _set_setting(body),
     "clear_cache": lambda body: _clear_cache(),
     "open_data": lambda body: _open_data(),
+    "client_panel": lambda body: _client_panel(),
+    "auto_set": lambda body: _auto().update(body.get("changes") or {}),
+    "open_link": lambda body: _open_link(str(body.get("url") or "")),
+    "patch_open": lambda body: _patch().open_notes(),
 }
 
 
@@ -726,6 +824,7 @@ def attach(tray_manager) -> None:
     lust_perf.start()
     from launcher import lust_hero
     lust_hero.start()
+    _auto().start()
 
 
 def _spotify_reapply() -> None:

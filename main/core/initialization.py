@@ -63,6 +63,11 @@ def initialize_core_components(args, injection_threshold: Optional[float] = None
             lust_fonts.ensure_default()
         except Exception as e:  # noqa: BLE001
             log.debug(f"[Fonts] Default font not set up: {e}")
+        try:
+            from launcher import lust_client
+            lust_client.attach_state(state)
+        except Exception as e:  # noqa: BLE001
+            log.debug(f"[Client] The app cannot reach the client panel: {e}")
     except Exception as e:
         log.error("=" * 80)
         log.error("FATAL ERROR DURING INITIALIZATION")

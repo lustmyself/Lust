@@ -94,6 +94,21 @@ class _Handler(BaseHTTPRequestHandler):
                 return self._send(200, lust_hero.image_path().read_bytes(), "image/jpeg")
             except OSError:
                 return self._send(404)
+        if path == "/api/tiles":
+            if not self._authorized():
+                return self._send(403)
+            from launcher import lust_hub
+            return self._send(200, json.dumps(lust_hub.tiles(), ensure_ascii=False).encode("utf-8"), "application/json")
+        if path == "/api/auto":
+            if not self._authorized():
+                return self._send(403)
+            from launcher import lust_auto
+            return self._send(200, lust_auto.dumps_listing(), "application/json")
+        if path == "/api/patch":
+            if not self._authorized():
+                return self._send(403)
+            from launcher import lust_patch
+            return self._send(200, lust_patch.dumps(), "application/json")
         if path == "/api/maps":
             if not self._authorized():
                 return self._send(403)

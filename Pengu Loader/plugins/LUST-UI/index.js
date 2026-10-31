@@ -227,6 +227,11 @@
       text-shadow: 0 0 6px rgba(200, 170, 110, 0.8);
     }
 
+    /* Lust: everything is in the desktop app, no LUST tab in the client */
+    lol-uikit-navigation-item.menu_item_Golden\\ Lust {
+      display: none !important;
+    }
+
     /* Prevent active state styling for Golden Lust */
     lol-uikit-navigation-item.menu_item_Golden\\ Lust .section.active::before,
     lol-uikit-navigation-item.menu_item_Golden\\ Lust .section.active::after,
@@ -1012,6 +1017,15 @@
       // Subscribe to skip-base-skin messages from the shared bridge
       bridge.subscribe("skip-base-skin", handleSkipBaseSkin);
       bridge.subscribe("phase-change", handlePhaseChangeFromPython);
+      // Lust: the desktop app opens the client panel (the LUST tab is hidden)
+      bridge.subscribe("lust-open-hub", () => {
+        if (typeof window.lustOpenHub === "function") {
+          window.lustOpenHub();
+          return;
+        }
+        const navItem = document.querySelector("lol-uikit-navigation-item.menu_item_Golden.Lust");
+        window.dispatchEvent(new CustomEvent("lust-open-settings", { detail: { navItem } }));
+      });
       setupPenguWelcomeBadgeFix();
 
       interceptChampSelectWebsocket();

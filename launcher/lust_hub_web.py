@@ -54,6 +54,11 @@ ICONS = {
     "font": '<path d="M4 7V5h16v2M9 19h6M12 5v14"/>',
     "frame": '<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="12" cy="10" r="3"/><path d="M6.5 20a5.5 5.5 0 0 1 11 0"/>',
     "badge": '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/><path d="M6.8 18.4a6 6 0 0 1 10.4 0"/>',
+    "back": '<path d="M15 18 9 12l6-6"/>',
+    "arrow": '<path d="M5 12h14M13 6l6 6-6 6"/>',
+    "max": '<rect x="5" y="5" width="14" height="14" rx="2"/>',
+    "restore": '<rect x="4" y="8" width="12" height="12" rx="2"/><path d="M8 8V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2"/>',
+    "brush": '<path d="M9.06 11.9 17.4 3.6a2.1 2.1 0 1 1 3 3l-8.36 8.3"/><path d="M7 14a3 3 0 0 0-3 3c0 1.3-1 2-2 2 1 1.7 3 2 4 2a4 4 0 0 0 4-4 3 3 0 0 0-3-3z"/>',
     "shirt": '<path d="M20.4 3.5 16 2a4 4 0 0 1-8 0L3.6 3.5a2 2 0 0 0-1.3 2.2l.6 3.5a1 1 0 0 0 1 .8H6v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V10h2.2a1 1 0 0 0 1-.8l.6-3.5a2 2 0 0 0-1.4-2.2z"/>',
 }
 
@@ -628,34 +633,258 @@ PAGE = r"""<!doctype html>
   .bd-hextech .card, .bd-hextech .act { background: rgba(16, 24, 40, .6); }
   /* Settings: no animations */
   .calm *, .calm *::before, .calm *::after { animation: none !important; transition: none !important; }
+
+  /* ==== Lust app: navy and violet, a home of nine tiles ==== */
+  :root { --bg: #0a0d2c; --card: #161c4e; --card2: #1d245e; --line: #262e70; --text: #f4f5ff; --sub: #aab0dd;
+    --faint: #6c72a6; --accent: #8f82ff; --accent2: #f472b6; --tint: 109, 93, 252; }
+  html, body { font-family: "Segoe UI Variable Display", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif; }
+  .ambient { background:
+      radial-gradient(900px 520px at 12% -12%, rgba(109, 93, 252, .30), transparent 60%),
+      radial-gradient(760px 520px at 100% 112%, rgba(56, 189, 248, .14), transparent 60%),
+      radial-gradient(620px 420px at 72% 8%, rgba(244, 114, 182, .10), transparent 60%), #070a24; }
+  .ambient::after { background: radial-gradient(rgba(255, 255, 255, .045) 1px, transparent 1px) 0 0 / 26px 26px;
+    -webkit-mask-image: linear-gradient(#000, transparent 70%); }
+  .amb-art.on { opacity: .22; }
+  body[data-page="home"] .amb-art { opacity: 0; }
+  .card, .act { background: rgba(22, 28, 78, .55); }
+  .seg { background: #0d1238; }
+  .seg button.on { background: var(--accent); color: #0b0d2a; }
+  .btn { background: #232b6b; }
+  .btn.primary { background: linear-gradient(135deg, #6d5dfc, #a855f7); color: #fff; }
+  .page::-webkit-scrollbar-thumb { background: #262e70; }
+
+  /* Title bar: LUST on the home page, a back button and the page's name elsewhere */
+  .top { height: 50px; padding: 0 0 0 22px; gap: 12px; position: relative; z-index: 4; flex: none; }
+  .word { font-weight: 800; letter-spacing: .34em; font-size: 12px;
+    background: linear-gradient(90deg, #a99dff, #f0abfc); -webkit-background-clip: text; color: transparent; }
+  .back { width: 34px; height: 34px; margin-left: -8px; border-radius: 11px; display: grid; place-items: center; cursor: pointer;
+    background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .1); color: var(--text);
+    transition: background .15s, transform .15s; }
+  .back:hover { background: rgba(109, 93, 252, .45); transform: translateX(-2px); }
+  .back svg { width: 18px; height: 18px; }
+  .top h1 { font-size: 18px; font-weight: 700; letter-spacing: -.01em; }
+  .lg { display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px; border-radius: 99px;
+    background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .08); color: var(--sub); font-size: 12px; font-weight: 600; }
+  .lg .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 10px currentColor; }
+  .wins { display: flex; align-self: stretch; }
+  .win { width: 46px; height: 50px; border-radius: 0; }
+  .win:hover { background: rgba(255, 255, 255, .08); }
+  .win svg { width: 15px; height: 15px; }
+  .page { padding: 4px 30px 26px; }
+  /* Edges to resize the frameless window (off while it fills the screen) */
+  .rz { position: fixed; z-index: 30; }
+  .rz[data-edge="n"] { top: 0; left: 10px; right: 10px; height: 5px; cursor: ns-resize; }
+  .rz[data-edge="s"] { bottom: 0; left: 10px; right: 10px; height: 6px; cursor: ns-resize; }
+  .rz[data-edge="e"] { right: 0; top: 10px; bottom: 10px; width: 6px; cursor: ew-resize; }
+  .rz[data-edge="w"] { left: 0; top: 10px; bottom: 10px; width: 6px; cursor: ew-resize; }
+  .rz[data-edge="ne"] { top: 0; right: 0; width: 12px; height: 12px; cursor: nesw-resize; }
+  .rz[data-edge="nw"] { top: 0; left: 0; width: 12px; height: 12px; cursor: nwse-resize; }
+  .rz[data-edge="se"] { bottom: 0; right: 0; width: 14px; height: 14px; cursor: nwse-resize; }
+  .rz[data-edge="sw"] { bottom: 0; left: 0; width: 14px; height: 14px; cursor: nesw-resize; }
+  body.maxed .rz { display: none; }
+
+  /* Home */
+  #page-home.active { display: flex; flex-direction: column; }
+  #page-home > * { flex: none; }
+  .home-head { display: flex; align-items: flex-end; gap: 18px; margin: 4px 2px 16px; }
+  .hm-text { min-width: 0; }
+  .home-head small { color: var(--sub); font-size: 11.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+  .hm-name { margin: 4px 0 0; font-size: 30px; font-weight: 800; letter-spacing: -.02em; line-height: 1.15;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hm-name b { background: linear-gradient(90deg, #a99dff, #f0abfc); -webkit-background-clip: text; color: transparent; }
+  .hm-name i { font-style: normal; color: var(--faint); font-weight: 600; }
+  .hm-sub { margin-top: 6px; color: var(--sub); font-size: 13px; min-height: 18px; }
+  .hm-play { margin-left: auto; flex: none; display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 22px 0 8px;
+    border: 0; border-radius: 16px; cursor: pointer; color: #fff; font: inherit; font-weight: 700; font-size: 14.5px;
+    background: linear-gradient(135deg, #6d5dfc, #a855f7); box-shadow: 0 14px 30px -12px rgba(109, 93, 252, .9);
+    transition: transform .15s, filter .15s; }
+  .hm-play:hover { transform: translateY(-2px); filter: brightness(1.1); }
+  .hm-orb { width: 38px; height: 38px; border-radius: 12px; background: rgba(255, 255, 255, .18); display: grid; place-items: center; }
+  .hm-orb svg { width: 16px; height: 16px; fill: #fff; stroke: #fff; margin-left: 2px; }
+  .hm-play.live { cursor: default; background: rgba(52, 211, 153, .12); color: #6ee7b7; box-shadow: none;
+    border: 1px solid rgba(52, 211, 153, .4); }
+  .hm-play.live:hover { transform: none; filter: none; }
+  .hm-play.live .hm-orb svg { display: none; }
+  .hm-play.live .hm-orb::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: #34d399;
+    box-shadow: 0 0 12px #34d399; animation: live 2s ease-out infinite; }
+  #page-home > .bar { margin: -6px 2px 14px; background: rgba(255, 255, 255, .1); }
+  #page-home > .bar > i { background: linear-gradient(90deg, #6d5dfc, #f472b6); }
+  .alerts > .card { margin: 0 0 12px; }
+  .alerts:empty { display: none; }
+  .hgrid { flex: 1 1 auto !important; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(3, minmax(150px, 1fr)); gap: 18px; min-height: 500px; }
+  .page.active > .hgrid { animation: none; }
+
+  .ht { position: relative; border-radius: 22px; overflow: hidden; cursor: pointer; background: #0f1440;
+    border: 1px solid rgba(255, 255, 255, .08); box-shadow: 0 20px 50px -30px rgba(0, 0, 0, .9);
+    animation: htin .8s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i) * 80ms + 60ms);
+    transition: transform .25s cubic-bezier(.2, .8, .2, 1), box-shadow .25s; }
+  @keyframes htin { from { opacity: 0; transform: translateY(26px) scale(.96); filter: blur(6px); } }
+  .ht::after { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
+    background: linear-gradient(135deg, rgba(var(--c), .75), transparent 40%, transparent 70%, rgba(var(--c), .35));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+    opacity: .5; transition: opacity .25s; }
+  .ht:hover { transform: translateY(-4px); box-shadow: 0 30px 60px -24px rgba(var(--c), .7); }
+  .ht:hover::after { opacity: 1; }
+  .ht:active { transform: scale(.98); }
+  .ht-bg { position: absolute; inset: -6%; background-size: cover; background-position: 60% 22%; opacity: 0;
+    transition: opacity .8s ease; animation: htpan 20s ease-in-out infinite alternate; }
+  .ht-bg.on { opacity: .85; }
+  @keyframes htpan { from { transform: scale(1.02); } to { transform: scale(1.12) translate(-2%, -2%); } }
+  .ht-ov { position: absolute; inset: 0;
+    background: linear-gradient(105deg, rgba(9, 12, 40, .95) 0%, rgba(9, 12, 40, .72) 42%, rgba(9, 12, 40, .12) 100%),
+      radial-gradient(420px 220px at 0% 100%, rgba(var(--c), .32), transparent 70%); }
+  .ht-shine { position: absolute; top: 0; bottom: 0; width: 40%; left: -60%; pointer-events: none;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .08), transparent);
+    animation: htshine 8s ease-in-out infinite; animation-delay: calc(var(--i) * 400ms + 1.4s); }
+  @keyframes htshine { 0%, 72% { left: -60%; } 100% { left: 130%; } }
+  .ht-in { position: relative; height: 100%; padding: 20px 22px; display: flex; flex-direction: column; }
+  .ht-orb { width: 56px; height: 56px; border-radius: 17px; display: grid; place-items: center; flex: none; overflow: hidden;
+    background: linear-gradient(145deg, rgba(var(--c), .28), rgba(var(--c), .08)); border: 1px solid rgba(var(--c), .45);
+    box-shadow: 0 10px 30px -8px rgba(var(--c), .7), inset 0 1px 0 rgba(255, 255, 255, .18);
+    animation: htfloat 5s ease-in-out infinite; animation-delay: calc(var(--i) * -600ms); }
+  @keyframes htfloat { 50% { transform: translateY(-4px); } }
+  .ht-orb svg { width: 30px; height: 30px; overflow: visible; stroke: var(--g); stroke-width: 2.1; fill: none; }
+  .ht-orb svg .f { fill: var(--g); fill-opacity: .18; }
+  .ht-orb svg .s { fill: var(--g); stroke: none; }
+  .ht-orb svg.lol-mark { width: 34px; height: 34px; stroke: none; }
+  .ht-orb svg.sp-logo { width: 34px; height: 34px; stroke: none; filter: drop-shadow(0 0 8px rgba(30, 215, 96, .5)); }
+  .ht-orb svg.sp-logo path { stroke: #0b0b0b; }
+  .ht-orb.art { padding: 0; }
+  .ht-art { width: 100%; height: 100%; background: center / cover no-repeat; display: block; }
+  .ht .spin { animation: htspin 14s linear infinite; transform-origin: 15px 15px; }
+  @keyframes htspin { to { transform: rotate(360deg); } }
+  .ht-ttl { margin-top: auto; font-size: 21px; font-weight: 800; letter-spacing: -.02em; }
+  .ht-st { margin-top: 4px; color: var(--sub); font-size: 13px; min-height: 19px; padding-right: 50px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ht-st b { color: var(--text); font-weight: 700; }
+  .ht-st b.ok { color: #34d399; } .ht-st b.warn { color: #fbbf24; }
+  .ht-go { position: absolute; right: 18px; bottom: 18px; width: 38px; height: 38px; border-radius: 12px; display: grid;
+    place-items: center; background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .1); color: var(--sub);
+    transition: background .2s, color .2s, transform .2s; }
+  .ht-go svg { width: 16px; height: 16px; }
+  .ht:hover .ht-go { background: rgb(var(--c)); color: #fff; border-color: transparent; transform: translateX(2px); }
+  .ht-glyph { position: absolute; right: 24px; top: 50%; transform: translateY(-62%); font-weight: 800; font-size: 86px;
+    letter-spacing: -.04em; line-height: 1; pointer-events: none;
+    background: linear-gradient(160deg, rgba(255, 255, 255, .22), rgba(255, 255, 255, .02)); -webkit-background-clip: text; color: transparent; }
+  .ht-glyph.gold { background: linear-gradient(160deg, rgba(253, 230, 138, .6), rgba(245, 158, 11, .06)); -webkit-background-clip: text; }
+  #tile-patch .ht-bg, #tile-fonts .ht-bg, #tile-auto .ht-bg, #tile-settings .ht-bg, #tile-spotify .ht-bg { opacity: 1; animation: none; inset: 0; }
+  #tile-lol .ht-bg { opacity: 1; animation: none; inset: 0; background: radial-gradient(360px 240px at 82% 45%, rgba(200, 170, 110, .38), transparent 70%), radial-gradient(260px 200px at 10% 110%, rgba(10, 200, 185, .18), transparent 70%), linear-gradient(135deg, #2a2210, #0f1440); }
+  .ht-mark, .ht-emb { position: absolute; right: 18px; top: 50%; pointer-events: none; animation: htfloat 6s ease-in-out infinite; }
+  .ht-mark { width: 150px; height: 150px; margin-top: -88px; opacity: .32; }
+  .ht-mark svg { width: 100%; height: 100%; }
+  .ht-emb { width: 230px; height: 230px; margin-top: -128px; right: -6px; object-fit: contain; filter: drop-shadow(0 12px 40px rgba(200, 170, 110, .45)); }
+  .ht-mark[hidden], .ht-emb[hidden] { display: none; }
+  @keyframes htfloat { 50% { transform: translateY(-6px); } }
+  @media (prefers-reduced-motion: reduce) { .ht-mark, .ht-emb { animation: none; } }
+  #tile-spotify .ht-bg { background: radial-gradient(340px 220px at 88% 70%, rgba(30, 215, 96, .32), transparent 70%), linear-gradient(135deg, #0c2a1a, #0f1440); }
+  .ht-sp-big { position: absolute; right: -34px; bottom: -48px; width: 200px; height: 200px; pointer-events: none;
+    opacity: .9; filter: drop-shadow(0 10px 40px rgba(30, 215, 96, .35)); }
+  .ht.playing .ht-sp-big { animation: sppulse 2.4s ease-in-out infinite; }
+  @keyframes sppulse { 50% { transform: scale(1.05); filter: drop-shadow(0 10px 50px rgba(30, 215, 96, .6)); } }
+  @media (prefers-reduced-motion: reduce) { .ht-sp-big { animation: none; } }
+  #tile-patch .ht-bg { background: radial-gradient(320px 200px at 85% 20%, rgba(245, 158, 11, .45), transparent 70%), linear-gradient(135deg, #3b2a0a, #0f1440); }
+  #tile-fonts .ht-bg { background: radial-gradient(380px 220px at 90% 10%, rgba(251, 146, 60, .25), transparent 70%), linear-gradient(135deg, #2a1530, #0f1440); }
+  #tile-auto .ht-bg { background: radial-gradient(360px 220px at 90% 10%, rgba(244, 63, 94, .3), transparent 70%), linear-gradient(135deg, #2b0f24, #0f1440); }
+  #tile-settings .ht-bg { background: conic-gradient(from 200deg at 80% 30%, rgba(109, 93, 252, .45), rgba(56, 189, 248, .2), rgba(244, 114, 182, .3), rgba(109, 93, 252, .45)); filter: blur(30px); }
+  #tile-maps .ht-bg.rift { background-size: 70%; background-position: 115% 30%; background-repeat: no-repeat; opacity: .55; }
+  .ht-faces { position: absolute; right: 22px; top: 20px; display: flex; }
+  #tile-patch .ht-glyph { transform: translateY(-38%); }
+  .ht-faces i { width: 30px; height: 30px; border-radius: 50%; margin-left: -9px; background: #1d245e center / cover;
+    border: 2px solid #0d1238; }
+  .ht-eq { position: absolute; right: 26px; top: 26px; display: flex; gap: 3px; align-items: flex-end; height: 22px; }
+  .ht-eq i { width: 4px; border-radius: 2px; background: #1ed760; animation: hteq 1s ease-in-out infinite; }
+  .ht-eq i:nth-child(2) { animation-delay: -.3s; } .ht-eq i:nth-child(3) { animation-delay: -.6s; } .ht-eq i:nth-child(4) { animation-delay: -.15s; }
+  @keyframes hteq { 0%, 100% { height: 5px; } 50% { height: 22px; } }
+  .ht-checks { position: absolute; right: 22px; top: 22px; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+  .ht-checks span { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 99px;
+    font-size: 11px; font-weight: 700; background: rgba(0, 0, 0, .3); border: 1px solid rgba(255, 255, 255, .1); color: var(--faint); }
+  .ht-checks span.on { color: #fecdd3; border-color: rgba(244, 63, 94, .5); background: rgba(244, 63, 94, .18); }
+  .ht-checks span.on::before { content: "✓"; color: #fb7185; }
+
+  /* Champ select page: Auto Accept, Ban, Pick, Lobby Reveal */
+  .au-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .au { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 16px; cursor: pointer;
+    background: rgba(22, 28, 78, .55); border: 1px solid rgba(255, 255, 255, .07); transition: border-color .2s, background .2s, transform .15s; }
+  .au:hover { border-color: rgba(244, 63, 94, .45); transform: translateY(-2px); }
+  .au:active { transform: scale(.98); }
+  .au-i { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; flex: none;
+    background: rgba(244, 63, 94, .1); border: 1px solid rgba(244, 63, 94, .3); color: #fb7185; }
+  .au-i svg { width: 20px; height: 20px; }
+  .au b { display: block; font-size: 15px; font-weight: 700; }
+  .au span { color: var(--sub); font-size: 12px; }
+  .au-ck { margin-left: auto; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; flex: none;
+    border: 2px solid rgba(255, 255, 255, .18); color: transparent; transition: background .2s, border-color .2s; }
+  .au-ck svg { width: 14px; height: 14px; stroke-width: 3; }
+  .au.on { border-color: rgba(244, 63, 94, .5); background: linear-gradient(100deg, rgba(244, 63, 94, .14), rgba(22, 28, 78, .55) 60%); }
+  .au.on .au-ck { background: #e11d48; border-color: #e11d48; color: #fff; box-shadow: 0 0 14px rgba(244, 63, 94, .55); }
+  .au-team { margin-top: 14px; padding: 14px 16px; border-radius: 16px; background: rgba(22, 28, 78, .55); border: 1px solid rgba(255, 255, 255, .07); }
+  .au-team-h { display: flex; align-items: center; } .au-team-h .section { margin: 0; } .au-team-h .btn { margin-left: auto; }
+  .au-players { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; margin-top: 10px; }
+  .au-pl { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 12px; background: rgba(255, 255, 255, .04); cursor: pointer; }
+  .au-pl:hover { background: rgba(255, 255, 255, .09); }
+  .au-pl b { font-size: 13px; } .au-pl i { font-style: normal; color: var(--faint); font-size: 12px; }
+  .au-pl small { margin-left: auto; color: var(--sub); font-size: 11px; text-transform: capitalize; }
+  .au-lists { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 6px; }
+  .au-list { position: relative; }
+  .au-chips { display: flex; flex-wrap: wrap; gap: 8px; min-height: 42px; }
+  .au-chip { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 6px 0 4px; border-radius: 99px;
+    background: rgba(22, 28, 78, .8); border: 1px solid rgba(255, 255, 255, .1); font-weight: 600; }
+  .au-chip em { font-style: normal; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center;
+    background: rgba(244, 63, 94, .2); color: #fda4af; font-size: 11px; font-weight: 800; }
+  .au-chip img, .au-sug img { width: 30px; height: 30px; border-radius: 50%; }
+  .au-chip button { border: 0; background: none; color: var(--faint); cursor: pointer; font-size: 16px; padding: 0 6px; }
+  .au-chip button:hover { color: #fb7185; }
+  .au-list input { margin-top: 10px; width: 100%; height: 38px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--line);
+    background: #0d1238; color: var(--text); font: inherit; outline: none; }
+  .au-list input:focus { border-color: var(--accent); }
+  .au-sug { position: absolute; left: 0; right: 0; z-index: 6; margin-top: 6px; max-height: 260px; overflow-y: auto; border-radius: 12px;
+    background: #121848; border: 1px solid var(--line); box-shadow: 0 20px 40px rgba(0, 0, 0, .5); }
+  .au-sug:empty { display: none; }
+  .au-sug div { display: flex; align-items: center; gap: 10px; padding: 7px 12px; cursor: pointer; }
+  .au-sug div:hover { background: rgba(109, 93, 252, .25); }
+
+  /* Patch notes page */
+  .pn-hero { display: flex; align-items: center; gap: 22px; padding: 22px 24px; border-radius: 20px;
+    background: radial-gradient(420px 220px at 90% 0%, rgba(245, 158, 11, .35), transparent 70%), linear-gradient(135deg, #2b210d, #141a4a);
+    border: 1px solid rgba(253, 230, 138, .25); }
+  .pn-ver { font-size: 56px; font-weight: 800; letter-spacing: -.04em; line-height: 1;
+    background: linear-gradient(160deg, #fde68a, #f59e0b); -webkit-background-clip: text; color: transparent; }
+  .pn-t { min-width: 0; }
+  .pn-t small { color: #fde68a; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; font-size: 11px; }
+  .pn-t h2 { margin: 4px 0; font-size: 19px; } .pn-t span { color: var(--sub); }
+  .pn-hero .btn { margin-left: auto; flex: none; }
+  .pn-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+  .pn { display: flex; gap: 12px; padding: 14px; border-radius: 16px; background: rgba(22, 28, 78, .55); border: 1px solid rgba(255, 255, 255, .06); }
+  .pn i { width: 46px; height: 46px; border-radius: 50%; flex: none; background: #1d245e center / cover; box-shadow: 0 0 0 2px rgba(245, 158, 11, .45); }
+  .pn b { display: block; font-size: 14px; } .pn span { color: var(--sub); font-size: 12px; line-height: 1.45; }
+
+  .client-card { display: flex; align-items: center; gap: 14px; margin: 4px 0 16px;
+    background: linear-gradient(100deg, rgba(109, 93, 252, .28), rgba(22, 28, 78, .55) 60%); }
+  .client-card .btn { margin-left: auto; flex: none; }
+  .client-card .t span { display: block; max-width: 620px; }
 </style>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs><linearGradient id="lust-grad" x1="0" y1="0" x2="1" y2="1">
     <stop offset="0" stop-color="#c4b5fd"/><stop offset=".55" stop-color="#a78bfa"/><stop offset="1" stop-color="#f472b6"/>
-  </linearGradient></defs>
+  </linearGradient><linearGradient id="hg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f9a8d4"/><stop offset="1" stop-color="#e879f9"/></linearGradient><linearGradient id="hg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6ee7b7"/><stop offset="1" stop-color="#38bdf8"/></linearGradient><linearGradient id="hg3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fef08a"/><stop offset="1" stop-color="#f59e0b"/></linearGradient><linearGradient id="hg4" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fde68a"/><stop offset="1" stop-color="#fb923c"/></linearGradient><linearGradient id="hg5" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7dd3fc"/><stop offset="1" stop-color="#818cf8"/></linearGradient><linearGradient id="hg6" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f5d0fe"/><stop offset="1" stop-color="#c084fc"/></linearGradient><linearGradient id="hg7" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#86efac"/><stop offset="1" stop-color="#1ed760"/></linearGradient><linearGradient id="hg8" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c7d2fe"/><stop offset="1" stop-color="#6366f1"/></linearGradient><linearGradient id="hg9" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e0e7ff"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs>
 </svg>
 <div class="ambient" aria-hidden="true"><div class="amb-art" id="amb-art"></div><i class="blob b1"></i><i class="blob b2"></i></div>
-<nav class="rail">
-  <div class="tab active" data-page="lol" data-label="LoL">__lol__</div>
-  <div class="tab" data-page="spotify" data-label="Spotify">__spotify__</div>
-  <div class="tab" data-page="maps" data-label="Haritalar">__map__</div>
-  <div class="tab" data-page="fonts" data-label="Fontlar">__font__</div>
-  <div class="tab" data-page="skins" data-label="Custom skinler">__shirt__</div>
-  <div class="tab" data-page="profile" data-label="Profil arka planı">__frame__</div>
-  <div class="tab" data-page="icon" data-label="Profil simgesi">__badge__</div>
-  <div class="tab" data-page="settings" data-label="Ayarlar">__gear__</div>
-  <div class="spacer"></div>
-  <div class="dot" id="dot" title=""></div>
-</nav>
 <div class="main">
-  <header class="top pywebview-drag-region">
-    <h1 id="title">LoL</h1><button class="pill ver-pill" id="ver-pill" title="Sürüm ve yenilikler"><i class="vdot" id="vdot"></i>__VERSION__</button>
-    <span class="tip" id="tip">Oyun ayarları LoL istemcisinde, üstteki <b>LUST</b> sekmesinde</span>
+  <header class="top pywebview-drag-region" id="top">
+    <button class="back" id="back" title="Ana sayfa (Esc)" hidden>__back__</button>
+    <span class="word pywebview-drag-region" id="word">LUST</span>
+    <h1 id="title" hidden></h1>
+    <button class="pill ver-pill" id="ver-pill" title="Sürüm ve yenilikler"><i class="vdot" id="vdot"></i>__VERSION__</button>
     <div class="grow pywebview-drag-region"></div>
-    <div class="win" id="w-min" title="Küçült">__min__</div>
-    <div class="win x" id="w-close" title="Kapat">__close__</div>
+    <span class="lg" id="lg"><i class="dot" id="dot"></i><span id="lg-t">League kapalı</span></span>
+    <div class="wins">
+      <div class="win" id="w-min" title="Küçült">__min__</div>
+      <div class="win" id="w-max" title="Büyüt (çift tık)">__max__</div>
+      <div class="win x" id="w-close" title="Kapat">__close__</div>
+    </div>
   </header>
   <div class="vpop" id="vpop" hidden>
     <div class="vpop-head"><b>Lust __VERSION__</b><span id="v-sub"></span></div>
@@ -669,24 +898,14 @@ PAGE = r"""<!doctype html>
     </div>
   </div>
 
-  <section class="page active" id="page-lol">
-    <div class="hero" id="hero">
-      <div class="hero-art" id="h-art"></div>
-      <div class="hero-body">
-        <small id="h-small">Hoş geldin</small>
-        <h2 id="h-title">Lust başlıyor</h2>
-        <div class="hero-chips" id="h-chips"></div>
-        <div class="hero-cut" id="h-cut" hidden></div>
-        <p id="h-sub"></p>
-        <div class="bar busy" id="h-bar"><i></i></div>
-      </div>
-      <div class="hero-last" id="h-last" hidden>
-        <small>Son maç</small>
-        <b id="hl-champ"></b>
-        <span class="hl-result" id="hl-result"></span>
-        <span id="hl-meta"></span>
-      </div>
+  <section class="page active" id="page-home">
+    <div class="home-head">
+      <div class="hm-text"><small id="hm-hi">Hoş geldin</small><h2 class="hm-name" id="hm-name">Lust başlıyor</h2>
+        <div class="hm-sub" id="hm-sub"></div></div>
+      <button class="hm-play" id="hm-league" data-act="league"><i class="hm-orb">__play__</i><span id="hm-league-t">League'i aç</span></button>
     </div>
+    <div class="bar busy" id="h-bar"><i></i></div>
+    <div class="alerts">
     <div class="card rose" id="rose" hidden>
       <div class="ico">__close__</div>
       <div class="t"><b>Rose da kurulu</b><span>İkisi aynı anda çalışınca LoL'de Rose'un gül simgesi çıkar ve çakışırlar. Lust, Rose'un yaptığı her şeyi zaten yapıyor.</span></div>
@@ -701,6 +920,82 @@ PAGE = r"""<!doctype html>
       <div class="t"><b id="q-title"></b><span id="q-body"></span></div>
       <button class="btn primary" style="margin-left:auto" data-act="prompt" data-body='{"accept":true}'>Kur</button>
       <button class="btn" data-act="prompt" data-body='{"accept":false}'>Şimdi değil</button>
+    </div>
+    </div>
+    <div class="hgrid" id="hgrid">
+    <div class="ht" data-go="lol" id="tile-lol" style="--i:0;--c:200, 170, 110;--g:url(#hg3)">
+      <div class="ht-bg" id="t-lol-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><div class="ht-mark" id="t-lol-mark">__lol__</div><img class="ht-emb" id="t-lol-emb" alt="" hidden>
+      <div class="ht-in"><div class="ht-orb art">__lol__</div>
+        <b class="ht-ttl">LoL</b><span class="ht-st" id="t-lol"></span></div>
+      <div class="ht-go">__arrow__</div>
+    </div>
+    <div class="ht" data-go="maps" id="tile-maps" style="--i:1;--c:52, 211, 153;--g:url(#hg2)">
+      <div class="ht-bg" id="t-maps-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i>
+      <div class="ht-in"><div class="ht-orb"><svg viewBox="0 0 30 30"><path class="f" d="M4 8l7-3 8 3 7-3v17l-7 3-8-3-7 3z"/><path d="M11 5v17M19 8v17"/><circle class="s" cx="15" cy="13" r="2.4"/></svg></div>
+        <b class="ht-ttl">Haritalar</b><span class="ht-st" id="t-maps"></span></div>
+      <div class="ht-go">__arrow__</div>
+    </div>
+    <div class="ht" data-go="patch" id="tile-patch" style="--i:2;--c:245, 158, 11;--g:url(#hg3)">
+      <div class="ht-bg" id="t-patch-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><div class="ht-glyph gold" id="t-patch-ver"></div><div class="ht-faces" id="t-patch-faces"></div>
+      <div class="ht-in"><div class="ht-orb"><svg viewBox="0 0 30 30"><path class="f" d="M8 4h11l5 5v17H8z"/><path d="M19 4v5h5M12 15h8M12 19h5"/><path d="m20.5 24 2.5-3 2.5 3"/></svg></div>
+        <b class="ht-ttl">Patch notes</b><span class="ht-st" id="t-patch"></span></div>
+      <div class="ht-go">__arrow__</div>
+    </div>
+    <div class="ht" data-go="fonts" id="tile-fonts" style="--i:3;--c:251, 146, 60;--g:url(#hg4)">
+      <div class="ht-bg" id="t-fonts-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><div class="ht-glyph">Aa 가</div>
+      <div class="ht-in"><div class="ht-orb"><svg viewBox="0 0 30 30"><path d="M4 24 11 6l7 18M6.8 17h8.4"/><circle cx="21.5" cy="18.5" r="3.5"/><path d="M25 14v10"/></svg></div>
+        <b class="ht-ttl">Fontlar</b><span class="ht-st" id="t-fonts"></span></div>
+      <div class="ht-go">__arrow__</div>
+    </div>
+    <div class="ht" data-go="icon" id="tile-icon" style="--i:4;--c:56, 189, 248;--g:url(#hg5)">
+      <div class="ht-bg" id="t-icon-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i>
+      <div class="ht-in"><div class="ht-orb"><svg viewBox="0 0 30 30"><circle class="f" cx="15" cy="15" r="11"/><circle cx="15" cy="12.5" r="4"/><path d="M8 23.2a8 8 0 0 1 14 0"/></svg></div>
+        <b class="ht-ttl">Profil simgesi</b><span class="ht-st" id="t-icon"></span></div>
+      <div class="ht-go">__arrow__</div>
+    </div>
+    <div class="ht" data-go="profile" id="tile-profile" style="--i:5;--c:232, 121, 249;--g:url(#hg6)">
+      <div class="ht-bg" id="t-profile-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i>
+      <div class="ht-in"><div class="ht-orb"><svg viewBox="0 0 30 30"><rect class="f" x="4" y="6" width="22" height="18" rx="3"/><circle class="s" cx="11" cy="12" r="2.2"/><path d="m4.5 21 6-6 4 4 4-5 7 7"/></svg></div>
+        <b class="ht-ttl">Profil arka planı</b><span class="ht-st" id="t-profile"></span></div>
+      <div class="ht-go">__arrow__</div>
+    </div>
+    <div class="ht" data-go="spotify" id="tile-spotify" style="--i:6;--c:30, 215, 96;--g:url(#hg7)">
+      <div class="ht-bg" id="t-spotify-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><svg class="ht-sp-big" viewBox="0 0 24 24"><defs><linearGradient id="spg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4ef08a"/><stop offset="1" stop-color="#0f8a3c"/></linearGradient></defs><circle cx="12" cy="12" r="11" fill="url(#spg)" stroke="none" opacity=".5"/><path d="M6.3 9.2c3.8-1.2 8.3-.9 11.6 1.1M6.9 12.5c3.1-.9 6.8-.6 9.5 1M7.5 15.6c2.5-.6 5.1-.4 7.2.8" stroke="#08130d" stroke-opacity=".75" stroke-width="1.9" stroke-linecap="round" fill="none"/></svg><span class="ht-eq" id="t-eq" hidden><i></i><i></i><i></i><i></i></span>
+      <div class="ht-in"><div class="ht-orb art"><svg class="sp-logo" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#1ed760" stroke="none"/><path d="M6.3 9.2c3.8-1.2 8.3-.9 11.6 1.1M6.9 12.5c3.1-.9 6.8-.6 9.5 1M7.5 15.6c2.5-.6 5.1-.4 7.2.8" stroke="#0b0b0b" stroke-width="1.9" fill="none"/></svg></div>
+        <b class="ht-ttl">Spotify</b><span class="ht-st" id="t-spotify"></span></div>
+      <div class="ht-go">__arrow__</div>
+    </div>
+    <div class="ht" data-go="auto" id="tile-auto" style="--i:7;--c:244, 63, 94;--g:url(#hg1)">
+      <div class="ht-bg" id="t-auto-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><div class="ht-checks" id="t-auto-checks"></div>
+      <div class="ht-in"><div class="ht-orb"><svg viewBox="0 0 30 30"><path class="f" d="M5 22 3 9l6.5 5L15 5l5.5 9L27 9l-2 13z"/><path d="M6 26h18"/></svg></div>
+        <b class="ht-ttl">Champ select</b><span class="ht-st" id="t-auto"></span></div>
+      <div class="ht-go">__arrow__</div>
+    </div>
+    <div class="ht" data-go="settings" id="tile-settings" style="--i:8;--c:167, 139, 250;--g:url(#hg9)">
+      <div class="ht-bg" id="t-settings-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i>
+      <div class="ht-in"><div class="ht-orb"><svg viewBox="0 0 30 30"><g class="spin"><circle class="f" cx="15" cy="15" r="8"/><circle cx="15" cy="15" r="3.6"/><path d="M15 3.5v3M15 23.5v3M3.5 15h3M23.5 15h3M6.9 6.9 9 9M21 21l2.1 2.1M6.9 23.1 9 21M21 9l2.1-2.1"/></g></svg></div>
+        <b class="ht-ttl">Ayarlar</b><span class="ht-st" id="t-settings"></span></div>
+      <div class="ht-go">__arrow__</div>
+    </div>
+    </div>
+  </section>
+
+  <section class="page" id="page-lol">
+    <div class="hero" id="hero">
+      <div class="hero-art" id="h-art"></div>
+      <div class="hero-body">
+        <small id="h-small">Hoş geldin</small>
+        <h2 id="h-title">Lust başlıyor</h2>
+        <div class="hero-chips" id="h-chips"></div>
+        <div class="hero-cut" id="h-cut" hidden></div>
+        <p id="h-sub"></p>
+      </div>
+      <div class="hero-last" id="h-last" hidden>
+        <small>Son maç</small>
+        <b id="hl-champ"></b>
+        <span class="hl-result" id="hl-result"></span>
+        <span id="hl-meta"></span>
+      </div>
     </div>
     <div class="card appear" style="margin-top:12px">
       <div class="ico">__user__</div>
@@ -726,6 +1021,12 @@ PAGE = r"""<!doctype html>
   </section>
 
   <section class="page" id="page-settings">
+    <div class="card client-card">
+      <div class="ico">__brush__</div>
+      <div class="t"><b>LoL istemcisi ayarları</b><span>Tema, duvar kağıdı, eklentiler, Lobby Reveal ve yedekler LoL'ün içinde açılır.
+        LoL'de artık LUST sekmesi yok: buradan aç.</span></div>
+      <button class="btn primary" data-act="client_panel">İstemcide aç</button>
+    </div>
     <div class="sg-head">
       <div class="sg-tabs" id="sg-tabs">
         <button class="on" data-sg="all">Hepsi</button><button data-sg="game">Oyun</button>
@@ -796,6 +1097,42 @@ PAGE = r"""<!doctype html>
       "Tokenleri kaldır" ise profilinin altındaki meydan okuma tokenlerini Riot'ta kaldırır; herkes için boş görünür (LoL açık olmalı).</div>
   </section>
 
+  <section class="page" id="page-auto">
+    <div class="au-cards">
+      <div class="au" data-auto="accept"><i class="au-i"><svg viewBox="0 0 24 24"><path d="M12 22s8-3.5 8-10V5l-8-3-8 3v7c0 6.5 8 10 8 10z"/></svg></i>
+        <div><b>Auto Accept</b><span>Maç bulununca kabul eder</span></div><i class="au-ck">__check__</i></div>
+      <div class="au" data-auto="ban"><i class="au-i"><svg viewBox="0 0 24 24"><path d="M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2M9.5 17.5 21 6V3h-3L6.5 14.5M11 19l-6-6M8 16l-4 4M5 21l-2-2"/></svg></i>
+        <div><b>Auto Ban</b><span>Sıran gelince listedeki ilk boştakini banlar</span></div><i class="au-ck">__check__</i></div>
+      <div class="au" data-auto="pick"><i class="au-i"><svg viewBox="0 0 24 24"><path d="M5 19 3 7l5 4 4-7 4 7 5-4-2 12z"/></svg></i>
+        <div><b>Auto Pick</b><span>Sıran gelince listedeki ilk boştakini seçer</span></div><i class="au-ck">__check__</i></div>
+      <div class="au" data-auto="reveal"><i class="au-i"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></i>
+        <div><b>Lobby Reveal</b><span>Champ select'te takım arkadaşlarının adları ve op.gg</span></div><i class="au-ck">__check__</i></div>
+    </div>
+    <div class="au-team" id="au-team" hidden>
+      <div class="au-team-h"><div class="section">Takımın</div><button class="btn" id="au-multi">op.gg'de hepsi</button></div>
+      <div class="au-players" id="au-players"></div>
+    </div>
+    <div class="au-lists">
+      <div class="au-list" data-list="bans"><div class="section">Ban listesi</div><div class="au-chips" id="au-bans"></div>
+        <input type="search" placeholder="Banlanacak şampiyon ekle" autocomplete="off"><div class="au-sug"></div></div>
+      <div class="au-list" data-list="picks"><div class="section">Pick listesi</div><div class="au-chips" id="au-picks"></div>
+        <input type="search" placeholder="Seçilecek şampiyon ekle" autocomplete="off"><div class="au-sug"></div></div>
+    </div>
+    <div class="note">Sıra sana gelince listendeki ilk boş şampiyon seçilir; banlanmış, alınmış ya da takım arkadaşının istediği şampiyon atlanır.
+      Lust bunları LoL istemcisi üzerinden yapar, League açıkken çalışır.</div>
+  </section>
+
+  <section class="page" id="page-patch">
+    <div class="pn-hero">
+      <div class="pn-ver" id="pn-ver">…</div>
+      <div class="pn-t"><small>Yama notları</small><h2 id="pn-title">Yama notları alınıyor…</h2><span id="pn-sub"></span></div>
+      <button class="btn primary" data-act="patch_open">Notların tamamı</button>
+    </div>
+    <div class="section" id="pn-count">Değişen şampiyonlar</div>
+    <div class="pn-list" id="pn-list"></div>
+    <div class="note">Riot'un yama notlarından (leagueoflegends.com), birkaç saatte bir yenilenir.</div>
+  </section>
+
   <section class="page" id="page-spotify">
     <div class="np" id="np">
       <div class="np-bg" id="np-bg"></div>
@@ -823,6 +1160,9 @@ PAGE = r"""<!doctype html>
     </div>
   </section>
 </div>
+<div class="rz" data-edge="n"></div><div class="rz" data-edge="s"></div><div class="rz" data-edge="e"></div>
+<div class="rz" data-edge="w"></div><div class="rz" data-edge="ne"></div><div class="rz" data-edge="nw"></div>
+<div class="rz" data-edge="se"></div><div class="rz" data-edge="sw"></div>
 <div id="toast"></div>
 <div id="lost">Lust yeniden başlıyor…</div>
 <script>
@@ -1174,6 +1514,7 @@ function render(s) {
   }
 
   drawSettings(s);
+  drawHome(s);
   const st = s.settings || {};
   document.body.classList.toggle("bd-hextech", st.backdrop === "hextech");
   document.body.classList.toggle("calm", !!st.reduce_motion || !!s.resting);
@@ -1188,24 +1529,286 @@ function render(s) {
     toastId = s.toast.id;
   }
   if (toastId === null) toastId = 0;
-  if (s.prompt) showPage("lol");
+  if (s.prompt && page !== "home") showPage("home");
 }
 
 async function poll() {
   try { render(await api("/api/state")); failures = 0; $("lost").style.display = "none"; }
   catch (e) { if (++failures >= 3) $("lost").style.display = "grid"; }
 }
+// ---- pages: the home tiles lead to each one, Esc or the back button comes home ----
+const PAGES = { home: "", lol: "LoL", spotify: "Spotify", maps: "Haritalar", fonts: "Fontlar", skins: "Custom skinler",
+  profile: "Profil arka planı", icon: "Profil simgesi", settings: "Ayarlar", patch: "Patch notes", auto: "Champ select" };
+let page = "home";
 function showPage(name) {
-  document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t.dataset.page === name));
+  if (!(name in PAGES)) name = "home";
+  page = name;
+  document.body.dataset.page = name;
   document.querySelectorAll(".page").forEach((p) => p.classList.toggle("active", p.id === `page-${name}`));
-  $("title").textContent = { lol: "LoL", spotify: "Spotify", maps: "Haritalar", fonts: "Fontlar", skins: "Custom skinler", profile: "Profil arka planı", icon: "Profil simgesi" }[name] || "Ayarlar";
-  $("tip").hidden = name !== "lol";
+  $("title").textContent = PAGES[name];
+  $("title").hidden = name === "home";
+  $("word").hidden = name !== "home";
+  $("back").hidden = name === "home";
+  if (name === "home") { loadTiles(); loadAuto(); }
   if (name === "maps") loadMaps();
   if (name === "fonts") loadFonts();
   if (name === "skins") loadSkins();
   if (name === "profile") loadProfile();
   if (name === "icon") loadIcons();
+  if (name === "patch") loadPatch();
+  if (name === "auto") loadAuto();
 }
+const awake = () => !document.hidden && !(state && state.resting);
+
+// Text with bold parts: ["plain", ["b", "bold", "class"], ...], redrawn only when it changes
+function fill(id, parts) {
+  const el = $(id);
+  const key = JSON.stringify(parts);
+  if (el.dataset.key === key) return;
+  el.dataset.key = key;
+  el.replaceChildren(...parts.map((p) => typeof p === "string" ? document.createTextNode(p)
+    : Object.assign(document.createElement(p[0]), { textContent: p[1], className: p[2] || "" })));
+}
+function setBg(id, url, cls) {
+  const el = $(id);
+  if (!url) { el.classList.remove("on"); el.dataset.url = ""; return; }
+  if (el.dataset.url === String(url)) return;
+  el.dataset.url = String(url);
+  const img = new Image();
+  // A list of urls: the first that loads wins
+  const urls = Array.isArray(url) ? url : [url];
+  let i = 0;
+  img.onload = () => {
+    if (el.dataset.url !== String(url)) return;
+    el.style.backgroundImage = `url("${urls[i]}")`;
+    el.className = el.className.replace(/ rift/g, "") + (cls && i === urls.length - 1 ? ` ${cls}` : "");
+    el.classList.add("on");
+  };
+  img.onerror = () => { if (++i < urls.length && el.dataset.url === String(url)) img.src = urls[i]; };
+  img.src = urls[0];
+}
+function setArt(id, url) {
+  const el = $(id);
+  if (url && el.dataset.url !== url) { el.dataset.url = url; el.style.backgroundImage = `url("${url}")`; }
+}
+const greeting = () => {
+  const h = new Date().getHours();
+  return h < 6 ? "İyi geceler" : h < 12 ? "Günaydın" : h < 18 ? "İyi günler" : h < 22 ? "İyi akşamlar" : "İyi geceler";
+};
+
+function drawHome(s) {
+  const starting = s.phase !== "ready";
+  const hero = s.hero || {};
+  $("hm-hi").textContent = starting ? (s.detail || "Lust hazırlanıyor") : greeting();
+  fill("hm-name", starting ? [s.status || "Lust başlıyor"]
+    : hero.name ? [["b", hero.name], ["i", hero.tag ? ` #${hero.tag}` : ""]] : [["b", "Lust"], " hazır"]);
+  const sub = [];
+  if (!starting && hero.rank) sub.push(hero.rank);
+  if (!starting && (hero.wins || hero.losses)) sub.push(`${hero.wins}G ${hero.losses}M`);
+  if (!starting && hero.last) sub.push(`Son maç: ${hero.last.champion} · ${hero.last.win ? "Galibiyet" : "Mağlubiyet"}`);
+  $("hm-sub").textContent = starting ? (s.transfer || "") : sub.join(" · ");
+  const busy = s.progress === null || s.progress === undefined;
+  $("h-bar").hidden = !starting;
+  $("h-bar").classList.toggle("busy", busy);
+  $("h-bar").firstElementChild.style.width = busy ? "" : `${s.progress}%`;
+  $("hm-league").classList.toggle("live", !!s.league);
+  $("hm-league-t").textContent = s.league ? "League açık" : "League'i aç";
+  $("lg-t").textContent = starting ? "Lust başlıyor" : s.league ? "League açık" : "League kapalı";
+  drawTiles();
+}
+
+let tiles = {}, auto = null;
+const EMBLEM = "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblem/emblem-";
+// Summoner's Rift art from the client's own game mode assets; the minimap if neither loads
+const SRU = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/content/src/leagueclient/gamemodeassets/classic_sru/img/";
+const RIFT = [SRU + "champ-select-flyout-background.jpg", SRU + "gameflow-background.jpg",
+  "https://ddragon.leagueoflegends.com/cdn/6.8.1/img/map/map11.png"];
+function drawTiles() {
+  const s = state || {}, t = tiles || {}, hero = s.hero || {}, off = s.offline || {};
+  // LoL: the welcome card's rank and last match
+  const lol = [];
+  if (hero.rank) lol.push(["b", hero.rank]);
+  if (hero.last) lol.push(`${lol.length ? " · " : ""}Son maç ${hero.last.champion}`);
+  if (off.running) lol.push(` · ${STATUS[off.status] || "Çevrimiçi"}`);
+  fill("t-lol", lol.length ? lol : [s.league ? "League açık" : "Profilin, rank sınırları ve Lust Offline"]);
+  const emb = $("t-lol-emb"), tier = (hero.tier || "").toLowerCase();
+  const embUrl = tier ? EMBLEM + tier + ".png" : "";
+  if (emb.dataset.url !== embUrl) {
+    emb.dataset.url = embUrl;
+    emb.hidden = true; $("t-lol-mark").hidden = false;
+    if (embUrl) {
+      emb.onload = () => { emb.hidden = false; $("t-lol-mark").hidden = true; };
+      emb.onerror = () => { emb.hidden = true; $("t-lol-mark").hidden = false; };
+      emb.src = embUrl;
+    }
+  }
+  const mp = t.maps;
+  fill("t-maps", mp && mp.name ? [["b", mp.name], ` · ${mp.count} harita`] : [["b", "Sihirdar Vadisi"], mp && mp.count ? ` · ${mp.count} harita yüklü` : " · League'in haritası"]);
+  if (mp && mp.preview) setBg("t-maps-bg", `/map-preview?id=${encodeURIComponent(mp.id)}`);
+  else setBg("t-maps-bg", RIFT, "rift");
+  const pt = t.patch;
+  fill("t-patch", pt && pt.version ? [["b", `${pt.changed} şampiyon`], " değişti"] : ["Son yamada neler değişti"]);
+  $("t-patch-ver").textContent = (pt && pt.version) || "";
+  const faces = ((pt && pt.icons) || []).join("|");
+  if ($("t-patch-faces").dataset.key !== faces) {
+    $("t-patch-faces").dataset.key = faces;
+    $("t-patch-faces").replaceChildren(...((pt && pt.icons) || []).map((u) => {
+      const i = document.createElement("i"); i.style.backgroundImage = `url("${u}")`; return i;
+    }));
+  }
+  const ft = t.fonts;
+  fill("t-fonts", ft && ft.name ? [["b", ft.name], " · oyun içi yazı tipi"] : [["b", "League'in fontu"], " · oyun içi yazı tipi"]);
+  const art = t.art || {};
+  const ic = t.icon;
+  fill("t-icon", ic && ic.id ? [["b", ic.name || `#${ic.id}`], " · sadece sende görünür"] : ["İstediğin simge, sahip olmasan da"]);
+  setBg("t-icon-bg", (art.icon || {}).splash || "");
+  const pf = t.profile;
+  fill("t-profile", pf && pf.name ? [["b", pf.name], " · profilinde"] : ["Profilinin arka planı, istediğin skin"]);
+  setBg("t-profile-bg", (art.profile || {}).splash || "");
+  const on = !!media.available;
+  fill("t-spotify", on ? [["b", media.title || "Bilinmeyen şarkı"], media.artist ? ` · ${media.artist}` : ""] : ["Spotify'da bir şey çalmıyor"]);
+  $("t-eq").hidden = !(on && media.playing);
+  $("tile-spotify").classList.toggle("playing", !!(on && media.playing));
+  const a = auto || {};
+  const names = [["accept", "Accept"], ["ban", "Ban"], ["pick", "Pick"]];
+  const reveal = !!((a.reveal || {}).on);
+  const onCount = names.filter(([k]) => a[k]).length + (reveal ? 1 : 0);
+  fill("t-auto", onCount ? [["b", `${onCount} özellik açık`], " · Auto Accept, Ban, Pick, Lobby Reveal"] : ["Auto Accept, Ban, Pick ve Lobby Reveal"]);
+  const checks = JSON.stringify([...names.map(([k]) => !!a[k]), reveal]);
+  if ($("t-auto-checks").dataset.key !== checks) {
+    $("t-auto-checks").dataset.key = checks;
+    $("t-auto-checks").replaceChildren(...[...names, ["reveal", "Reveal"]].map(([k, label]) =>
+      Object.assign(document.createElement("span"), { textContent: label, className: (k === "reveal" ? reveal : a[k]) ? "on" : "" })));
+  }
+  const warn = (s.rose && s.rose.installed) || ((s.patcher || {}).state && s.patcher.state !== "ok") || s.update_available;
+  fill("t-settings", warn ? [["b", s.update_available ? "Güncelleme hazır" : "Bakman gereken bir şey var", "warn"]]
+    : [["b", "✓ Her şey yolunda", "ok"], " · güncelleme, onarım, istemci"]);
+}
+async function loadTiles() {
+  try { tiles = await api("/api/tiles"); } catch (e) { return; }
+  drawTiles();
+}
+setInterval(() => { if (page === "home" && awake()) loadTiles(); }, 6000);
+// Spotify's tile follows the song while the home page is open
+async function homeMedia() {
+  if (page === "home" && awake()) {
+    try { media = await api("/api/media"); mediaAt = Date.now(); drawTiles(); } catch (e) {}
+  }
+  setTimeout(homeMedia, 3000);
+}
+homeMedia();
+
+// ---- patch notes ----
+async function loadPatch() {
+  let d;
+  try { d = await api("/api/patch"); } catch (e) { return; }
+  const champs = d.champions || [];
+  $("pn-ver").textContent = d.version || "…";
+  $("pn-title").textContent = d.title || (d.loading ? "Patch notes alınıyor…" : "Patch notes alınamadı");
+  $("pn-sub").textContent = d.url ? `${champs.length} şampiyon değişti${d.items ? ` · ${d.items} eşya` : ""}`
+    : (d.loading ? "" : "İnternet bağlantısını kontrol et, birazdan yeniden denenecek");
+  $("pn-count").textContent = champs.length ? `Değişen şampiyonlar · ${champs.length}` : "Değişen şampiyonlar";
+  $("pn-list").replaceChildren(...champs.map((c) => {
+    const el = document.createElement("div");
+    el.className = "pn";
+    const face = document.createElement("i");
+    if (c.icon) face.style.backgroundImage = `url("${c.icon}")`;
+    const text = document.createElement("div");
+    text.append(Object.assign(document.createElement("b"), { textContent: c.name }),
+      Object.assign(document.createElement("span"), { textContent: c.summary || "Ayrıntılar notların tamamında" }));
+    el.append(face, text);
+    return el;
+  }));
+  if (d.loading && page === "patch") setTimeout(() => page === "patch" && loadPatch(), 2500);
+}
+
+// ---- champ select: Auto Accept, Ban, Pick and Lobby Reveal ----
+async function loadAuto() {
+  try { auto = await api("/api/auto"); } catch (e) { return; }
+  drawAuto();
+  drawTiles();
+}
+setInterval(() => { if (page === "auto" && awake()) loadAuto(); }, 2000);
+function saveAuto(changes) {
+  Object.assign(auto, changes);
+  drawAuto(); drawTiles();
+  act("auto_set", { changes });
+}
+function drawAuto() {
+  if (!auto) return;
+  const reveal = auto.reveal || {};
+  document.querySelectorAll(".au").forEach((card) => {
+    const k = card.dataset.auto;
+    card.classList.toggle("on", k === "reveal" ? !!reveal.on : !!auto[k]);
+  });
+  const names = Object.fromEntries((auto.champions || []).map((c) => [c.id, c.name]));
+  [["bans", "au-bans"], ["picks", "au-picks"]].forEach(([key, id]) => {
+    const ids = auto[key] || [];
+    const sig = JSON.stringify(ids) + Object.keys(names).length;
+    if ($(id).dataset.key === sig) return;
+    $(id).dataset.key = sig;
+    $(id).replaceChildren(...ids.map((cid, n) => {
+      const chip = document.createElement("span");
+      chip.className = "au-chip";
+      const img = Object.assign(document.createElement("img"), { src: CHAMP_ICON(cid), alt: "" });
+      const x = Object.assign(document.createElement("button"), { textContent: "×", title: "Çıkar" });
+      x.addEventListener("click", () => saveAuto({ [key]: ids.filter((v) => v !== cid) }));
+      chip.append(Object.assign(document.createElement("em"), { textContent: n + 1 }), img,
+        document.createTextNode(names[cid] || `#${cid}`), x);
+      return chip;
+    }));
+    if (!ids.length) $(id).append(Object.assign(document.createElement("span"), { className: "note", textContent: "Liste boş: aşağıdan şampiyon ekle." }));
+  });
+  $("au-team").hidden = !(reveal.on && reveal.active && (reveal.players || []).length);
+  const team = JSON.stringify(reveal.players || []);
+  if ($("au-players").dataset.key !== team) {
+    $("au-players").dataset.key = team;
+    $("au-players").replaceChildren(...(reveal.players || []).map((p) => {
+      const el = document.createElement("div");
+      el.className = "au-pl";
+      el.append(Object.assign(document.createElement("b"), { textContent: p.gameName || "?" }),
+        Object.assign(document.createElement("i"), { textContent: p.gameTag ? `#${p.gameTag}` : "" }),
+        Object.assign(document.createElement("small"), { textContent: (p.position || "").toLowerCase() }));
+      if (p.opggUrl) el.addEventListener("click", () => act("open_link", { url: p.opggUrl }));
+      return el;
+    }));
+  }
+}
+document.querySelectorAll(".au").forEach((card) => card.addEventListener("click", () => {
+  if (!auto) return;
+  const k = card.dataset.auto;
+  if (k === "reveal") {
+    const on = !(auto.reveal || {}).on;
+    auto.reveal = Object.assign({}, auto.reveal, { on });
+    drawAuto(); drawTiles();
+    act("setting", { key: "lobby_reveal", value: on });
+    return;
+  }
+  saveAuto({ [k]: !auto[k] });
+}));
+$("au-multi").addEventListener("click", () => auto && auto.reveal && act("open_link", { url: auto.reveal.multiUrl }));
+document.querySelectorAll(".au-list").forEach((box) => {
+  const key = box.dataset.list, input = box.querySelector("input"), sug = box.querySelector(".au-sug");
+  const suggest = () => {
+    const find = input.value.trim().toLocaleLowerCase("tr");
+    const chosen = (auto && auto[key]) || [];
+    const all = ((auto && auto.champions) || []).filter((c) => !chosen.includes(c.id)
+      && (!find || c.name.toLocaleLowerCase("tr").includes(find))).slice(0, find ? 30 : 0);
+    sug.replaceChildren(...all.map((c) => {
+      const row = document.createElement("div");
+      row.append(Object.assign(document.createElement("img"), { src: CHAMP_ICON(c.id), alt: "" }), document.createTextNode(c.name));
+      row.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        if (chosen.length >= (auto.max || 5)) { showToast(`En fazla ${auto.max || 5} şampiyon`); return; }
+        saveAuto({ [key]: [...chosen, c.id] });
+        input.value = ""; sug.replaceChildren();
+      });
+      return row;
+    }));
+  };
+  input.addEventListener("input", suggest);
+  input.addEventListener("blur", () => setTimeout(() => sug.replaceChildren(), 100));
+});
 
 // ---- map skins ----
 const ICON_MAP = `__map__`, ICON_TRASH = `__trash__`;
@@ -1623,7 +2226,11 @@ function setVpop(open) {
 $("ver-pill").addEventListener("click", (e) => { e.stopPropagation(); setVpop($("vpop").hidden); });
 $("vpop").addEventListener("click", (e) => e.stopPropagation());
 document.addEventListener("click", () => setVpop(false));
-document.addEventListener("keydown", (e) => { if (e.key === "Escape") setVpop(false); });
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  if (!$("vpop").hidden) { setVpop(false); return; }
+  if (page !== "home") showPage("home");
+});
 // Applying restarts Spotify (and stops the music): a second click confirms
 function confirmed(button, idle, run) {
   if (button.dataset.armed && Date.now() - Number(button.dataset.armed) < 4000) {
@@ -1638,8 +2245,35 @@ $("sp-restore").addEventListener("click", (e) => confirmed(e.currentTarget, "Ori
 const shell = () => window.pywebview && window.pywebview.api;
 $("w-min").addEventListener("click", () => shell() && shell().minimize());
 $("w-close").addEventListener("click", () => shell() ? shell().close() : window.close());
+// Maximize (button or a double click on the title bar), F11 for full screen, edges to resize
+const ICON_MAX = `__max__`, ICON_RESTORE = `__restore__`;
+function setMode(mode) {
+  document.body.classList.toggle("maxed", mode !== "normal");
+  $("w-max").innerHTML = mode === "normal" ? ICON_MAX : ICON_RESTORE;
+  $("w-max").title = mode === "normal" ? "Büyüt (çift tık)" : "Eski boyutuna dön";
+}
+async function windowMode(call) {
+  if (!shell()) return;
+  try { setMode(await shell()[call]()); } catch (e) {}
+}
+$("w-max").addEventListener("click", () => windowMode("toggle_maximize"));
+$("top").addEventListener("dblclick", (e) => {
+  if (!e.target.closest("button, .win, .lg, .vpop")) windowMode("toggle_maximize");
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "F11") { e.preventDefault(); windowMode("toggle_fullscreen"); }
+});
+document.querySelectorAll(".rz").forEach((edge) => edge.addEventListener("mousedown", (e) => {
+  if (e.button !== 0 || !shell()) return;
+  e.preventDefault();
+  shell().begin_resize(edge.dataset.edge);
+}));
+window.addEventListener("pywebviewready", () => windowMode("mode"));
+$("back").addEventListener("click", () => showPage("home"));
+document.querySelectorAll(".ht").forEach((t) => t.addEventListener("click", () => showPage(t.dataset.go)));
 document.addEventListener("contextmenu", (e) => e.preventDefault());
 buildThemes();
+showPage("home");
 async function pollLoop() {
   await poll();
   setTimeout(pollLoop, state && state.resting ? 5000 : 800);

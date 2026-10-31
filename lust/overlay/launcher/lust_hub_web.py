@@ -912,6 +912,33 @@ PAGE = r"""<!doctype html>
   .ht:hover .dr-row.pick i:first-child { transform: translateY(-2px); }
   .dr-row i { transition: transform .2s; }
 
+  /* ==== Home: the Skins tile shows the champions with a custom skin on ==== */
+  #tile-maps .ht-bg.champ { background-position: 70% 20%; }
+  .ht-faces { right: 20px; top: 20px; gap: 0; }
+  .ht-faces i { width: 44px; height: 44px; margin-left: -12px; border: 2px solid rgba(52, 211, 153, .8);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, .5); background-size: 112%; background-position: center; }
+  .ht-faces i:first-child { margin-left: 0; }
+  .ht-faces em { align-self: center; margin-left: 8px; font-style: normal; font-size: 11px; font-weight: 800; color: #6ee7b7;
+    padding: 4px 9px; border-radius: 99px; background: rgba(6, 40, 30, .7); border: 1px solid rgba(52, 211, 153, .4); }
+
+  /* Champ select: the first ban crossed out, the first pick in a gold ring, a light for each switch */
+  .ht-cs { position: absolute; right: 22px; top: 18px; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+  .cs-duo { display: flex; align-items: flex-end; gap: 14px; }
+  .cs-p { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .cs-p i { display: block; border-radius: 50%; background: #0d1238 center / 112% no-repeat; box-shadow: 0 10px 24px rgba(0, 0, 0, .55); }
+  .cs-p em { font-style: normal; font-size: 9.5px; font-weight: 800; letter-spacing: .16em; }
+  .cs-p.pick i { width: 64px; height: 64px; border: 2px solid #f0d38a; box-shadow: 0 0 0 4px rgba(240, 211, 138, .15), 0 0 24px rgba(240, 211, 138, .45); }
+  .cs-p.pick em { color: #e8c983; }
+  .cs-p.ban i { position: relative; width: 44px; height: 44px; border: 2px solid rgba(244, 63, 94, .8); filter: saturate(.4) brightness(.75); }
+  .cs-p.ban i::after { content: ""; position: absolute; inset: 0; border-radius: 50%;
+    background: linear-gradient(135deg, transparent 45%, rgba(251, 113, 133, .95) 45% 55%, transparent 55%); }
+  .cs-p.ban em { color: #fb7185; }
+  .cs-p.off { opacity: .35; filter: grayscale(1); }
+  .cs-p i.empty { background: rgba(255, 255, 255, .05); border-style: dashed; filter: none; box-shadow: none; }
+  .cs-p i.empty::after { display: none; }
+  .ht:hover .cs-p.pick i { transform: scale(1.06); }
+  .cs-p i { transition: transform .25s cubic-bezier(.3, 1.6, .5, 1); }
+
   /* Champ select page: Auto Accept, Ban, Pick, Lobby Reveal */
   .au-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   .au { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 16px; cursor: pointer;
@@ -1047,7 +1074,7 @@ PAGE = r"""<!doctype html>
       <div class="ht-go">__arrow__</div>
     </div>
     <div class="ht" data-go="skins" id="tile-maps" style="--i:1;--c:52, 211, 153;--g:url(#hg2)">
-      <div class="ht-bg" id="t-maps-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i>
+      <div class="ht-bg" id="t-maps-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><div class="ht-faces" id="t-maps-faces"></div>
       <div class="ht-in"><div class="ht-orb"><svg viewBox="0 0 30 30"><path class="f" d="M4 8l7-3 8 3 7-3v17l-7 3-8-3-7 3z"/><path d="M11 5v17M19 8v17"/><circle class="s" cx="15" cy="13" r="2.4"/></svg></div>
         <b class="ht-ttl">Skinler ve Haritalar</b><span class="ht-st" id="t-maps"></span></div>
       <div class="ht-go">__arrow__</div>
@@ -1083,7 +1110,7 @@ PAGE = r"""<!doctype html>
       <div class="ht-go">__arrow__</div>
     </div>
     <div class="ht" data-go="auto" id="tile-auto" style="--i:7;--c:244, 63, 94;--g:url(#hg1)">
-      <div class="ht-bg" id="t-auto-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><div class="ht-draft" id="t-auto-draft"></div>
+      <div class="ht-bg" id="t-auto-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><div class="ht-cs" id="t-auto-draft"></div>
       <div class="ht-in"><div class="ht-orb"><svg viewBox="0 0 30 30"><path class="f" d="M5 22 3 9l6.5 5L15 5l5.5 9L27 9l-2 13z"/><path d="M6 26h18"/></svg></div>
         <b class="ht-ttl">Champ select</b><span class="ht-st" id="t-auto"></span></div>
       <div class="ht-go">__arrow__</div>
@@ -1813,7 +1840,16 @@ function drawTiles() {
   const sk = t.skins || {};
   const mapText = mp && mp.name ? mp.name : "Sihirdar Vadisi";
   fill("t-maps", sk.count ? [["b", `${sk.count} custom skin`], ` · ${sk.on || 0} açık · ${mapText}`] : [["b", mapText], " · custom skin ekle"]);
-  if (mp && mp.preview) setBg("t-maps-bg", `/map-preview?id=${encodeURIComponent(mp.id)}`);
+  const skinChamps = sk.champions || [];
+  const facesKey = JSON.stringify(skinChamps);
+  if ($("t-maps-faces").dataset.key !== facesKey) {
+    $("t-maps-faces").dataset.key = facesKey;
+    $("t-maps-faces").replaceChildren(...skinChamps.map((id) => {
+      const i = document.createElement("i"); i.style.backgroundImage = `url("${CHAMP_ICON(id)}")`; return i;
+    }), ...(skinChamps.length ? [Object.assign(document.createElement("em"), { textContent: "açık" })] : []));
+  }
+  if (skinChamps.length) setBg("t-maps-bg", CHAMP_SPLASH(skinChamps[0]), "champ");
+  else if (mp && mp.preview) setBg("t-maps-bg", `/map-preview?id=${encodeURIComponent(mp.id)}`);
   else setBg("t-maps-bg", RIFT, "rift");
   const wl = t.wallpaper;
   fill("t-wall", wl && !wl.league && wl.name ? [["b", wl.name.replace(/\.[^.]+$/, "")], ` · ${wl.count} duvar kağıdı`]
@@ -1858,26 +1894,22 @@ function drawTiles() {
   const draftKey = JSON.stringify([a.ban, a.pick, a.accept, reveal, a.bans, a.picks]);
   if ($("t-auto-draft").dataset.key !== draftKey) {
     $("t-auto-draft").dataset.key = draftKey;
-    const row = (kind, label, ids, on, slots) => {
-      const r = document.createElement("div");
-      r.className = `dr-row ${kind}${on ? "" : " off"}`;
-      const faces = document.createElement("span");
-      faces.className = "dr-faces";
-      const list = (ids || []).slice(0, slots);
-      for (let n = 0; n < slots; n++) {
-        const i = document.createElement("i");
-        if (list[n]) i.style.backgroundImage = `url("${CHAMP_ICON(list[n])}")`;
-        else i.className = "empty";
-        faces.append(i);
-      }
-      r.append(Object.assign(document.createElement("em"), { textContent: label }), faces);
-      return r;
+    const face = (kind, label, id, on) => {
+      const p = document.createElement("div");
+      p.className = `cs-p ${kind}${on ? "" : " off"}`;
+      const i = document.createElement("i");
+      if (id) i.style.backgroundImage = `url("${CHAMP_ICON(id)}")`; else i.className = "empty";
+      p.append(i, Object.assign(document.createElement("em"), { textContent: label }));
+      return p;
     };
+    const duo = document.createElement("div");
+    duo.className = "cs-duo";
+    duo.append(face("ban", "BAN", (a.bans || [])[0], !!a.ban), face("pick", "PICK", (a.picks || [])[0], !!a.pick));
     const leds = document.createElement("div");
     leds.className = "dr-leds";
-    leds.append(...[["Accept", a.accept], ["Reveal", reveal]].map(([label, on]) =>
+    leds.append(...[["Accept", a.accept], ["Ban", a.ban], ["Pick", a.pick], ["Reveal", reveal]].map(([label, on]) =>
       Object.assign(document.createElement("span"), { textContent: label, className: on ? "on" : "" })));
-    $("t-auto-draft").replaceChildren(row("pick", "PICK", a.picks, !!a.pick, 3), row("ban", "BAN", a.bans, !!a.ban, 3), leds);
+    $("t-auto-draft").replaceChildren(duo, leds);
   }
   const warn = (s.rose && s.rose.installed) || ((s.patcher || {}).state && s.patcher.state !== "ok") || s.update_available;
   fill("t-settings", warn ? [["b", s.update_available ? "Güncelleme hazır" : "Bakman gereken bir şey var", "warn"]]
@@ -2211,6 +2243,7 @@ fontDrop.addEventListener("drop", async (e) => {
 // ---- custom skins ----
 const ICON_SHIRT = `__shirt__`;
 const CHAMP_ICON = (id) => `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${id}.png`;
+const CHAMP_SPLASH = (id) => `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-splashes/${id}/${id}000.jpg`;
 let skinsData = null, skinsKey = "";
 // [badge, tooltip] for each patch status (pengu/communication/lust_custom_skins.status)
 const SKIN_STATUS = {

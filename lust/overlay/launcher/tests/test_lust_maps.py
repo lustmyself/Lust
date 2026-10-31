@@ -70,6 +70,40 @@ class StorageTests(unittest.TestCase):
         self.assertTrue(maps[0]["preview"])
         self.assertEqual(lust_maps.preview_bytes(maps[0]["id"]), (b"\x89PNG fake", "image/png"))
 
+    def _font_zip(self) -> bytes:
+        data = io.BytesIO()
+        with zipfile.ZipFile(data, "w") as z:
+            z.writestr("META/info.json", b"{}")
+            z.writestr("WAD/Bootstrap.windows.wad.client", b"font")
+        return data.getvalue()
+
+    def _patch_fonts(self):
+        from launcher import lust_fonts
+        p = patch.object(lust_fonts, "_storage", return_value=self.storage)
+        p.start()
+        self.addCleanup(p.stop)
+        return lust_fonts
+
+    def test_a_font_dropped_on_maps_goes_to_fonts(self):
+        fonts = self._patch_fonts()
+        self.assertIn("Fontlar", self._upload(name="koreanfont.fantome", data=self._font_zip()))
+        self.assertEqual(lust_maps.installed(), [])
+        self.assertEqual([e["name"] for e in self.storage.list_mods_for_category(fonts.CATEGORY)], ["koreanfont"])
+
+    def test_a_font_already_among_the_maps_moves_to_fonts(self):
+        fonts = self._patch_fonts()
+        work = Path(tempfile.mkdtemp())
+        self.addCleanup(lambda: __import__("shutil").rmtree(work, ignore_errors=True))
+        (work / "koreanfont.zip").write_bytes(self._font_zip())
+        lust_maps.import_file(work / "koreanfont.zip")
+        self._upload()
+        self.saved["map"] = "maps/koreanfont"
+        self.assertEqual([m["name"] for m in lust_maps.installed()], ["Winter Rift"])
+        self.assertNotIn("map", self.saved)
+        fonts_dir = self.storage.list_mods_for_category(fonts.CATEGORY)
+        self.assertEqual([e["name"] for e in fonts_dir], ["koreanfont"])
+        self.assertTrue((self.storage.mods_root / fonts_dir[0]["path"] / "WAD" / "Bootstrap.windows.wad.client").is_file())
+
     def test_other_files_are_refused(self):
         self.assertIn("Yalnızca", self._upload(name="notes.txt"))
         self.assertEqual(lust_maps.installed(), [])

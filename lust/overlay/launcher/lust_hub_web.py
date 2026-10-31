@@ -236,6 +236,10 @@ PAGE = r"""<!doctype html>
   .grid { display: grid; gap: 10px; }
   .g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dismiss { flex: none; width: 30px; height: 30px; margin-left: 4px; border: 0; border-radius: 9px; display: grid; place-items: center;
+    background: rgba(255, 255, 255, .05); color: var(--sub); cursor: pointer; transition: background .15s, color .15s; }
+  .dismiss:hover { background: rgba(255, 255, 255, .12); color: #fff; }
+  .dismiss svg { width: 13px; height: 13px; }
   .card { background: rgba(30, 27, 42, .42); backdrop-filter: blur(16px) saturate(1.2); border-radius: 14px;
     padding: 13px 14px; border: 1px solid rgba(255, 255, 255, .06); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05); }
   .tile { display: flex; align-items: center; gap: 12px; cursor: pointer; transition: background .15s, transform .15s, border-color .15s; }
@@ -991,11 +995,13 @@ PAGE = r"""<!doctype html>
       <div class="ico">__close__</div>
       <div class="t"><b>Rose da kurulu</b><span>İkisi aynı anda çalışınca LoL'de Rose'un gül simgesi çıkar ve çakışırlar. Lust, Rose'un yaptığı her şeyi zaten yapıyor.</span></div>
       <button class="btn danger" style="margin-left:auto" data-act="rose_uninstall">Rose'u kaldır</button>
+      <button class="dismiss" data-dismiss="rose" title="Kapat">__close__</button>
     </div>
     <div class="card rose" id="ltk" hidden>
       <div class="ico">__close__</div>
       <div class="t"><b id="ltk-t"></b><span id="ltk-b"></span></div>
       <button class="btn primary" style="margin-left:auto" id="ltk-btn" data-act="patcher_download">İndirme sayfasını aç</button>
+      <button class="dismiss" data-dismiss="ltk" title="Kapat">__close__</button>
     </div>
     <div class="card prompt" id="prompt" hidden>
       <div class="t"><b id="q-title"></b><span id="q-body"></span></div>
@@ -1259,6 +1265,18 @@ PAGE = r"""<!doctype html>
 <div id="lost">Lust yeniden başlıyor…</div>
 <script>
 const TOKEN = __TOKEN__;
+// Warnings closed with their X stay closed until Lust starts again (a new token), and a
+// different warning on the same card shows again
+let dismissed = {};
+try {
+  const saved = JSON.parse(localStorage.getItem("lust-dismissed") || "{}");
+  if (saved.token === TOKEN) dismissed = saved.keys || {};
+} catch (e) { /* storage off: closed warnings come back on the next window */ }
+const isDismissed = (card, state) => dismissed[card] === String(state);
+function dismiss(card, state) {
+  dismissed[card] = String(state);
+  try { localStorage.setItem("lust-dismissed", JSON.stringify({ token: TOKEN, keys: dismissed })); } catch (e) { /* see above */ }
+}
 const THEMES = __THEMES__;
 const $ = (id) => document.getElementById(id);
 let state = null, toastId = null, quitArmed = 0, choice = null, newsKey = "", failures = 0;
@@ -1556,9 +1574,9 @@ function render(s) {
   $("h-bar").classList.toggle("busy", busy);
   $("h-bar").firstElementChild.style.width = busy ? "" : `${s.progress}%`;
 
-  $("rose").hidden = !(s.rose && s.rose.installed);
+  $("rose").hidden = !(s.rose && s.rose.installed) || isDismissed("rose", "installed");
   const ltk = s.patcher || {};
-  $("ltk").hidden = !ltk.state || ltk.state === "ok";
+  $("ltk").hidden = !ltk.state || ltk.state === "ok" || isDismissed("ltk", ltk.state);
   if (!$("ltk").hidden) {
     $("ltk-t").textContent = LTK_TITLE[ltk.state] || LTK_TITLE.missing;
     $("ltk-b").textContent = ltk.waiting
@@ -2409,6 +2427,11 @@ document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () 
 document.querySelectorAll("[data-act]").forEach((el) => el.addEventListener("click", () => {
   if (el.classList.contains("live")) return;
   act(el.dataset.act, el.dataset.body ? JSON.parse(el.dataset.body) : {});
+}));
+document.querySelectorAll("[data-dismiss]").forEach((b) => b.addEventListener("click", () => {
+  const card = b.dataset.dismiss, st = state || {};
+  dismiss(card, card === "ltk" ? (st.patcher || {}).state : "installed");
+  $(card).hidden = true;
 }));
 document.querySelectorAll(".status-seg button").forEach((b) => b.addEventListener("click", () => act("status", { value: b.dataset.status })));
 $("a-quit").addEventListener("click", () => {

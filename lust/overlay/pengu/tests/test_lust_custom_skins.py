@@ -117,6 +117,25 @@ class CustomSkinsTests(unittest.TestCase):
         self.build += 1  # crashed on the patch before: not known for this one
         self.assertEqual(skins.list_skins()[0]["status"], "untested")
 
+    def _bundled(self, fresh):
+        asset = self.root / "asset.modpkg"
+        asset.write_bytes(b"x")
+        if not fresh:
+            (self.root / "lust_fonts.json").write_text("{}")
+        with patch("utils.core.paths.get_asset_path", return_value=asset):
+            skins.ensure_default()
+            skins.ensure_default()
+
+    def test_a_fresh_install_gets_the_talon_skin_switched_on(self):
+        self._bundled(fresh=True)
+        state = skins._load()[skins.DEFAULT_SKIN]
+        self.assertEqual((state["championId"], state["enabled"]), (91, True))
+        self.assertTrue((skins.folder() / skins.DEFAULT_SKIN).is_file())
+
+    def test_an_update_leaves_custom_skins_alone(self):
+        self._bundled(fresh=False)
+        self.assertFalse((skins.folder() / skins.DEFAULT_SKIN).exists())
+
     def test_a_game_without_the_skin_does_not_blame_it(self):
         _fantome(skins.folder() / "a.fantome")
         self._play()

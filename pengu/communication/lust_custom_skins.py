@@ -299,6 +299,41 @@ def custom_mod_for(champion_id, skin_id) -> Optional[dict]:
     return None
 
 
+# Lust ships one custom skin, switched on for new players (assets/lust_custom_skins)
+DEFAULT_SKIN = "Talon Acheron - Origin V1.0.7 by ikiryou.modpkg"
+DEFAULT_TITLE = "Talon Acheron - Origin (ikiryou)"
+DEFAULT_CHAMPION = 91  # Talon
+DEFAULT_MARKER = "lust-custom-default.json"  # in Lust's user data folder: {"done": true}
+
+
+def ensure_default() -> None:
+    """On a fresh install: add the bundled Talon skin and switch it on, once. Players who
+    had Lust before (the fonts marker is there) keep their own custom skins as they are."""
+    from utils.core.paths import get_asset_path
+    data_dir = Path(get_user_data_dir())
+    marker = data_dir / DEFAULT_MARKER
+    if marker.exists():
+        return
+    try:
+        fresh = not (data_dir / "lust_fonts.json").exists()
+        source = get_asset_path(f"lust_custom_skins/{DEFAULT_SKIN}")
+        target = folder() / DEFAULT_SKIN
+        if fresh and source.is_file() and not target.exists():
+            import shutil
+            shutil.copyfile(source, target)
+            with _lock:
+                state = _load()
+                taken = any(isinstance(e, dict) and e.get("enabled") and e.get("championId") == DEFAULT_CHAMPION
+                            for e in state.values())
+                state[DEFAULT_SKIN] = {"title": DEFAULT_TITLE, "championId": DEFAULT_CHAMPION,
+                                       "enabled": not taken, "auto": True}
+                _save(state)
+            log.info(f"[CustomSkins] Added the bundled {DEFAULT_TITLE}")
+        marker.write_text(json.dumps({"done": True}), encoding="utf-8")
+    except Exception as exc:  # noqa: BLE001
+        log.warning(f"[CustomSkins] Could not add the bundled skin: {exc}")
+
+
 def game_ran_fine() -> None:
     """The game ran past the crash window with the mods in: the custom skin in play works on this patch."""
     name, build = _playing, _playing_build

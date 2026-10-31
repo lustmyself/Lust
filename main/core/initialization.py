@@ -58,6 +58,12 @@ def initialize_core_components(args, injection_threshold: Optional[float] = None
         except Exception as e:  # noqa: BLE001
             log.debug(f"[Maps] Hub map picks stay saved choices only: {e}")
         try:
+            # Before the fonts: their marker tells a fresh install from an update
+            from pengu.communication.lust_custom_skins import ensure_default as _lust_default_skin
+            _lust_default_skin()
+        except Exception as e:  # noqa: BLE001
+            log.debug(f"[CustomSkins] Bundled skin not set up: {e}")
+        try:
             from launcher import lust_fonts
             lust_fonts.attach_state(state)
             lust_fonts.ensure_default()

@@ -768,7 +768,13 @@ PAGE = r"""<!doctype html>
     letter-spacing: -.04em; line-height: 1; pointer-events: none;
     background: linear-gradient(160deg, rgba(255, 255, 255, .22), rgba(255, 255, 255, .02)); -webkit-background-clip: text; color: transparent; }
   .ht-glyph.gold { background: linear-gradient(160deg, rgba(253, 230, 138, .6), rgba(245, 158, 11, .06)); -webkit-background-clip: text; }
-  #tile-patch .ht-bg, #tile-fonts .ht-bg, #tile-auto .ht-bg, #tile-settings .ht-bg { opacity: 1; animation: none; inset: 0; }
+  #tile-patch .ht-bg, #tile-fonts .ht-bg, #tile-auto .ht-bg, #tile-settings .ht-bg, #tile-spotify .ht-bg { opacity: 1; animation: none; inset: 0; }
+  #tile-spotify .ht-bg { background: radial-gradient(340px 220px at 88% 70%, rgba(30, 215, 96, .32), transparent 70%), linear-gradient(135deg, #0c2a1a, #0f1440); }
+  .ht-sp-big { position: absolute; right: -34px; bottom: -48px; width: 200px; height: 200px; pointer-events: none;
+    opacity: .9; filter: drop-shadow(0 10px 40px rgba(30, 215, 96, .35)); }
+  .ht.playing .ht-sp-big { animation: sppulse 2.4s ease-in-out infinite; }
+  @keyframes sppulse { 50% { transform: scale(1.05); filter: drop-shadow(0 10px 50px rgba(30, 215, 96, .6)); } }
+  @media (prefers-reduced-motion: reduce) { .ht-sp-big { animation: none; } }
   #tile-patch .ht-bg { background: radial-gradient(320px 200px at 85% 20%, rgba(245, 158, 11, .45), transparent 70%), linear-gradient(135deg, #3b2a0a, #0f1440); }
   #tile-fonts .ht-bg { background: radial-gradient(380px 220px at 90% 10%, rgba(251, 146, 60, .25), transparent 70%), linear-gradient(135deg, #2a1530, #0f1440); }
   #tile-auto .ht-bg { background: radial-gradient(360px 220px at 90% 10%, rgba(244, 63, 94, .3), transparent 70%), linear-gradient(135deg, #2b0f24, #0f1440); }
@@ -946,7 +952,7 @@ PAGE = r"""<!doctype html>
       <div class="ht-go">__arrow__</div>
     </div>
     <div class="ht" data-go="spotify" id="tile-spotify" style="--i:6;--c:30, 215, 96;--g:url(#hg7)">
-      <div class="ht-bg" id="t-spotify-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><span class="ht-eq" id="t-eq" hidden><i></i><i></i><i></i><i></i></span>
+      <div class="ht-bg" id="t-spotify-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><svg class="ht-sp-big" viewBox="0 0 24 24"><defs><linearGradient id="spg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4ef08a"/><stop offset="1" stop-color="#0f8a3c"/></linearGradient></defs><circle cx="12" cy="12" r="11" fill="url(#spg)" stroke="none" opacity=".5"/><path d="M6.3 9.2c3.8-1.2 8.3-.9 11.6 1.1M6.9 12.5c3.1-.9 6.8-.6 9.5 1M7.5 15.6c2.5-.6 5.1-.4 7.2.8" stroke="#08130d" stroke-opacity=".75" stroke-width="1.9" stroke-linecap="round" fill="none"/></svg><span class="ht-eq" id="t-eq" hidden><i></i><i></i><i></i><i></i></span>
       <div class="ht-in"><div class="ht-orb art"><svg class="sp-logo" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#1ed760" stroke="none"/><path d="M6.3 9.2c3.8-1.2 8.3-.9 11.6 1.1M6.9 12.5c3.1-.9 6.8-.6 9.5 1M7.5 15.6c2.5-.6 5.1-.4 7.2.8" stroke="#0b0b0b" stroke-width="1.9" fill="none"/></svg></div>
         <b class="ht-ttl">Spotify</b><span class="ht-st" id="t-spotify"></span></div>
       <div class="ht-go">__arrow__</div>
@@ -1558,16 +1564,20 @@ function fill(id, parts) {
 function setBg(id, url, cls) {
   const el = $(id);
   if (!url) { el.classList.remove("on"); el.dataset.url = ""; return; }
-  if (el.dataset.url === url) return;
-  el.dataset.url = url;
+  if (el.dataset.url === String(url)) return;
+  el.dataset.url = String(url);
   const img = new Image();
+  // A list of urls: the first that loads wins
+  const urls = Array.isArray(url) ? url : [url];
+  let i = 0;
   img.onload = () => {
-    if (el.dataset.url !== url) return;
-    el.style.backgroundImage = `url("${url}")`;
-    el.className = el.className.replace(/ rift/g, "") + (cls ? ` ${cls}` : "");
+    if (el.dataset.url !== String(url)) return;
+    el.style.backgroundImage = `url("${urls[i]}")`;
+    el.className = el.className.replace(/ rift/g, "") + (cls && i === urls.length - 1 ? ` ${cls}` : "");
     el.classList.add("on");
   };
-  img.src = url;
+  img.onerror = () => { if (++i < urls.length && el.dataset.url === String(url)) img.src = urls[i]; };
+  img.src = urls[0];
 }
 function setArt(id, url) {
   const el = $(id);
@@ -1600,7 +1610,10 @@ function drawHome(s) {
 }
 
 let tiles = {}, auto = null;
-const RIFT = "https://ddragon.leagueoflegends.com/cdn/6.8.1/img/map/map11.png";
+// Summoner's Rift art from the client's own game mode assets; the minimap if neither loads
+const SRU = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/content/src/leagueclient/gamemodeassets/classic_sru/img/";
+const RIFT = [SRU + "champ-select-flyout-background.jpg", SRU + "gameflow-background.jpg",
+  "https://ddragon.leagueoflegends.com/cdn/6.8.1/img/map/map11.png"];
 function drawTiles() {
   const s = state || {}, t = tiles || {}, hero = s.hero || {}, off = s.offline || {};
   // LoL: the welcome card's rank and last match
@@ -1638,7 +1651,7 @@ function drawTiles() {
   const on = !!media.available;
   fill("t-spotify", on ? [["b", media.title || "Bilinmeyen şarkı"], media.artist ? ` · ${media.artist}` : ""] : ["Spotify'da bir şey çalmıyor"]);
   $("t-eq").hidden = !(on && media.playing);
-  setBg("t-spotify-bg", on && media.cover ? `/cover.jpg?v=${media.cover}` : "");
+  $("tile-spotify").classList.toggle("playing", !!(on && media.playing));
   const a = auto || {};
   const names = [["accept", "Accept"], ["ban", "Ban"], ["pick", "Pick"]];
   const reveal = !!((a.reveal || {}).on);

@@ -1087,6 +1087,12 @@ EDITS += [
      '            log.debug(f"[Maps] Hub map picks stay saved choices only: {e}")\n',
      '            log.debug(f"[Maps] Hub map picks stay saved choices only: {e}")\n'
      '        try:\n'
+     '            # Before the fonts: their marker tells a fresh install from an update\n'
+     '            from pengu.communication.lust_custom_skins import ensure_default as _lust_default_skin\n'
+     '            _lust_default_skin()\n'
+     '        except Exception as e:  # noqa: BLE001\n'
+     '            log.debug(f"[CustomSkins] Bundled skin not set up: {e}")\n'
+     '        try:\n'
      '            from launcher import lust_fonts\n'
      '            lust_fonts.attach_state(state)\n'
      '            lust_fonts.ensure_default()\n'

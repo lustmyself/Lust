@@ -1212,6 +1212,8 @@ EDITS += [
      '            return\n'
      '        if payload_type == "lust-assets":\n'),
     ("Lust.spec", "    'launcher.lust_auto',\n", "    'launcher.lust_auto',\n    'launcher.lust_wallpaper',\n"),
+    # Sign in with Discord (launcher/lust_discord.py)
+    ("Lust.spec", "    'launcher.lust_wallpaper',\n", "    'launcher.lust_wallpaper',\n    'launcher.lust_discord',\n"),
 ]
 
 

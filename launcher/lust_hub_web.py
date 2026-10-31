@@ -741,6 +741,21 @@ PAGE = r"""<!doctype html>
   .hm-name b { background: linear-gradient(90deg, #a99dff, #f0abfc); -webkit-background-clip: text; color: transparent; }
   .hm-name i { font-style: normal; color: var(--faint); font-weight: 600; }
   .hm-sub { margin-top: 6px; color: var(--sub); font-size: 13px; min-height: 18px; }
+  .hm-sub .dc-out { margin-left: 8px; border: 0; background: none; color: var(--faint); font: inherit; font-size: 12px; cursor: pointer; padding: 0; }
+  .hm-sub .dc-out:hover { color: #f87171; text-decoration: underline; }
+  .hm-av { position: relative; flex: none; width: 64px; height: 64px; align-self: center; }
+  .hm-av[hidden] { display: none; }
+  .hm-av i { position: absolute; inset: 0; border-radius: 50%; background: #5865f2 center / cover no-repeat;
+    box-shadow: 0 0 0 3px rgba(88, 101, 242, .55), 0 10px 26px -8px rgba(88, 101, 242, .9); }
+  .hm-av b { position: absolute; right: -4px; bottom: -2px; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
+    background: #5865f2; color: #fff; box-shadow: 0 0 0 3px var(--bg, #0b0e2a); }
+  .hm-av b svg { width: 14px; height: 14px; }
+  .dc-login { display: inline-flex; align-items: center; gap: 9px; margin-top: 10px; height: 36px; padding: 0 16px; border: 0; border-radius: 11px;
+    background: #5865f2; color: #fff; font: inherit; font-weight: 700; font-size: 13px; cursor: pointer;
+    box-shadow: 0 10px 24px -10px rgba(88, 101, 242, .95); transition: transform .15s, filter .15s; }
+  .dc-login:hover { transform: translateY(-1px); filter: brightness(1.1); }
+  .dc-login[hidden] { display: none; }
+  .dc-login svg { width: 18px; height: 18px; }
   .hm-seg { margin: 0 0 4px 10px; flex: none; }
   .hm-seg button { padding: 6px 13px; font-size: 12.5px; }
   .hm-play { margin-left: auto; flex: none; display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 22px 0 8px;
@@ -997,8 +1012,10 @@ PAGE = r"""<!doctype html>
 
   <section class="page active" id="page-home">
     <div class="home-head">
+      <div class="hm-av" id="hm-av" hidden><i id="hm-av-img"></i><b><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18.2 18.2 0 0 0-5.6 0L8.6 3a19.5 19.5 0 0 0-4.9 1.4C.6 9 0 13.5.3 18a19.7 19.7 0 0 0 6 3l1.3-2a12.7 12.7 0 0 1-2-1l.5-.4a14 14 0 0 0 11.8 0l.5.4c-.6.4-1.3.7-2 1l1.3 2a19.6 19.6 0 0 0 6-3c.4-5.2-.7-9.7-3.4-13.6ZM8.5 15.3c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.1 1.1 2.1 2.4-.9 2.4-2.1 2.4Zm7 0c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.1 1.1 2.1 2.4-.9 2.4-2.1 2.4Z"/></svg></b></div>
       <div class="hm-text"><small id="hm-hi">Hoş geldin</small><h2 class="hm-name" id="hm-name">Lust başlıyor</h2>
-        <div class="hm-sub" id="hm-sub"></div></div>
+        <div class="hm-sub" id="hm-sub"></div>
+        <button class="dc-login" id="hm-dc" data-act="discord_login" hidden><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18.2 18.2 0 0 0-5.6 0L8.6 3a19.5 19.5 0 0 0-4.9 1.4C.6 9 0 13.5.3 18a19.7 19.7 0 0 0 6 3l1.3-2a12.7 12.7 0 0 1-2-1l.5-.4a14 14 0 0 0 11.8 0l.5.4c-.6.4-1.3.7-2 1l1.3 2a19.6 19.6 0 0 0 6-3c.4-5.2-.7-9.7-3.4-13.6ZM8.5 15.3c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.1 1.1 2.1 2.4-.9 2.4-2.1 2.4Zm7 0c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.1 1.1 2.1 2.4-.9 2.4-2.1 2.4Z"/></svg>Discord ile giriş yap</button></div>
       <div class="seg status-seg hm-seg" id="hm-seg" title="LoL'de nasıl görüneceğin (Lust Offline)"><button data-status="online">Çevrimiçi</button><button data-status="offline">Çevrimdışı</button><button data-status="mobile">Mobil</button></div>
       <button class="hm-play" id="hm-league" data-act="league"><i class="hm-orb">__play__</i><span id="hm-league-t">League'i aç</span></button>
     </div>
@@ -1725,13 +1742,28 @@ function drawHome(s) {
   const starting = s.phase !== "ready";
   const hero = s.hero || {};
   $("hm-hi").textContent = starting ? (s.detail || "Lust hazırlanıyor") : greeting();
-  fill("hm-name", starting ? [s.status || "Lust başlıyor"]
-    : hero.name ? [["b", hero.name], ["i", hero.tag ? ` #${hero.tag}` : ""]] : [["b", "Lust"], " hazır"]);
-  const sub = [];
-  if (!starting && hero.rank) sub.push(hero.rank);
-  if (!starting && (hero.wins || hero.losses)) sub.push(`${hero.wins}G ${hero.losses}M`);
-  if (!starting && hero.last) sub.push(`Son maç: ${hero.last.champion} · ${hero.last.win ? "Galibiyet" : "Mağlubiyet"}`);
-  $("hm-sub").textContent = starting ? (s.transfer || "") : sub.join(" · ");
+  // The Discord account greets the player here; the LoL name stays on the Profile page
+  const dc = s.discord || {}, du = dc.user;
+  fill("hm-name", starting ? [s.status || "Lust başlıyor"] : du ? [["b", du.name]] : [["b", "Lust"], " hazır"]);
+  $("hm-av").hidden = starting || !du;
+  if (du) {
+    const av = du.avatar ? `/discord-avatar.png?v=${du.avatar}` : "";
+    if ($("hm-av-img").dataset.url !== av) { $("hm-av-img").dataset.url = av; $("hm-av-img").style.backgroundImage = av ? `url("${av}")` : ""; }
+  }
+  $("hm-dc").hidden = starting || !!du || !dc.available;
+  if (starting) $("hm-sub").textContent = s.transfer || "";
+  else if (du) {
+    const key = `@${du.username}`;
+    if ($("hm-sub").dataset.key !== key) {
+      $("hm-sub").dataset.key = key;
+      const out = Object.assign(document.createElement("button"), { className: "dc-out", textContent: "Çıkış yap" });
+      out.addEventListener("click", () => act("discord_logout"));
+      $("hm-sub").replaceChildren(document.createTextNode(`@${du.username} · Discord`), out);
+    }
+  } else {
+    $("hm-sub").dataset.key = "";
+    $("hm-sub").textContent = dc.available ? "Discord ile giriş yap, adın burada görünsün" : "";
+  }
   const busy = s.progress === null || s.progress === undefined;
   $("h-bar").hidden = !starting;
   $("h-bar").classList.toggle("busy", busy);

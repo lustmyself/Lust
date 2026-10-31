@@ -126,6 +126,15 @@ class _Handler(BaseHTTPRequestHandler):
             if preview:
                 return self._send(200, preview.read_bytes(), "image/png")
             return self._send(404)
+        if path == "/discord":
+            from launcher.lust_discord import CALLBACK_PAGE
+            return self._send(200, CALLBACK_PAGE.encode("utf-8"), "text/html; charset=utf-8")
+        if path == "/discord-avatar.png":
+            from launcher import lust_discord
+            try:
+                return self._send(200, lust_discord.avatar_path().read_bytes(), "image/png")
+            except OSError:
+                return self._send(404)
         if path == "/hero.jpg":
             from launcher import lust_hero
             try:
@@ -221,6 +230,20 @@ class _Handler(BaseHTTPRequestHandler):
         return self._send(404)
 
     def do_POST(self) -> None:  # noqa: N802
+        # Discord's sign-in comes back in the player's browser, which has no hub token:
+        # the one-time state the hub made for this sign-in is the proof
+        if self._allowed_host() and self.path == "/discord/finish":
+            try:
+                length = min(int(self.headers.get("Content-Length") or 0), 4096)
+                body = json.loads(self.rfile.read(length) or b"{}")
+            except ValueError:
+                body = {}
+            body = body if isinstance(body, dict) else {}
+            from launcher import lust_discord, lust_hub
+            message = lust_discord.finish(body.get("access_token"), body.get("state"))
+            lust_hub.toast(message)
+            lust_hub._cache.pop("discord", None)
+            return self._send(200, json.dumps({"message": message}).encode("utf-8"), "application/json")
         if self._authorized() and self.path.startswith("/api/media/"):
             from launcher import lust_media
             ok = lust_media.control(self.path.rsplit("/", 1)[-1])

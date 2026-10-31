@@ -315,6 +315,28 @@ def _open_link(url: str) -> str:
     return ""
 
 
+def _discord_login() -> str:
+    from launcher import lust_discord, lust_hub_server
+    link = lust_discord.login_url(lust_hub_server._port)
+    if not link:
+        return "Discord girişi bu sürümde yok"
+    import webbrowser
+    webbrowser.open(link)
+    _cache.pop("discord", None)
+    return "Discord tarayıcıda açıldı: girişi onayla"
+
+
+def _discord_logout() -> str:
+    from launcher import lust_discord
+    _cache.pop("discord", None)
+    return lust_discord.logout()
+
+
+def _discord() -> dict:
+    from launcher import lust_discord
+    return {"available": lust_discord.available(), "user": lust_discord.user()}
+
+
 def _wallpaper():
     from launcher import lust_wallpaper
     return lust_wallpaper
@@ -458,6 +480,7 @@ def snapshot() -> dict:
         auto_update=_cached("auto_update", 5, _auto_update_on),
         pending=_auto_update_pending(),
         hero=_hero(),
+        discord=_cached("discord", 3, _discord) or {"available": False, "user": None},
         settings=_settings(),
         resting=_resting(),
         cache_mb=_cached("cache_mb", 60, _cache_mb),
@@ -555,6 +578,8 @@ ACTIONS: dict[str, Callable[[dict], str]] = {
     "spotify_auto": lambda body: _spotify_auto(),
     "rose_uninstall": lambda body: _rose_uninstall(),
     "patcher_download": lambda body: _patcher_download(),
+    "discord_login": lambda body: _discord_login(),
+    "discord_logout": lambda body: _discord_logout(),
     "map_select": lambda body: _maps().select(body.get("id") or None),
     "map_delete": lambda body: _maps().delete(str(body.get("id") or "")),
     "map_install": lambda body: _maps().install(str(body.get("id") or "")),

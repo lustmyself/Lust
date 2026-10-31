@@ -1,6 +1,7 @@
 {
-  "version": "1.4.9.67",
+  "version": "1.4.9.68",
   "en": [
+    "Sign in with Discord: your Discord name and picture greet you on the home page; your LoL name stays on the Profile page",
     "The game mode icons in the League client's play menu are League's own again",
     "The Profile tile shows your last match's champion and your win rate instead of the rank emblem",
     "Online / Offline / Mobile can be switched right next to your name on the home page",
@@ -62,6 +63,7 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "Discord ile giriş: ana sayfada Discord adın ve profil resmin görünüyor; LoL adın Profil sayfasında duruyor",
     "LoL istemcisinin oyna menüsündeki oyun modu simgeleri yeniden LoL'ün kendi renginde",
     "Profil kutucuğunda rank amblemi yerine son maçındaki şampiyon ve kazanma oranın görünüyor",
     "Çevrimiçi / Çevrimdışı / Mobil artık ana sayfada adının yanından da seçilebiliyor",

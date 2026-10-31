@@ -88,6 +88,8 @@ PAGE = r"""<!doctype html>
   @keyframes float1 { to { transform: translate(180px, 120px) scale(1.15); } }
   @keyframes float2 { to { transform: translate(-160px, -90px) scale(1.1); } }
   .rail, .main { position: relative; z-index: 1; }
+  /* The rail sits above the page so a tab's label is never hidden behind it */
+  .rail { z-index: 3; }
   svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
   /* Side rail: icon tiles that grow under the mouse */
@@ -130,7 +132,8 @@ PAGE = r"""<!doctype html>
   .tab[data-page="spotify"].active { background: linear-gradient(135deg, #12873d, #1ed760); color: #fff; box-shadow: 0 6px 16px rgba(29, 185, 84, .4); }
   .tab::after { content: attr(data-label); position: absolute; left: 58px; padding: 5px 10px; border-radius: 8px;
     background: #2a2540; color: var(--text); font-size: 12px; white-space: nowrap; opacity: 0; pointer-events: none;
-    transform: translateX(-6px); transition: .15s; }
+    transform: translateX(-6px); transition: .15s; z-index: 5; box-shadow: 0 6px 18px rgba(0, 0, 0, .45);
+    border: 1px solid rgba(255, 255, 255, .08); }
   .tab:hover::after { opacity: 1; transform: none; }
   .rail .spacer { flex: 1; }
   .rail .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 10px currentColor; }

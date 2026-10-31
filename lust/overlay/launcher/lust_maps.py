@@ -72,11 +72,65 @@ def preview_path(storage, map_id: str) -> Optional[Path]:
     return None
 
 
+def _wad_names(paths) -> set:
+    """The WAD files (lower case) among a mod's file paths; a WAD may be a file or a folder."""
+    names = set()
+    for path in paths:
+        for part in str(path).replace("\\", "/").lower().split("/"):
+            if part.endswith((".wad.client", ".wad")):
+                names.add(part)
+    return names
+
+
+def _looks_like_font(paths) -> bool:
+    """A font mod: it changes the Bootstrap/UI WADs and no map WAD."""
+    wads = _wad_names(paths)
+    if not wads or any(name.startswith("map") for name in wads):
+        return False
+    return any(name.startswith(("bootstrap", "ui.")) for name in wads)
+
+
+def is_font_mod(folder: Path) -> bool:
+    """A font mod that ended up among the maps (its extracted folder)."""
+    try:
+        return _looks_like_font(p.relative_to(folder) for p in folder.rglob("*"))
+    except OSError:
+        return False
+
+
+def _move_to_fonts(storage, entry) -> bool:
+    """Hand a font mod found in the maps folder to the Fonts page, then drop it from the maps."""
+    folder = storage.mods_root / entry["path"]
+    name = entry.get("displayName") or entry["name"]
+    work = Path(tempfile.mkdtemp(prefix="lust-map-font-"))
+    try:
+        archive = shutil.make_archive(str(work / entry["name"]), "zip", root_dir=str(folder))
+        from launcher import lust_fonts
+        lust_fonts.import_file(Path(archive), display_name=name)
+    except Exception as e:  # noqa: BLE001
+        log.warning(f"[Maps] Could not move font mod {entry['name']} to Fonts: {e}")
+        return False
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+    if _selected() == entry["id"]:
+        select(None)
+    storage.delete_category_mod(CATEGORY, entry["id"].split("/", 1)[-1])
+    log.info(f"[Maps] {entry['name']} is a font mod: moved it to Fonts")
+    return True
+
+
 def installed() -> list:
     storage = _storage()
+    entries = storage.list_mods_for_category(CATEGORY)
+    misplaced = [e for e in entries if is_font_mod(storage.mods_root / e["path"])]
+    if misplaced:
+        for entry in misplaced:
+            _move_to_fonts(storage, entry)
+        skip = {e["id"] for e in misplaced}
+        entries = [e for e in storage.list_mods_for_category(CATEGORY) if e["id"] not in skip]
     chosen = _selected()
     maps = []
-    for entry in storage.list_mods_for_category(CATEGORY):
+    for entry in entries:
         maps.append({
             "id": entry["id"],
             "name": entry.get("displayName") or entry["name"],
@@ -196,6 +250,15 @@ def import_file(path: Path, display_name: Optional[str] = None) -> str:
     return mod_name
 
 
+def _archive_is_font(path: Path) -> bool:
+    """A dropped archive that is a font mod (it goes to the Fonts page instead)."""
+    try:
+        from utils.core.safe_extract import list_mod_archive
+        return _looks_like_font(list_mod_archive(path))
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def import_upload(name: str, stream, length: int) -> str:
     """A file dropped on the hub page, streamed in from the hub server."""
     suffix = Path(name or "").suffix.lower()
@@ -214,6 +277,10 @@ def import_upload(name: str, stream, length: int) -> str:
                     return "Dosya yarım geldi"
                 handle.write(chunk)
                 left -= len(chunk)
+        if _archive_is_font(target):
+            from launcher import lust_fonts
+            mod_name = lust_fonts.import_file(target)
+            return f"{mod_name} bir font modu: Fontlar sekmesine eklendi"
         mod_name = import_file(target)
         return f"{mod_name} eklendi"
     except (OSError, ValueError) as e:

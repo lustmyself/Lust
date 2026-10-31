@@ -1,6 +1,7 @@
 {
-  "version": "1.4.9.65",
+  "version": "1.4.9.66",
   "en": [
+    "Fixed a wallpaper picked in the app not showing in the League client",
     "The Patch notes tile is now the Wallpaper tile: pick the League client's background (picture or video, or League's own) from the app, or drop a new one on the page",
     "The LoL tile is now called Profile",
     "The LUST tab no longer shows at the top of the League client",
@@ -54,6 +55,7 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "Uygulamada seçilen duvar kağıdının LoL istemcisinde görünmemesi düzeltildi",
     "Patch notes kutucuğu artık Duvar kağıdı: LoL istemcisinin arka planını (resim, video ya da LoL'ün kendisi) uygulamadan seç, yenisini sayfaya sürükleyip ekle",
     "LoL kutucuğunun adı artık Profil",
     "LoL istemcisinin üstündeki LUST sekmesi artık görünmüyor",

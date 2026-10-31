@@ -52,6 +52,17 @@ class ChooseTests(unittest.TestCase):
     def test_no_session(self):
         self.assertIsNone(lust_auto.choose(None, ON))
 
+    def test_without_the_in_progress_flag_the_open_group_is_current(self):
+        session = _session("pick")
+        for group in session["actions"]:
+            for action in group:
+                action.pop("isInProgress", None)
+        self.assertEqual(lust_auto.choose(session, ON), (7, 103, "pick"))
+
+    def test_an_empty_allowed_list_does_not_block(self):
+        session = _session("ban")
+        self.assertEqual(lust_auto.choose(session, ON, bannable=None), (7, 238, "ban"))
+
 
 if __name__ == "__main__":
     unittest.main()

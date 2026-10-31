@@ -105,7 +105,7 @@ export default {
 	"Custom-Rank-Icon"              : false,
 	"Custom-Emblem"                 : false,
 	"Custom-Clash-banner"			: false,
-	"Custom-Gamemode-Icon"			: true,
+	"Custom-Gamemode-Icon"			: false,
 	"Custom-Trophy"                 : false,
 	"Custom-Ticker"                 : false,
 	"Custom-Cursor"                 : false,

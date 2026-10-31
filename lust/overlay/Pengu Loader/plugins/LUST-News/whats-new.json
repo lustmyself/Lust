@@ -1,6 +1,9 @@
 {
-  "version": "1.4.9.66",
+  "version": "1.4.9.67",
   "en": [
+    "The game mode icons in the League client's play menu are League's own again",
+    "The Profile tile shows your last match's champion and your win rate instead of the rank emblem",
+    "Online / Offline / Mobile can be switched right next to your name on the home page",
     "Fixed a wallpaper picked in the app not showing in the League client",
     "Auto Ban bans again: it hovers, locks in and checks the ban really went through",
     "The Patch notes tile is now the Wallpaper tile: pick the League client's background (picture or video, or League's own) from the app, or drop a new one on the page",
@@ -56,6 +59,9 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "LoL istemcisinin oyna menüsündeki oyun modu simgeleri yeniden LoL'ün kendi renginde",
+    "Profil kutucuğunda rank amblemi yerine son maçındaki şampiyon ve kazanma oranın görünüyor",
+    "Çevrimiçi / Çevrimdışı / Mobil artık ana sayfada adının yanından da seçilebiliyor",
     "Uygulamada seçilen duvar kağıdının LoL istemcisinde görünmemesi düzeltildi",
     "Auto Ban yeniden banlıyor: şampiyonu seçip kilitliyor ve banın gerçekten atıldığını kontrol ediyor",
     "Patch notes kutucuğu artık Duvar kağıdı: LoL istemcisinin arka planını (resim, video ya da LoL'ün kendisi) uygulamadan seç, yenisini sayfaya sürükleyip ekle",

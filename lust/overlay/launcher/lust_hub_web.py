@@ -724,6 +724,8 @@ PAGE = r"""<!doctype html>
   .hm-name b { background: linear-gradient(90deg, #a99dff, #f0abfc); -webkit-background-clip: text; color: transparent; }
   .hm-name i { font-style: normal; color: var(--faint); font-weight: 600; }
   .hm-sub { margin-top: 6px; color: var(--sub); font-size: 13px; min-height: 18px; }
+  .hm-seg { margin: 0 0 4px 10px; flex: none; }
+  .hm-seg button { padding: 6px 13px; font-size: 12.5px; }
   .hm-play { margin-left: auto; flex: none; display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 22px 0 8px;
     border: 0; border-radius: 16px; cursor: pointer; color: #fff; font: inherit; font-weight: 700; font-size: 14.5px;
     background: linear-gradient(135deg, #6d5dfc, #a855f7); box-shadow: 0 14px 30px -12px rgba(109, 93, 252, .9);
@@ -800,15 +802,24 @@ PAGE = r"""<!doctype html>
   .ht-glyph.gold { background: linear-gradient(160deg, rgba(253, 230, 138, .6), rgba(245, 158, 11, .06)); -webkit-background-clip: text; }
   #tile-patch .ht-bg, #tile-fonts .ht-bg, #tile-auto .ht-bg, #tile-settings .ht-bg, #tile-spotify .ht-bg { opacity: 1; animation: none; inset: 0; }
   #tile-lol .ht-bg { opacity: 1; animation: none; inset: 0; background: radial-gradient(360px 240px at 82% 45%, color-mix(in srgb, var(--tc, #c8aa6e) 42%, transparent), transparent 70%), radial-gradient(260px 200px at 10% 110%, rgba(10, 200, 185, .18), transparent 70%), linear-gradient(135deg, #2a2210, #0f1440); }
-  .ht-mark, .ht-emb { position: absolute; right: 18px; top: 50%; pointer-events: none; animation: htfloat 6s ease-in-out infinite; }
+  .ht-mark { position: absolute; right: 18px; top: 50%; pointer-events: none; animation: htfloat 6s ease-in-out infinite; }
+  .ht-art { position: absolute; inset: 0; background-size: cover; background-position: right 22%; opacity: 0; transition: opacity .6s;
+    -webkit-mask-image: linear-gradient(90deg, transparent 10%, #000 58%); mask-image: linear-gradient(90deg, transparent 10%, #000 58%); }
+  .ht-art.on { opacity: .9; }
+  #tile-lol:hover .ht-art { transform: scale(1.04); }
+  .ht-art { transition: opacity .6s, transform .6s; }
+  .ht-rank { position: absolute; top: 16px; right: 16px; display: flex; align-items: center; gap: 7px; padding: 5px 11px 5px 9px;
+    border-radius: 99px; font-size: 11.5px; font-weight: 700; letter-spacing: .02em; color: #fff;
+    background: rgba(8, 10, 30, .62); border: 1px solid color-mix(in srgb, var(--tc, #c8aa6e) 70%, transparent);
+    box-shadow: 0 0 18px color-mix(in srgb, var(--tc, #c8aa6e) 35%, transparent); backdrop-filter: blur(6px); }
+  .ht-rank::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--tc, #c8aa6e);
+    box-shadow: 0 0 8px var(--tc, #c8aa6e); }
+  .ht-rank[hidden] { display: none; }
   .ht-mark { width: 150px; height: 150px; margin-top: -88px; opacity: .32; }
   .ht-mark svg { width: 100%; height: 100%; }
-  .ht-emb { width: 200px; height: 200px; margin-top: -112px; right: 4px; object-fit: contain; animation-name: htfloat-emb;
-    filter: drop-shadow(0 10px 30px color-mix(in srgb, var(--tc, #c8aa6e) 70%, transparent)); }
-  @keyframes htfloat-emb { from, to { transform: scale(4.5); } 50% { transform: scale(4.5) translateY(-2px); } }
-  .ht-mark[hidden], .ht-emb[hidden] { display: none; }
+  .ht-mark[hidden] { display: none; }
   @keyframes htfloat { 50% { transform: translateY(-6px); } }
-  @media (prefers-reduced-motion: reduce) { .ht-mark { animation: none; } .ht-emb { animation: none; transform: scale(4.5); } }
+  @media (prefers-reduced-motion: reduce) { .ht-mark { animation: none; } }
   #tile-spotify .ht-bg { background: radial-gradient(340px 220px at 88% 70%, rgba(30, 215, 96, .32), transparent 70%), linear-gradient(135deg, #0c2a1a, #0f1440); }
   .ht-sp-big { position: absolute; right: -34px; bottom: -48px; width: 200px; height: 200px; pointer-events: none;
     opacity: .9; filter: drop-shadow(0 10px 40px rgba(30, 215, 96, .35)); }
@@ -948,6 +959,7 @@ PAGE = r"""<!doctype html>
     <div class="home-head">
       <div class="hm-text"><small id="hm-hi">Hoş geldin</small><h2 class="hm-name" id="hm-name">Lust başlıyor</h2>
         <div class="hm-sub" id="hm-sub"></div></div>
+      <div class="seg status-seg hm-seg" id="hm-seg" title="LoL'de nasıl görüneceğin (Lust Offline)"><button data-status="online">Çevrimiçi</button><button data-status="offline">Çevrimdışı</button><button data-status="mobile">Mobil</button></div>
       <button class="hm-play" id="hm-league" data-act="league"><i class="hm-orb">__play__</i><span id="hm-league-t">League'i aç</span></button>
     </div>
     <div class="bar busy" id="h-bar"><i></i></div>
@@ -970,7 +982,7 @@ PAGE = r"""<!doctype html>
     </div>
     <div class="hgrid" id="hgrid">
     <div class="ht" data-go="lol" id="tile-lol" style="--i:0;--c:200, 170, 110;--g:url(#hg3)">
-      <div class="ht-bg" id="t-lol-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><div class="ht-mark" id="t-lol-mark">__lolbig__</div><img class="ht-emb" id="t-lol-emb" alt="" hidden>
+      <div class="ht-bg" id="t-lol-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><i class="ht-art" id="t-lol-art"></i><div class="ht-mark" id="t-lol-mark">__lolbig__</div><span class="ht-rank" id="t-lol-rank" hidden></span>
       <div class="ht-in"><div class="ht-orb art">__lol__</div>
         <b class="ht-ttl">Profil</b><span class="ht-st" id="t-lol"></span></div>
       <div class="ht-go">__arrow__</div>
@@ -1046,7 +1058,7 @@ PAGE = r"""<!doctype html>
     <div class="card appear" style="margin-top:12px">
       <div class="ico">__user__</div>
       <div class="t"><b>Görün</b><span id="ap-sub"></span></div>
-      <div class="seg" id="seg">
+      <div class="seg status-seg" id="seg">
         <button data-status="online">Çevrimiçi</button><button data-status="offline">Çevrimdışı</button><button data-status="mobile">Mobil</button>
       </div>
     </div>
@@ -1539,7 +1551,7 @@ function render(s) {
     $("q-body").textContent = `Sendeki sürüm ${s.prompt.current}. Şimdi kurulsun mu?`;
   }
   $("ap-sub").textContent = off.running ? (STATUS[off.status] || "Çevrimiçi") : "Seçmek için League'i buradan aç";
-  document.querySelectorAll("#seg button").forEach((b) => {
+  document.querySelectorAll(".status-seg button").forEach((b) => {
     b.disabled = !off.running || starting;
     b.classList.toggle("on", !!off.running && off.status === b.dataset.status);
   });
@@ -1679,7 +1691,6 @@ function drawHome(s) {
 let tiles = {}, auto = null;
 const TIER_COLOR = { iron: "#8a7a73", bronze: "#b0703f", silver: "#a9b8c6", gold: "#e0b54a", platinum: "#4fc1b5",
   emerald: "#2ecc71", diamond: "#5b8def", master: "#b14fe0", grandmaster: "#e0453f", challenger: "#f2c94c" };
-const EMBLEM = "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblem/emblem-";
 // Summoner's Rift art from the client's own game mode assets; the minimap if neither loads
 const SRU = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/content/src/leagueclient/gamemodeassets/classic_sru/img/";
 const RIFT = [SRU + "champ-select-flyout-background.jpg", SRU + "gameflow-background.jpg",
@@ -1692,16 +1703,24 @@ function drawTiles() {
   if (hero.last) lol.push(`${lol.length ? " · " : ""}Son maç ${hero.last.champion}`);
   if (off.running) lol.push(` · ${STATUS[off.status] || "Çevrimiçi"}`);
   fill("t-lol", lol.length ? lol : [s.league ? "League açık" : "Profilin, rank sınırları ve Lust Offline"]);
-  const emb = $("t-lol-emb"), tier = (hero.tier || "").toLowerCase();
-  const embUrl = tier ? EMBLEM + tier + ".png" : "";
+  // The last match's champion splash, and the season's win rate in the rank's colour
+  const tier = (hero.tier || "").toLowerCase();
   $("tile-lol").style.setProperty("--tc", TIER_COLOR[tier] || "#c8aa6e");
-  if (emb.dataset.url !== embUrl) {
-    emb.dataset.url = embUrl;
-    emb.hidden = true; $("t-lol-mark").hidden = false;
-    if (embUrl) {
-      emb.onload = () => { emb.hidden = false; $("t-lol-mark").hidden = true; };
-      emb.onerror = () => { emb.hidden = true; $("t-lol-mark").hidden = false; };
-      emb.src = embUrl;
+  const games = (hero.wins || 0) + (hero.losses || 0);
+  $("t-lol-rank").hidden = !games;
+  if (games) $("t-lol-rank").textContent = `%${Math.round(100 * hero.wins / games)} kazanma · ${games} maç`;
+  const lolArt = $("t-lol-art"), lolArtUrl = hero.image ? `/hero.jpg?v=${hero.image}` : "";
+  if (lolArt.dataset.url !== lolArtUrl) {
+    lolArt.dataset.url = lolArtUrl;
+    lolArt.classList.remove("on"); $("t-lol-mark").hidden = false;
+    if (lolArtUrl) {
+      const img = new Image();
+      img.onload = () => {
+        if (lolArt.dataset.url !== lolArtUrl) return;
+        lolArt.style.backgroundImage = `url("${lolArtUrl}")`;
+        lolArt.classList.add("on"); $("t-lol-mark").hidden = true;
+      };
+      img.src = lolArtUrl;
     }
   }
   const mp = t.maps;
@@ -2350,7 +2369,7 @@ document.querySelectorAll("[data-act]").forEach((el) => el.addEventListener("cli
   if (el.classList.contains("live")) return;
   act(el.dataset.act, el.dataset.body ? JSON.parse(el.dataset.body) : {});
 }));
-document.querySelectorAll("#seg button").forEach((b) => b.addEventListener("click", () => act("status", { value: b.dataset.status })));
+document.querySelectorAll(".status-seg button").forEach((b) => b.addEventListener("click", () => act("status", { value: b.dataset.status })));
 $("a-quit").addEventListener("click", () => {
   if (Date.now() - quitArmed < 3000) { act("quit"); return; }
   quitArmed = Date.now(); state && render(state); setTimeout(() => state && render(state), 3100);

@@ -232,6 +232,19 @@ PAGE = r"""<!doctype html>
   .tip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #c8aa6e; box-shadow: 0 0 8px #c8aa6e; }
   .tip b { color: #f0e6d2; font-weight: 600; letter-spacing: .4px; }
   .hero { margin-bottom: 14px; }
+  /* Profile card: bigger text, it spans the whole window */
+  .hero { min-height: 260px; padding: 30px 32px !important; }
+  .hero small { font-size: 14px; }
+  .hero h2 { font-size: 30px; font-weight: 800; margin: 4px 0 14px; letter-spacing: -.01em; }
+  .hero-chips { gap: 8px; }
+  .chip { font-size: 14px; padding: 6px 14px; }
+  .hero-cut { font-size: 14px; gap: 14px; margin-top: 14px; }
+  .hero-cut .cut::before { width: 9px; height: 9px; }
+  .hero-cut .need { padding: 3px 11px; }
+  .hero p { font-size: 14px; margin-top: 12px; }
+  .hero-last { padding: 16px 20px; border-radius: 16px; }
+  .hero-last b { font-size: 22px; margin: 4px 0; }
+  .hero-last span { font-size: 14px; }
 
   .grid { display: grid; gap: 10px; }
   .g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }

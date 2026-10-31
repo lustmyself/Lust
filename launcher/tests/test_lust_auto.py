@@ -1,4 +1,5 @@
 import unittest
+from unittest import mock
 
 from launcher import lust_auto
 
@@ -62,6 +63,31 @@ class ChooseTests(unittest.TestCase):
     def test_an_empty_allowed_list_does_not_block(self):
         session = _session("ban")
         self.assertEqual(lust_auto.choose(session, ON, bannable=None), (7, 238, "ban"))
+
+
+class LockInTests(unittest.TestCase):
+    def setUp(self):
+        lust_auto._done.clear()
+
+    def _run(self, session, times):
+        calls = []
+
+        def lcu(method, path, body=None):
+            calls.append((method, path, body))
+            return session if path.endswith("/session") else {}
+        with mock.patch.object(lust_auto, "_lcu", side_effect=lcu):
+            for _ in range(times):
+                lust_auto._champ_select(dict(ON))
+        return [c for c in calls if c[0] != "GET"]
+
+    def test_hover_then_lock_in(self):
+        sent = self._run(_session("ban"), 1)
+        self.assertEqual(sent, [("PATCH", "/lol-champ-select/v1/session/actions/7", {"championId": 238}),
+                                ("POST", "/lol-champ-select/v1/session/actions/7/complete", None)])
+
+    def test_an_action_left_open_is_tried_again_a_few_times(self):
+        sent = self._run(_session("ban"), lust_auto.MAX_TRIES + 3)
+        self.assertEqual(len([c for c in sent if c[0] == "POST"]), lust_auto.MAX_TRIES)
 
 
 if __name__ == "__main__":

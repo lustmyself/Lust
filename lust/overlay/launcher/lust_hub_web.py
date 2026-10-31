@@ -448,9 +448,13 @@ PAGE = r"""<!doctype html>
   .skr select { display: block; margin-top: 5px; max-width: 100%; background: #2c2840; color: var(--text); border: 1px solid var(--line);
     border-radius: 8px; font: inherit; font-size: 11.5px; padding: 3px 6px; outline: none; cursor: pointer; }
   .skr select.need { border-color: #f472b6; }
-  .skr .switch { flex: none; cursor: pointer; }
-  .skr .switch.on { background: #f472b6; }
-  .skr .switch.lock { opacity: .35; cursor: default; }
+  .skr .tick { flex: none; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; cursor: pointer;
+    border: 2px solid rgba(255, 255, 255, .25); color: transparent; transition: background .15s, border-color .15s, box-shadow .15s; }
+  .skr .tick svg { width: 16px; height: 16px; stroke-width: 3; }
+  .skr .tick:hover { border-color: #f472b6; }
+  .skr .tick.on { background: #ec4899; border-color: #ec4899; color: #fff; box-shadow: 0 0 14px rgba(236, 72, 153, .5); }
+  .skr .tick.lock { opacity: .35; cursor: default; }
+  .sk-hint { color: var(--sub); font-size: 12px; margin: -6px 0 12px; }
   .skr .del { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; border-radius: 8px; display: grid; place-items: center;
     background: #2c2840; color: var(--sub); opacity: 0; transition: opacity .15s; cursor: pointer; }
   .skr:hover .del { opacity: 1; }
@@ -769,18 +773,32 @@ PAGE = r"""<!doctype html>
     background: linear-gradient(160deg, rgba(255, 255, 255, .22), rgba(255, 255, 255, .02)); -webkit-background-clip: text; color: transparent; }
   .ht-glyph.gold { background: linear-gradient(160deg, rgba(253, 230, 138, .6), rgba(245, 158, 11, .06)); -webkit-background-clip: text; }
   #tile-patch .ht-bg, #tile-fonts .ht-bg, #tile-auto .ht-bg, #tile-settings .ht-bg, #tile-spotify .ht-bg { opacity: 1; animation: none; inset: 0; }
-  #tile-lol .ht-bg { opacity: 1; animation: none; inset: 0; background: radial-gradient(360px 240px at 82% 45%, rgba(200, 170, 110, .38), transparent 70%), radial-gradient(260px 200px at 10% 110%, rgba(10, 200, 185, .18), transparent 70%), linear-gradient(135deg, #2a2210, #0f1440); }
+  #tile-lol .ht-bg { opacity: 1; animation: none; inset: 0; background: radial-gradient(360px 240px at 82% 45%, color-mix(in srgb, var(--tc, #c8aa6e) 42%, transparent), transparent 70%), radial-gradient(260px 200px at 10% 110%, rgba(10, 200, 185, .18), transparent 70%), linear-gradient(135deg, #2a2210, #0f1440); }
   .ht-mark, .ht-emb { position: absolute; right: 18px; top: 50%; pointer-events: none; animation: htfloat 6s ease-in-out infinite; }
   .ht-mark { width: 150px; height: 150px; margin-top: -88px; opacity: .32; }
   .ht-mark svg { width: 100%; height: 100%; }
-  .ht-emb { width: 230px; height: 230px; margin-top: -128px; right: -6px; object-fit: contain; filter: drop-shadow(0 12px 40px rgba(200, 170, 110, .45)); }
+  .ht-emb { width: 200px; height: 200px; margin-top: -112px; right: 4px; object-fit: contain; animation-name: htfloat-emb;
+    filter: drop-shadow(0 10px 30px color-mix(in srgb, var(--tc, #c8aa6e) 70%, transparent)); }
+  @keyframes htfloat-emb { from, to { transform: scale(4.5); } 50% { transform: scale(4.5) translateY(-2px); } }
   .ht-mark[hidden], .ht-emb[hidden] { display: none; }
   @keyframes htfloat { 50% { transform: translateY(-6px); } }
-  @media (prefers-reduced-motion: reduce) { .ht-mark, .ht-emb { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .ht-mark { animation: none; } .ht-emb { animation: none; transform: scale(4.5); } }
   #tile-spotify .ht-bg { background: radial-gradient(340px 220px at 88% 70%, rgba(30, 215, 96, .32), transparent 70%), linear-gradient(135deg, #0c2a1a, #0f1440); }
   .ht-sp-big { position: absolute; right: -34px; bottom: -48px; width: 200px; height: 200px; pointer-events: none;
     opacity: .9; filter: drop-shadow(0 10px 40px rgba(30, 215, 96, .35)); }
   .ht.playing .ht-sp-big { animation: sppulse 2.4s ease-in-out infinite; }
+  .ht-cover { position: absolute; right: 30px; top: 50%; width: 124px; height: 124px; margin-top: -92px; border-radius: 14px;
+    background: #0c2a1a center / cover; box-shadow: 0 18px 40px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .08);
+    transform: rotate(4deg); opacity: 0; transition: opacity .5s, transform .5s; pointer-events: none; }
+  #tile-spotify.cover .ht-cover { opacity: 1; }
+  #tile-spotify.cover:hover .ht-cover { transform: rotate(0deg) scale(1.04); }
+  #tile-spotify.cover .ht-sp-big { opacity: 0; }
+  #tile-spotify.cover .ht-bg { background-size: cover; background-position: center; filter: blur(28px) saturate(1.4) brightness(.55); inset: -40px; }
+  #tile-spotify.cover .ht-eq { right: 172px; }
+  .ht-pic { border-radius: 50%; transform: none; box-shadow: 0 18px 40px rgba(0, 0, 0, .55), 0 0 0 3px rgba(56, 189, 248, .55), 0 0 30px rgba(56, 189, 248, .35); }
+  #tile-icon.pic .ht-pic { opacity: 1; }
+  #tile-icon.pic:hover .ht-pic { transform: scale(1.05); }
+  #tile-icon.pic .ht-bg { filter: blur(26px) saturate(1.3) brightness(.6); inset: -40px; background-size: cover; }
   @keyframes sppulse { 50% { transform: scale(1.05); filter: drop-shadow(0 10px 50px rgba(30, 215, 96, .6)); } }
   @media (prefers-reduced-motion: reduce) { .ht-sp-big { animation: none; } }
   #tile-patch .ht-bg { background: radial-gradient(320px 200px at 85% 20%, rgba(245, 158, 11, .45), transparent 70%), linear-gradient(135deg, #3b2a0a, #0f1440); }
@@ -863,6 +881,8 @@ PAGE = r"""<!doctype html>
     background: linear-gradient(100deg, rgba(109, 93, 252, .28), rgba(22, 28, 78, .55) 60%); }
   .client-card .btn { margin-left: auto; flex: none; }
   .client-card .t span { display: block; max-width: 620px; }
+  .mods-seg { margin: 0 0 16px; width: max-content; background: rgba(13, 18, 56, .7); }
+  .mods-seg button.on { background: linear-gradient(135deg, #6d5dfc, #38bdf8); color: #fff; }
 </style>
 </head>
 <body>
@@ -924,15 +944,15 @@ PAGE = r"""<!doctype html>
     </div>
     <div class="hgrid" id="hgrid">
     <div class="ht" data-go="lol" id="tile-lol" style="--i:0;--c:200, 170, 110;--g:url(#hg3)">
-      <div class="ht-bg" id="t-lol-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><div class="ht-mark" id="t-lol-mark">__lol__</div><img class="ht-emb" id="t-lol-emb" alt="" hidden>
+      <div class="ht-bg" id="t-lol-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><div class="ht-mark" id="t-lol-mark">__lolbig__</div><img class="ht-emb" id="t-lol-emb" alt="" hidden>
       <div class="ht-in"><div class="ht-orb art">__lol__</div>
         <b class="ht-ttl">LoL</b><span class="ht-st" id="t-lol"></span></div>
       <div class="ht-go">__arrow__</div>
     </div>
-    <div class="ht" data-go="maps" id="tile-maps" style="--i:1;--c:52, 211, 153;--g:url(#hg2)">
+    <div class="ht" data-go="skins" id="tile-maps" style="--i:1;--c:52, 211, 153;--g:url(#hg2)">
       <div class="ht-bg" id="t-maps-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i>
       <div class="ht-in"><div class="ht-orb"><svg viewBox="0 0 30 30"><path class="f" d="M4 8l7-3 8 3 7-3v17l-7 3-8-3-7 3z"/><path d="M11 5v17M19 8v17"/><circle class="s" cx="15" cy="13" r="2.4"/></svg></div>
-        <b class="ht-ttl">Haritalar</b><span class="ht-st" id="t-maps"></span></div>
+        <b class="ht-ttl">Skinler ve Haritalar</b><span class="ht-st" id="t-maps"></span></div>
       <div class="ht-go">__arrow__</div>
     </div>
     <div class="ht" data-go="patch" id="tile-patch" style="--i:2;--c:245, 158, 11;--g:url(#hg3)">
@@ -948,7 +968,7 @@ PAGE = r"""<!doctype html>
       <div class="ht-go">__arrow__</div>
     </div>
     <div class="ht" data-go="icon" id="tile-icon" style="--i:4;--c:56, 189, 248;--g:url(#hg5)">
-      <div class="ht-bg" id="t-icon-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i>
+      <div class="ht-bg" id="t-icon-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><i class="ht-cover ht-pic" id="t-icon-pic"></i>
       <div class="ht-in"><div class="ht-orb"><svg viewBox="0 0 30 30"><circle class="f" cx="15" cy="15" r="11"/><circle cx="15" cy="12.5" r="4"/><path d="M8 23.2a8 8 0 0 1 14 0"/></svg></div>
         <b class="ht-ttl">Profil simgesi</b><span class="ht-st" id="t-icon"></span></div>
       <div class="ht-go">__arrow__</div>
@@ -960,7 +980,7 @@ PAGE = r"""<!doctype html>
       <div class="ht-go">__arrow__</div>
     </div>
     <div class="ht" data-go="spotify" id="tile-spotify" style="--i:6;--c:30, 215, 96;--g:url(#hg7)">
-      <div class="ht-bg" id="t-spotify-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><svg class="ht-sp-big" viewBox="0 0 24 24"><defs><linearGradient id="spg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4ef08a"/><stop offset="1" stop-color="#0f8a3c"/></linearGradient></defs><circle cx="12" cy="12" r="11" fill="url(#spg)" stroke="none" opacity=".5"/><path d="M6.3 9.2c3.8-1.2 8.3-.9 11.6 1.1M6.9 12.5c3.1-.9 6.8-.6 9.5 1M7.5 15.6c2.5-.6 5.1-.4 7.2.8" stroke="#08130d" stroke-opacity=".75" stroke-width="1.9" stroke-linecap="round" fill="none"/></svg><span class="ht-eq" id="t-eq" hidden><i></i><i></i><i></i><i></i></span>
+      <div class="ht-bg" id="t-spotify-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><i class="ht-cover" id="t-sp-cover"></i><svg class="ht-sp-big" viewBox="0 0 24 24"><defs><linearGradient id="spg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4ef08a"/><stop offset="1" stop-color="#0f8a3c"/></linearGradient></defs><circle cx="12" cy="12" r="11" fill="url(#spg)" stroke="none" opacity=".5"/><path d="M6.3 9.2c3.8-1.2 8.3-.9 11.6 1.1M6.9 12.5c3.1-.9 6.8-.6 9.5 1M7.5 15.6c2.5-.6 5.1-.4 7.2.8" stroke="#08130d" stroke-opacity=".75" stroke-width="1.9" stroke-linecap="round" fill="none"/></svg><span class="ht-eq" id="t-eq" hidden><i></i><i></i><i></i><i></i></span>
       <div class="ht-in"><div class="ht-orb art"><svg class="sp-logo" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#1ed760" stroke="none"/><path d="M6.3 9.2c3.8-1.2 8.3-.9 11.6 1.1M6.9 12.5c3.1-.9 6.8-.6 9.5 1M7.5 15.6c2.5-.6 5.1-.4 7.2.8" stroke="#0b0b0b" stroke-width="1.9" fill="none"/></svg></div>
         <b class="ht-ttl">Spotify</b><span class="ht-st" id="t-spotify"></span></div>
       <div class="ht-go">__arrow__</div>
@@ -1041,7 +1061,8 @@ PAGE = r"""<!doctype html>
   </section>
 
   <section class="page" id="page-maps">
-    <div class="section">Sonraki maçın haritası</div>
+    <div class="seg mods-seg"><button data-goto="skins" data-tab="skins">Custom skinler</button><button data-goto="maps" data-tab="maps">Haritalar</button></div>
+    <div class="section">Sonraki maçın haritası · bir tane seçilir</div>
     <div class="maps" id="maps"></div>
     <div class="drop" id="drop">__download__<div><b>Harita modu ekle</b><br>.zip, .fantome veya .modpkg dosyasını buraya sürükle</div>
       <button class="btn" data-act="map_folder">Klasörü aç</button>
@@ -1061,9 +1082,11 @@ PAGE = r"""<!doctype html>
   </section>
 
   <section class="page" id="page-skins">
+    <div class="seg mods-seg"><button data-goto="skins" data-tab="skins">Custom skinler</button><button data-goto="maps" data-tab="maps">Haritalar</button></div>
     <div class="sk-off" id="sk-off">Custom skinler Ayarlar'da kapalı: açık olanlar da oyunda yüklenmez.</div>
     <div class="sk-head"><div class="section" id="sk-count">Custom skinler</div>
       <input id="sk-find" type="search" placeholder="Skin veya şampiyon ara" autocomplete="off"></div>
+    <div class="sk-hint">İstediğin kadar skini tikle: her şampiyon için bir skin, oyunda o şampiyonu oynarsan yüklenir.</div>
     <div class="skins" id="skins"></div>
     <div class="drop" id="skin-drop">__download__<div><b>Custom skin ekle</b><br>.zip, .fantome veya .modpkg dosyasını buraya sürükle</div>
       <button class="btn" data-act="skin_folder">Klasörü aç</button>
@@ -1196,7 +1219,7 @@ const LTK_TITLE = {
 };
 const STATUS = { online: "Çevrimiçi", offline: "Çevrimdışı", mobile: "Mobil" };
 const ICON = { sparkle: `__sparkle__`, plusbox: `__plusbox__`, users: `__users__`, shield: `__shield__`, power: `__power__`,
-  sync: `__sync__`, bolt: `__bolt__`, spotify: `__spotify__`, moon: `__moon__`, play: `__play__`, image: `__image__`, wind: `__wind__` };
+  sync: `__sync__`, bolt: `__bolt__`, spotify: `__spotify__`, moon: `__moon__`, play: `__play__`, image: `__image__`, wind: `__wind__`, check: `__check__` };
 
 function buildThemes() {
   $("themes").replaceChildren(...THEMES.map((t) => {
@@ -1537,7 +1560,7 @@ async function poll() {
   catch (e) { if (++failures >= 3) $("lost").style.display = "grid"; }
 }
 // ---- pages: the home tiles lead to each one, Esc or the back button comes home ----
-const PAGES = { home: "", lol: "LoL", spotify: "Spotify", maps: "Haritalar", fonts: "Fontlar", skins: "Custom skinler",
+const PAGES = { home: "", lol: "LoL", spotify: "Spotify", maps: "Skinler ve Haritalar", fonts: "Fontlar", skins: "Skinler ve Haritalar",
   profile: "Profil arka planı", icon: "Profil simgesi", settings: "Ayarlar", patch: "Patch notes", auto: "Champ select" };
 let page = "home";
 function showPage(name) {
@@ -1549,6 +1572,7 @@ function showPage(name) {
   $("title").hidden = name === "home";
   $("word").hidden = name !== "home";
   $("back").hidden = name === "home";
+  document.querySelectorAll(".mods-seg button").forEach((b) => b.classList.toggle("on", b.dataset.tab === name));
   if (name === "home") { loadTiles(); loadAuto(); }
   if (name === "maps") loadMaps();
   if (name === "fonts") loadFonts();
@@ -1618,6 +1642,8 @@ function drawHome(s) {
 }
 
 let tiles = {}, auto = null;
+const TIER_COLOR = { iron: "#8a7a73", bronze: "#b0703f", silver: "#a9b8c6", gold: "#e0b54a", platinum: "#4fc1b5",
+  emerald: "#2ecc71", diamond: "#5b8def", master: "#b14fe0", grandmaster: "#e0453f", challenger: "#f2c94c" };
 const EMBLEM = "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblem/emblem-";
 // Summoner's Rift art from the client's own game mode assets; the minimap if neither loads
 const SRU = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/content/src/leagueclient/gamemodeassets/classic_sru/img/";
@@ -1633,6 +1659,7 @@ function drawTiles() {
   fill("t-lol", lol.length ? lol : [s.league ? "League açık" : "Profilin, rank sınırları ve Lust Offline"]);
   const emb = $("t-lol-emb"), tier = (hero.tier || "").toLowerCase();
   const embUrl = tier ? EMBLEM + tier + ".png" : "";
+  $("tile-lol").style.setProperty("--tc", TIER_COLOR[tier] || "#c8aa6e");
   if (emb.dataset.url !== embUrl) {
     emb.dataset.url = embUrl;
     emb.hidden = true; $("t-lol-mark").hidden = false;
@@ -1643,7 +1670,9 @@ function drawTiles() {
     }
   }
   const mp = t.maps;
-  fill("t-maps", mp && mp.name ? [["b", mp.name], ` · ${mp.count} harita`] : [["b", "Sihirdar Vadisi"], mp && mp.count ? ` · ${mp.count} harita yüklü` : " · League'in haritası"]);
+  const sk = t.skins || {};
+  const mapText = mp && mp.name ? mp.name : "Sihirdar Vadisi";
+  fill("t-maps", sk.count ? [["b", `${sk.count} custom skin`], ` · ${sk.on || 0} açık · ${mapText}`] : [["b", mapText], " · custom skin ekle"]);
   if (mp && mp.preview) setBg("t-maps-bg", `/map-preview?id=${encodeURIComponent(mp.id)}`);
   else setBg("t-maps-bg", RIFT, "rift");
   const pt = t.patch;
@@ -1661,7 +1690,10 @@ function drawTiles() {
   const art = t.art || {};
   const ic = t.icon;
   fill("t-icon", ic && ic.id ? [["b", ic.name || `#${ic.id}`], " · sadece sende görünür"] : ["İstediğin simge, sahip olmasan da"]);
-  setBg("t-icon-bg", (art.icon || {}).splash || "");
+  const pic = (art.icon || {}).picture || "";
+  $("tile-icon").classList.toggle("pic", !!pic);
+  if (pic && $("t-icon-pic").dataset.url !== pic) { $("t-icon-pic").dataset.url = pic; $("t-icon-pic").style.backgroundImage = `url("${pic}")`; }
+  setBg("t-icon-bg", pic || (art.icon || {}).splash || "");
   const pf = t.profile;
   fill("t-profile", pf && pf.name ? [["b", pf.name], " · profilinde"] : ["Profilinin arka planı, istediğin skin"]);
   setBg("t-profile-bg", (art.profile || {}).splash || "");
@@ -1669,6 +1701,13 @@ function drawTiles() {
   fill("t-spotify", on ? [["b", media.title || "Bilinmeyen şarkı"], media.artist ? ` · ${media.artist}` : ""] : ["Spotify'da bir şey çalmıyor"]);
   $("t-eq").hidden = !(on && media.playing);
   $("tile-spotify").classList.toggle("playing", !!(on && media.playing));
+  const cover = on && media.cover ? `/cover.jpg?v=${media.cover}` : "";
+  $("tile-spotify").classList.toggle("cover", !!cover);
+  if (cover && $("t-sp-cover").dataset.url !== cover) {
+    $("t-sp-cover").dataset.url = cover;
+    $("t-sp-cover").style.backgroundImage = `url("${cover}")`;
+    $("t-spotify-bg").style.backgroundImage = `url("${cover}")`;
+  } else if (!cover) { $("t-sp-cover").dataset.url = ""; $("t-spotify-bg").style.backgroundImage = ""; }
   const a = auto || {};
   const names = [["accept", "Accept"], ["ban", "Ban"], ["pick", "Pick"]];
   const reveal = !!((a.reveal || {}).on);
@@ -2000,8 +2039,9 @@ function skinRow(s, champions) {
     tx.appendChild(pick);
   }
   const sw = document.createElement("div");
-  sw.className = "switch" + (s.enabled ? " on" : "") + (s.championId ? "" : " lock");
-  sw.title = s.championId ? (s.enabled ? "Açık" : "Kapalı") : "Önce şampiyonu seç";
+  sw.className = "tick" + (s.enabled ? " on" : "") + (s.championId ? "" : " lock");
+  sw.innerHTML = ICON.check;
+  sw.title = s.championId ? (s.enabled ? "Seçili: oyunda bu skin" : "Seç") : "Önce şampiyonu seç";
   sw.addEventListener("click", () => {
     if (!s.championId) { showToast("Önce şampiyonu seç"); return; }
     act("skin_toggle", { name: s.name, enabled: !s.enabled }).then(() => setTimeout(loadSkins, 250));
@@ -2013,7 +2053,7 @@ function skinRow(s, champions) {
       act("skin_delete", { name: s.name }).then(() => setTimeout(loadSkins, 250));
     } else { del.dataset.armed = Date.now(); showToast("Silmek için tekrar bas"); }
   });
-  row.append(ic, tx, sw, del);
+  row.append(sw, ic, tx, del);
   return row;
 }
 function drawSkins() {
@@ -2271,6 +2311,7 @@ document.querySelectorAll(".rz").forEach((edge) => edge.addEventListener("moused
 window.addEventListener("pywebviewready", () => windowMode("mode"));
 $("back").addEventListener("click", () => showPage("home"));
 document.querySelectorAll(".ht").forEach((t) => t.addEventListener("click", () => showPage(t.dataset.go)));
+document.querySelectorAll("[data-goto]").forEach((b) => b.addEventListener("click", () => showPage(b.dataset.goto)));
 document.addEventListener("contextmenu", (e) => e.preventDefault());
 buildThemes();
 showPage("home");
@@ -2291,6 +2332,8 @@ def _svg(path: str) -> str:
 
 def render(token: str, version: str, themes: list) -> str:
     page = PAGE.replace("__TOKEN__", json.dumps(token)).replace("__VERSION__", version)
+    # The big copy gets its own gradient ids: a hidden copy's ids would blank the small one
+    page = page.replace("__lolbig__", LOL_MARK.replace("hx-gold", "hx-gold-b").replace("hx-blue", "hx-blue-b"))
     page = page.replace("__lol__", LOL_MARK)
     page = page.replace("__THEMES__", json.dumps(themes, ensure_ascii=False))
     for name, path in ICONS.items():

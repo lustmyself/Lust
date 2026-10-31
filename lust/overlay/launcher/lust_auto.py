@@ -132,11 +132,18 @@ def choose(session: dict, config: dict, pickable=None, bannable=None) -> Optiona
         return None
     me = session.get("localPlayerCellId")
     taken = _taken(session)
+    groups = [g for g in session.get("actions") or [] if isinstance(g, list)]
+    # The current turn: actions marked in progress; when the client leaves that flag out,
+    # the first group that still has an open action
+    current = next((g for g in groups if any(not a.get("completed") for a in g)), [])
     friends = {m.get("championPickIntent") for m in session.get("myTeam") or [] if m.get("cellId") != me}
     friends.update(m.get("championId") for m in session.get("myTeam") or [] if m.get("cellId") != me)
-    for group in session.get("actions") or []:
-        for action in group or []:
-            if action.get("actorCellId") != me or action.get("completed") or not action.get("isInProgress"):
+    for group in groups:
+        for action in group:
+            in_progress = action.get("isInProgress")
+            if in_progress is None:
+                in_progress = group is current
+            if action.get("actorCellId") != me or action.get("completed") or not in_progress:
                 continue
             kind = action.get("type")
             if kind == "ban" and config.get("ban"):
@@ -168,6 +175,7 @@ def _credentials():
 def _lcu(method: str, path: str, body=None):
     creds = _credentials()
     if not creds:
+        _note("creds", "[Auto] League client not found (no LeagueClientUx port/token)")
         return None
     port, token = creds
     import requests
@@ -178,6 +186,8 @@ def _lcu(method: str, path: str, body=None):
         _creds["at"] = 0.0  # League may have restarted with a new port
         return None
     if not response.ok:
+        if method != "GET":
+            log.warning(f"[Auto] {method} {path} -> HTTP {response.status_code}: {response.text[:200]}")
         return None
     try:
         return response.json() if response.content else {}
@@ -198,17 +208,39 @@ def _champ_select(config: dict) -> None:
         return
     pickable = _lcu("GET", "/lol-champ-select/v1/pickable-champion-ids") if config["pick"] else None
     bannable = _lcu("GET", "/lol-champ-select/v1/bannable-champion-ids") if config["ban"] else None
-    found = choose(session, config, set(pickable) if isinstance(pickable, list) else None,
-                   set(bannable) if isinstance(bannable, list) else None)
-    if not found or found[0] in _done:
+    found = choose(session, config, set(pickable) if isinstance(pickable, list) and pickable else None,
+                   set(bannable) if isinstance(bannable, list) and bannable else None)
+    if not found:
+        mine = [a for g in session.get("actions") or [] for a in g or []
+                if a.get("actorCellId") == session.get("localPlayerCellId") and not a.get("completed")]
+        _note(f"none-{[(a.get('id'), a.get('type'), a.get('isInProgress')) for a in mine]}",
+              f"[Auto] Nothing to do: my open actions {[(a.get('type'), a.get('isInProgress')) for a in mine]}, "
+              f"bans {config['bans']}, picks {config['picks']}")
+        return
+    if found[0] in _done:
         return
     action_id, champion, kind = found
     path = f"/lol-champ-select/v1/session/actions/{action_id}"
-    if _lcu("PATCH", path, {"championId": champion}) is None:
-        return
-    if _lcu("POST", path + "/complete", {"championId": champion}) is not None:
+    # Choose and lock in one call; older clients need the hover first and /complete after
+    done = _lcu("PATCH", path, {"championId": champion, "completed": True}) is not None
+    if not done and _lcu("PATCH", path, {"championId": champion}) is not None:
+        done = _lcu("POST", path + "/complete") is not None
+    if done:
         _done.add(action_id)
-        log.info(f"[Auto] {kind} {champion}")
+        log.info(f"[Auto] {kind} {champion} locked")
+    else:
+        log.warning(f"[Auto] Could not {kind} {champion} (action {action_id})")
+
+
+_notes: set = set()
+_last: dict = {"phase": None}
+
+
+def _note(key: str, text: str) -> None:
+    """Log a state once, so the log shows why nothing happened without repeating every second."""
+    if key not in _notes:
+        _notes.add(key)
+        log.info(text)
 
 
 def _tick() -> float:
@@ -216,6 +248,10 @@ def _tick() -> float:
     if not (config["accept"] or config["ban"] or config["pick"]):
         return IDLE_S
     phase = _lcu("GET", "/lol-gameflow/v1/gameflow-phase")
+    if phase != _last["phase"]:
+        _last["phase"] = phase
+        _notes.clear()  # a new phase may say something new
+        log.info(f"[Auto] Phase {phase}")
     if phase == "ReadyCheck" and config["accept"]:
         _accept()
         return BUSY_S
@@ -242,7 +278,7 @@ def _run() -> None:
         try:
             delay = _tick()
         except Exception as exc:  # noqa: BLE001
-            log.debug(f"[Auto] {exc}")
+            log.warning(f"[Auto] {exc}")
             delay = IDLE_S
         time.sleep(delay)
 

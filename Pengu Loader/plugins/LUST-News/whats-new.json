@@ -1,6 +1,8 @@
 {
-  "version": "1.4.9.62",
+  "version": "1.4.9.63",
   "en": [
+    "Custom skins are back in the app: the Maps tile is now \"Skins and Maps\", with Custom skins and Maps on one page",
+    "Tick as many custom skins as you like, one per champion; one map is picked at a time",
     "New desktop app: opens on 9 animated tiles with everything in one place, and the window can be resized, maximized or made full screen (F11)",
     "The LUST tab is gone from the League client; its theme, wallpaper and plugin settings open from the app's Settings. Skins are still picked in champ select",
     "New Champ select page: Auto Accept, Auto Ban, Auto Pick (up to 5 champions each) and Lobby Reveal with your teammates",
@@ -48,6 +50,8 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "Custom skinler uygulamaya geri döndü: Haritalar kutucuğu artık \"Skinler ve Haritalar\", Custom skinler ve Haritalar aynı sayfada",
+    "İstediğin kadar custom skini tikle, her şampiyon için bir tane; harita ise tek seçilir",
     "Yeni masaüstü uygulaması: her şey bir arada, 9 animasyonlu kutucukla açılıyor; pencere büyütülüp küçültülebiliyor, tam ekran oluyor (F11)",
     "LoL istemcisindeki LUST sekmesi kalktı; tema, duvar kağıdı ve eklenti ayarları uygulamanın Ayarlar sayfasından açılıyor. Skinler yine champ select'te seçiliyor",
     "Yeni Champ select sayfası: Auto Accept, Auto Ban, Auto Pick (her biri için 5 şampiyona kadar) ve takım arkadaşlarınla Lobby Reveal",

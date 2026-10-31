@@ -377,7 +377,10 @@ def _tile_parts() -> dict:
     def skins():
         from pengu.communication import lust_custom_skins
         listed = lust_custom_skins.list_skins()
-        return {"count": len(listed), "on": sum(1 for s in listed if s.get("enabled"))}
+        on = [s for s in listed if s.get("enabled")]
+        champions = list(dict.fromkeys(s["championId"] for s in on if s.get("championId")))
+        return {"count": len(listed), "on": len(on), "champions": champions[:4],
+                "title": on[0].get("title", "") if on else ""}
 
     def icon():
         chosen = _icon().chosen()

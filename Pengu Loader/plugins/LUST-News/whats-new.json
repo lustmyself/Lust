@@ -1,6 +1,8 @@
 {
-  "version": "1.4.9.75",
+  "version": "1.4.9.76",
   "en": [
+    "The Skins and Maps tile on the home page shows the champions whose custom skin is on, with that champion's art behind it",
+    "The Champ select tile shows your first ban crossed out and your first pick in a gold ring, with a light for Accept, Ban, Pick and Reveal",
     "A picture wallpaper is stretched to fill the client left of the friends list, so all of it shows instead of being cut down",
     "Auto Ban and Auto Pick keep locking in through your whole turn instead of stopping after a few seconds, so they no longer wait for the timer",
     "New installs come with the Talon Acheron - Origin custom skin (by ikiryou) switched on: pick default Talon to play it",
@@ -69,6 +71,8 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "Ana sayfadaki Skinler ve Haritalar kartı, custom skini açık olan şampiyonları ve arkada o şampiyonun görselini gösteriyor",
+    "Champ select kartı ilk banını çarpılı, ilk pickini altın halkada gösteriyor; Accept, Ban, Pick ve Reveal için birer ışık var",
     "Resim duvar kağıdı artık arkadaş listesinin solundaki alanı dolduracak şekilde geriliyor, kesilmeden tamamı görünüyor",
     "Otomatik Ban ve Pick artık sıran boyunca kilitlemeyi denemeye devam ediyor, birkaç saniye sonra bırakıp sürenin bitmesini beklemiyor",
     "Yeni kurulumlarda Talon Acheron - Origin custom skini (ikiryou) hazır ve açık geliyor: oynamak için default Talon'u seç",

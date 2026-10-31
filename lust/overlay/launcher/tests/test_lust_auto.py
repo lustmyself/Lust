@@ -42,7 +42,8 @@ class ChooseTests(unittest.TestCase):
     def test_only_what_the_client_allows(self):
         session = _session("pick")
         self.assertEqual(lust_auto.choose(session, ON, pickable={99}), (7, 99, "pick"))
-        self.assertIsNone(lust_auto.choose(session, ON, pickable={1}))
+        # A list from the client that leaves out every choice is not trusted
+        self.assertEqual(lust_auto.choose(session, ON, pickable={1}), (7, 103, "pick"))
 
     def test_switched_off_does_nothing(self):
         self.assertIsNone(lust_auto.choose(_session("pick"), dict(ON, pick=False)))

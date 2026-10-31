@@ -1,4 +1,4 @@
-.parties-view .parties-background {
+html:not(.lust-league-bg) .parties-view .parties-background {
     height: 0px !important;
 }
 

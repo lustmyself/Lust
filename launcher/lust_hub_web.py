@@ -448,9 +448,13 @@ PAGE = r"""<!doctype html>
   .skr select { display: block; margin-top: 5px; max-width: 100%; background: #2c2840; color: var(--text); border: 1px solid var(--line);
     border-radius: 8px; font: inherit; font-size: 11.5px; padding: 3px 6px; outline: none; cursor: pointer; }
   .skr select.need { border-color: #f472b6; }
-  .skr .switch { flex: none; cursor: pointer; }
-  .skr .switch.on { background: #f472b6; }
-  .skr .switch.lock { opacity: .35; cursor: default; }
+  .skr .tick { flex: none; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; cursor: pointer;
+    border: 2px solid rgba(255, 255, 255, .25); color: transparent; transition: background .15s, border-color .15s, box-shadow .15s; }
+  .skr .tick svg { width: 16px; height: 16px; stroke-width: 3; }
+  .skr .tick:hover { border-color: #f472b6; }
+  .skr .tick.on { background: #ec4899; border-color: #ec4899; color: #fff; box-shadow: 0 0 14px rgba(236, 72, 153, .5); }
+  .skr .tick.lock { opacity: .35; cursor: default; }
+  .sk-hint { color: var(--sub); font-size: 12px; margin: -6px 0 12px; }
   .skr .del { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; border-radius: 8px; display: grid; place-items: center;
     background: #2c2840; color: var(--sub); opacity: 0; transition: opacity .15s; cursor: pointer; }
   .skr:hover .del { opacity: 1; }
@@ -863,6 +867,8 @@ PAGE = r"""<!doctype html>
     background: linear-gradient(100deg, rgba(109, 93, 252, .28), rgba(22, 28, 78, .55) 60%); }
   .client-card .btn { margin-left: auto; flex: none; }
   .client-card .t span { display: block; max-width: 620px; }
+  .mods-seg { margin: 0 0 16px; width: max-content; background: rgba(13, 18, 56, .7); }
+  .mods-seg button.on { background: linear-gradient(135deg, #6d5dfc, #38bdf8); color: #fff; }
 </style>
 </head>
 <body>
@@ -929,10 +935,10 @@ PAGE = r"""<!doctype html>
         <b class="ht-ttl">LoL</b><span class="ht-st" id="t-lol"></span></div>
       <div class="ht-go">__arrow__</div>
     </div>
-    <div class="ht" data-go="maps" id="tile-maps" style="--i:1;--c:52, 211, 153;--g:url(#hg2)">
+    <div class="ht" data-go="skins" id="tile-maps" style="--i:1;--c:52, 211, 153;--g:url(#hg2)">
       <div class="ht-bg" id="t-maps-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i>
       <div class="ht-in"><div class="ht-orb"><svg viewBox="0 0 30 30"><path class="f" d="M4 8l7-3 8 3 7-3v17l-7 3-8-3-7 3z"/><path d="M11 5v17M19 8v17"/><circle class="s" cx="15" cy="13" r="2.4"/></svg></div>
-        <b class="ht-ttl">Haritalar</b><span class="ht-st" id="t-maps"></span></div>
+        <b class="ht-ttl">Skinler ve Haritalar</b><span class="ht-st" id="t-maps"></span></div>
       <div class="ht-go">__arrow__</div>
     </div>
     <div class="ht" data-go="patch" id="tile-patch" style="--i:2;--c:245, 158, 11;--g:url(#hg3)">
@@ -1041,7 +1047,8 @@ PAGE = r"""<!doctype html>
   </section>
 
   <section class="page" id="page-maps">
-    <div class="section">Sonraki maçın haritası</div>
+    <div class="seg mods-seg"><button data-goto="skins" data-tab="skins">Custom skinler</button><button data-goto="maps" data-tab="maps">Haritalar</button></div>
+    <div class="section">Sonraki maçın haritası · bir tane seçilir</div>
     <div class="maps" id="maps"></div>
     <div class="drop" id="drop">__download__<div><b>Harita modu ekle</b><br>.zip, .fantome veya .modpkg dosyasını buraya sürükle</div>
       <button class="btn" data-act="map_folder">Klasörü aç</button>
@@ -1061,9 +1068,11 @@ PAGE = r"""<!doctype html>
   </section>
 
   <section class="page" id="page-skins">
+    <div class="seg mods-seg"><button data-goto="skins" data-tab="skins">Custom skinler</button><button data-goto="maps" data-tab="maps">Haritalar</button></div>
     <div class="sk-off" id="sk-off">Custom skinler Ayarlar'da kapalı: açık olanlar da oyunda yüklenmez.</div>
     <div class="sk-head"><div class="section" id="sk-count">Custom skinler</div>
       <input id="sk-find" type="search" placeholder="Skin veya şampiyon ara" autocomplete="off"></div>
+    <div class="sk-hint">İstediğin kadar skini tikle: her şampiyon için bir skin, oyunda o şampiyonu oynarsan yüklenir.</div>
     <div class="skins" id="skins"></div>
     <div class="drop" id="skin-drop">__download__<div><b>Custom skin ekle</b><br>.zip, .fantome veya .modpkg dosyasını buraya sürükle</div>
       <button class="btn" data-act="skin_folder">Klasörü aç</button>
@@ -1196,7 +1205,7 @@ const LTK_TITLE = {
 };
 const STATUS = { online: "Çevrimiçi", offline: "Çevrimdışı", mobile: "Mobil" };
 const ICON = { sparkle: `__sparkle__`, plusbox: `__plusbox__`, users: `__users__`, shield: `__shield__`, power: `__power__`,
-  sync: `__sync__`, bolt: `__bolt__`, spotify: `__spotify__`, moon: `__moon__`, play: `__play__`, image: `__image__`, wind: `__wind__` };
+  sync: `__sync__`, bolt: `__bolt__`, spotify: `__spotify__`, moon: `__moon__`, play: `__play__`, image: `__image__`, wind: `__wind__`, check: `__check__` };
 
 function buildThemes() {
   $("themes").replaceChildren(...THEMES.map((t) => {
@@ -1537,7 +1546,7 @@ async function poll() {
   catch (e) { if (++failures >= 3) $("lost").style.display = "grid"; }
 }
 // ---- pages: the home tiles lead to each one, Esc or the back button comes home ----
-const PAGES = { home: "", lol: "LoL", spotify: "Spotify", maps: "Haritalar", fonts: "Fontlar", skins: "Custom skinler",
+const PAGES = { home: "", lol: "LoL", spotify: "Spotify", maps: "Skinler ve Haritalar", fonts: "Fontlar", skins: "Skinler ve Haritalar",
   profile: "Profil arka planı", icon: "Profil simgesi", settings: "Ayarlar", patch: "Patch notes", auto: "Champ select" };
 let page = "home";
 function showPage(name) {
@@ -1549,6 +1558,7 @@ function showPage(name) {
   $("title").hidden = name === "home";
   $("word").hidden = name !== "home";
   $("back").hidden = name === "home";
+  document.querySelectorAll(".mods-seg button").forEach((b) => b.classList.toggle("on", b.dataset.tab === name));
   if (name === "home") { loadTiles(); loadAuto(); }
   if (name === "maps") loadMaps();
   if (name === "fonts") loadFonts();
@@ -1643,7 +1653,9 @@ function drawTiles() {
     }
   }
   const mp = t.maps;
-  fill("t-maps", mp && mp.name ? [["b", mp.name], ` · ${mp.count} harita`] : [["b", "Sihirdar Vadisi"], mp && mp.count ? ` · ${mp.count} harita yüklü` : " · League'in haritası"]);
+  const sk = t.skins || {};
+  const mapText = mp && mp.name ? mp.name : "Sihirdar Vadisi";
+  fill("t-maps", sk.count ? [["b", `${sk.count} custom skin`], ` · ${sk.on || 0} açık · ${mapText}`] : [["b", mapText], " · custom skin ekle"]);
   if (mp && mp.preview) setBg("t-maps-bg", `/map-preview?id=${encodeURIComponent(mp.id)}`);
   else setBg("t-maps-bg", RIFT, "rift");
   const pt = t.patch;
@@ -2000,8 +2012,9 @@ function skinRow(s, champions) {
     tx.appendChild(pick);
   }
   const sw = document.createElement("div");
-  sw.className = "switch" + (s.enabled ? " on" : "") + (s.championId ? "" : " lock");
-  sw.title = s.championId ? (s.enabled ? "Açık" : "Kapalı") : "Önce şampiyonu seç";
+  sw.className = "tick" + (s.enabled ? " on" : "") + (s.championId ? "" : " lock");
+  sw.innerHTML = ICON.check;
+  sw.title = s.championId ? (s.enabled ? "Seçili: oyunda bu skin" : "Seç") : "Önce şampiyonu seç";
   sw.addEventListener("click", () => {
     if (!s.championId) { showToast("Önce şampiyonu seç"); return; }
     act("skin_toggle", { name: s.name, enabled: !s.enabled }).then(() => setTimeout(loadSkins, 250));
@@ -2013,7 +2026,7 @@ function skinRow(s, champions) {
       act("skin_delete", { name: s.name }).then(() => setTimeout(loadSkins, 250));
     } else { del.dataset.armed = Date.now(); showToast("Silmek için tekrar bas"); }
   });
-  row.append(ic, tx, sw, del);
+  row.append(sw, ic, tx, del);
   return row;
 }
 function drawSkins() {
@@ -2271,6 +2284,7 @@ document.querySelectorAll(".rz").forEach((edge) => edge.addEventListener("moused
 window.addEventListener("pywebviewready", () => windowMode("mode"));
 $("back").addEventListener("click", () => showPage("home"));
 document.querySelectorAll(".ht").forEach((t) => t.addEventListener("click", () => showPage(t.dataset.go)));
+document.querySelectorAll("[data-goto]").forEach((b) => b.addEventListener("click", () => showPage(b.dataset.goto)));
 document.addEventListener("contextmenu", (e) => e.preventDefault());
 buildThemes();
 showPage("home");

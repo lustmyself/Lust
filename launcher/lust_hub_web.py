@@ -509,7 +509,7 @@ PAGE = r"""<!doctype html>
   .ic-big svg { width: 38px; height: 38px; }
   .ic-hero small { display: block; color: #fde047; font-size: 10.5px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; }
   .ic-hero h2 { margin: 3px 0 8px; font-size: 21px; font-weight: 700; }
-  .ic-hero .btn { margin-left: auto; }
+  .ic-acts { margin-left: auto; display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
   .ic-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 600;
     background: rgba(255, 255, 255, .1); color: var(--sub); }
   .ic-chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--faint); }
@@ -782,13 +782,15 @@ PAGE = r"""<!doctype html>
   <section class="page" id="page-icon">
     <div class="ic-hero" id="ic-hero"><div class="ic-big" id="ic-big">__user__</div>
       <div><small>Profil simgesi</small><h2 id="ic-name">…</h2><span class="ic-chip" id="ic-chip"></span></div>
-      <button class="btn" id="ic-reset" hidden>Kendi simgeme dön</button></div>
+      <div class="ic-acts"><button class="btn" id="ic-reset" hidden>Kendi simgeme dön</button>
+        <button class="btn" data-act="clear_tokens" title="Profilindeki meydan okuma tokenlerini kaldırır">Tokenleri kaldır</button></div></div>
     <div class="ic-head"><div class="section" id="ic-count">Simgeler</div>
       <input id="ic-find" type="search" placeholder="Simge ara: ad, yıl, numara" autocomplete="off"></div>
     <div class="icons" id="ic-list"></div>
     <button class="btn ic-more" id="ic-more" hidden>Daha fazla göster</button>
     <div class="note">Seçtiğin simge, sahip olmasan da LoL istemcisinde senin simgen olarak görünür: sağ üstte, profilinde, sohbette ve lobide.
-      Bu yalnızca senin ekranında olur; Riot'a gönderilmez, arkadaşların ve diğer oyuncular gerçek simgeni görmeye devam eder.</div>
+      Bu yalnızca senin ekranında olur; Riot'a gönderilmez, arkadaşların ve diğer oyuncular gerçek simgeni görmeye devam eder.
+      "Tokenleri kaldır" ise profilinin altındaki meydan okuma tokenlerini Riot'ta kaldırır; herkes için boş görünür (LoL açık olmalı).</div>
   </section>
 
   <section class="page" id="page-spotify">

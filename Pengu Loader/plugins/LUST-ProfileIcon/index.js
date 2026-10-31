@@ -8,6 +8,8 @@
 // binding (what its pages read from the local API, first answers and live updates alike) is
 // hooked, and wherever it describes this player the icon id becomes the chosen one. The
 // client then draws that icon from its own files. Everyone else sees the real icon.
+// The profile page and the lobby draw their crest (regalia) from their own requests, so
+// there the crest's icon gets a stylesheet with the chosen icon instead.
 
 const LOG_PREFIX = "[Lust-ProfileIcon]";
 const STORE_KEY = "lust-profile-icon";
@@ -16,6 +18,16 @@ const POLL_MS = 4000;
 const WATCHED = ["/lol-summoner/", "/lol-chat/v1/me", "/lol-lobby/", "/lol-hovercard/", "/lol-regalia/"];
 const ICON_KEYS = ["profileIconId", "summonerIconId", "icon"];
 const MAX_DEPTH = 6;
+// Crests that show a player: the profile page, lobby slots, hover cards, the identity editor
+const REGALIA_HOSTS = [
+  "lol-regalia-profile-v2-element",
+  "lol-regalia-parties-v2-element",
+  "lol-regalia-hovercard-v2-element",
+  "lol-regalia-identity-customizer-element",
+  "lol-regalia-crest-v2-element",
+];
+const STYLE_ID = "lust-profile-icon";
+const RETRY_MS = [0, 150, 500, 1500, 4000];
 
 let iconId = 0;
 const me = { puuid: "", summonerId: "" };
@@ -55,8 +67,10 @@ function isMine(obj) {
 
 function learn(endpoint, content) {
   if (endpoint !== "/lol-summoner/v1/current-summoner" || !content || typeof content !== "object") return;
+  const before = me.puuid + "/" + me.summonerId;
   if (typeof content.puuid === "string" && content.puuid) me.puuid = content.puuid;
   if (content.summonerId != null) me.summonerId = String(content.summonerId);
+  if (before !== me.puuid + "/" + me.summonerId) setTimeout(restyleHosts, 0);
 }
 
 // The content with this player's icon swapped; the same object when nothing is about them.
@@ -133,6 +147,93 @@ function refresh() {
   }
 }
 
+// ---- crests drawn outside the data binding ----
+
+const hosts = new Set();
+
+function hostIsMine(host) {
+  for (const name of ["puuid", "voice-puuid"]) {
+    const value = host.getAttribute(name);
+    if (value && me.puuid && value === me.puuid) return true;
+  }
+  const summonerId = host.getAttribute("summoner-id");
+  return !!(summonerId && me.summonerId && summonerId === me.summonerId);
+}
+
+function crestRoots(host) {
+  const roots = [];
+  if (host.shadowRoot) {
+    roots.push(host.shadowRoot);
+    host.shadowRoot.querySelectorAll("lol-regalia-crest-v2-element").forEach((crest) => {
+      if (crest.shadowRoot) roots.push(crest.shadowRoot);
+    });
+  }
+  return roots;
+}
+
+function hasIds(host) {
+  return ["puuid", "voice-puuid", "summoner-id"].some((name) => host.getAttribute(name));
+}
+
+function styleHost(host) {
+  // A crest inside a profile or lobby element belongs to that element, which styles it
+  if (!hasIds(host)) return;
+  const show = iconId > 0 && hostIsMine(host);
+  for (const root of crestRoots(host)) {
+    let style = root.getElementById ? root.getElementById(STYLE_ID) : root.querySelector(`#${STYLE_ID}`);
+    if (!show) {
+      if (style) style.remove();
+      continue;
+    }
+    if (!style) {
+      style = document.createElement("style");
+      style.id = STYLE_ID;
+      root.appendChild(style);
+    }
+    const url = `/lol-game-data/assets/v1/profile-icons/${iconId}.jpg`;
+    const css = `.lol-regalia-summoner-icon{background-image:url("${url}")!important}`;
+    if (style.textContent !== css) style.textContent = css;
+  }
+}
+
+function watchHost(host) {
+  if (hosts.has(host)) return;
+  hosts.add(host);
+  // Its shadow roots and ids arrive a little after the element itself
+  RETRY_MS.forEach((ms) => setTimeout(() => styleHost(host), ms));
+  new MutationObserver(() => styleHost(host))
+    .observe(host, { attributes: true, attributeFilter: ["puuid", "voice-puuid", "summoner-id"] });
+}
+
+function restyleHosts() {
+  for (const host of hosts) {
+    if (!host.isConnected) hosts.delete(host);
+    else styleHost(host);
+  }
+}
+
+// Every crest host as it appears, in the page and inside other elements' shadow roots
+const observedRoots = new WeakSet();
+function scan(root) {
+  if (!root || observedRoots.has(root)) return;
+  observedRoots.add(root);
+  domObserver.observe(root, { childList: true, subtree: true });
+  root.querySelectorAll("*").forEach(visit);
+}
+function visit(element) {
+  if (REGALIA_HOSTS.some((selector) => element.matches(selector))) watchHost(element);
+  if (element.shadowRoot) scan(element.shadowRoot);
+}
+const domObserver = new MutationObserver((mutations) => {
+  for (const mutation of mutations) {
+    mutation.addedNodes.forEach((node) => {
+      if (node.nodeType !== Node.ELEMENT_NODE) return;
+      visit(node);
+      node.querySelectorAll("*").forEach(visit);
+    });
+  }
+});
+
 function setIcon(value) {
   const next = Number.isInteger(value) && value >= 0 ? value : 0;
   if (next === iconId) return;
@@ -140,6 +241,7 @@ function setIcon(value) {
   storeSet(next);
   log(next ? `showing icon ${next}` : "showing the account's own icon");
   refresh();
+  restyleHosts();
 }
 
 async function findMe() {
@@ -150,6 +252,7 @@ async function findMe() {
         learn("/lol-summoner/v1/current-summoner", await response.json());
         if (me.puuid) {
           refresh();
+          restyleHosts();
           return;
         }
       }
@@ -201,6 +304,7 @@ export function init(context) {
 }
 
 export function load() {
+  scan(document);
   findMe();
   followHub();
 }

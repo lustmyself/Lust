@@ -840,7 +840,6 @@ PAGE = r"""<!doctype html>
   @media (prefers-reduced-motion: reduce) { .ht-sp-big { animation: none; } }
   #tile-patch .ht-bg { background: radial-gradient(320px 200px at 85% 20%, rgba(245, 158, 11, .45), transparent 70%), linear-gradient(135deg, #3b2a0a, #0f1440); }
   #tile-fonts .ht-bg { background: radial-gradient(380px 220px at 90% 10%, rgba(251, 146, 60, .25), transparent 70%), linear-gradient(135deg, #2a1530, #0f1440); }
-  #tile-auto .ht-bg { background: radial-gradient(360px 220px at 90% 10%, rgba(244, 63, 94, .3), transparent 70%), linear-gradient(135deg, #2b0f24, #0f1440); }
   #tile-settings .ht-bg { background: conic-gradient(from 200deg at 80% 30%, rgba(109, 93, 252, .45), rgba(56, 189, 248, .2), rgba(244, 114, 182, .3), rgba(109, 93, 252, .45)); filter: blur(30px); }
   #tile-maps .ht-bg.rift { background-size: 70%; background-position: 115% 30%; background-repeat: no-repeat; opacity: .55; }
   .ht-faces { position: absolute; right: 22px; top: 20px; display: flex; }
@@ -851,11 +850,35 @@ PAGE = r"""<!doctype html>
   .ht-eq i { width: 4px; border-radius: 2px; background: #1ed760; animation: hteq 1s ease-in-out infinite; }
   .ht-eq i:nth-child(2) { animation-delay: -.3s; } .ht-eq i:nth-child(3) { animation-delay: -.6s; } .ht-eq i:nth-child(4) { animation-delay: -.15s; }
   @keyframes hteq { 0%, 100% { height: 5px; } 50% { height: 22px; } }
-  .ht-checks { position: absolute; right: 22px; top: 22px; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
-  .ht-checks span { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 99px;
-    font-size: 11px; font-weight: 700; background: rgba(0, 0, 0, .3); border: 1px solid rgba(255, 255, 255, .1); color: var(--faint); }
-  .ht-checks span.on { color: #fecdd3; border-color: rgba(244, 63, 94, .5); background: rgba(244, 63, 94, .18); }
-  .ht-checks span.on::before { content: "✓"; color: #fb7185; }
+  /* Champ select tile: a small draft board with the ban and pick lists */
+  #tile-auto .ht-bg { background:
+      repeating-linear-gradient(115deg, rgba(255, 255, 255, .025) 0 1px, transparent 1px 14px),
+      radial-gradient(300px 200px at 78% 30%, rgba(244, 63, 94, .28), transparent 70%),
+      radial-gradient(240px 180px at 95% 100%, rgba(200, 170, 110, .16), transparent 70%),
+      linear-gradient(135deg, #2b0f24, #0f1440); }
+  .ht-draft { position: absolute; right: 20px; top: 20px; display: flex; flex-direction: column; gap: 9px; align-items: flex-end; }
+  .dr-row { display: flex; align-items: center; gap: 8px; transition: opacity .3s, filter .3s; }
+  .dr-row.off { opacity: .35; filter: grayscale(1); }
+  .dr-row em { font-style: normal; font-size: 9.5px; font-weight: 800; letter-spacing: .16em; width: 30px; text-align: right; }
+  .dr-row.ban em { color: #fb7185; } .dr-row.pick em { color: #e8c983; }
+  .dr-row .dr-faces { display: flex; gap: 5px; }
+  .dr-row i { position: relative; width: 32px; height: 32px; border-radius: 9px; background: #0d1238 center / 112% no-repeat;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, .45); }
+  .dr-row.ban i { border: 1.5px solid rgba(244, 63, 94, .75); filter: saturate(.55) brightness(.8); }
+  .dr-row.ban i::after { content: ""; position: absolute; inset: 0; border-radius: 8px;
+    background: linear-gradient(135deg, transparent 46%, rgba(251, 113, 133, .95) 46% 54%, transparent 54%); }
+  .dr-row.pick i { border: 1.5px solid rgba(200, 170, 110, .8); }
+  .dr-row.pick i:first-child { width: 38px; height: 38px; border-color: #f0d38a; box-shadow: 0 0 16px rgba(240, 211, 138, .45), 0 4px 10px rgba(0, 0, 0, .45); }
+  .dr-row i.empty { background: rgba(255, 255, 255, .04); border-style: dashed; filter: none; }
+  .dr-row i.empty::after { display: none; }
+  .dr-leds { display: flex; gap: 6px; margin-top: 2px; }
+  .dr-leds span { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px; border-radius: 99px; font-size: 10.5px;
+    font-weight: 700; color: var(--faint); background: rgba(0, 0, 0, .32); border: 1px solid rgba(255, 255, 255, .08); }
+  .dr-leds span::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: rgba(255, 255, 255, .25); }
+  .dr-leds span.on { color: #fecdd3; border-color: rgba(244, 63, 94, .45); }
+  .dr-leds span.on::before { background: #4ade80; box-shadow: 0 0 6px #4ade80; }
+  .ht:hover .dr-row.pick i:first-child { transform: translateY(-2px); }
+  .dr-row i { transition: transform .2s; }
 
   /* Champ select page: Auto Accept, Ban, Pick, Lobby Reveal */
   .au-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
@@ -1024,7 +1047,7 @@ PAGE = r"""<!doctype html>
       <div class="ht-go">__arrow__</div>
     </div>
     <div class="ht" data-go="auto" id="tile-auto" style="--i:7;--c:244, 63, 94;--g:url(#hg1)">
-      <div class="ht-bg" id="t-auto-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><div class="ht-checks" id="t-auto-checks"></div>
+      <div class="ht-bg" id="t-auto-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><div class="ht-draft" id="t-auto-draft"></div>
       <div class="ht-in"><div class="ht-orb"><svg viewBox="0 0 30 30"><path class="f" d="M5 22 3 9l6.5 5L15 5l5.5 9L27 9l-2 13z"/><path d="M6 26h18"/></svg></div>
         <b class="ht-ttl">Champ select</b><span class="ht-st" id="t-auto"></span></div>
       <div class="ht-go">__arrow__</div>
@@ -1768,12 +1791,30 @@ function drawTiles() {
   const names = [["accept", "Accept"], ["ban", "Ban"], ["pick", "Pick"]];
   const reveal = !!((a.reveal || {}).on);
   const onCount = names.filter(([k]) => a[k]).length + (reveal ? 1 : 0);
-  fill("t-auto", onCount ? [["b", `${onCount} özellik açık`], " · Auto Accept, Ban, Pick, Lobby Reveal"] : ["Auto Accept, Ban, Pick ve Lobby Reveal"]);
-  const checks = JSON.stringify([...names.map(([k]) => !!a[k]), reveal]);
-  if ($("t-auto-checks").dataset.key !== checks) {
-    $("t-auto-checks").dataset.key = checks;
-    $("t-auto-checks").replaceChildren(...[...names, ["reveal", "Reveal"]].map(([k, label]) =>
-      Object.assign(document.createElement("span"), { textContent: label, className: (k === "reveal" ? reveal : a[k]) ? "on" : "" })));
+  fill("t-auto", onCount ? [["b", `${onCount}/4 açık`], " · sıra gelince senin yerine"] : ["Auto Accept, Ban, Pick ve Lobby Reveal"]);
+  const draftKey = JSON.stringify([a.ban, a.pick, a.accept, reveal, a.bans, a.picks]);
+  if ($("t-auto-draft").dataset.key !== draftKey) {
+    $("t-auto-draft").dataset.key = draftKey;
+    const row = (kind, label, ids, on, slots) => {
+      const r = document.createElement("div");
+      r.className = `dr-row ${kind}${on ? "" : " off"}`;
+      const faces = document.createElement("span");
+      faces.className = "dr-faces";
+      const list = (ids || []).slice(0, slots);
+      for (let n = 0; n < slots; n++) {
+        const i = document.createElement("i");
+        if (list[n]) i.style.backgroundImage = `url("${CHAMP_ICON(list[n])}")`;
+        else i.className = "empty";
+        faces.append(i);
+      }
+      r.append(Object.assign(document.createElement("em"), { textContent: label }), faces);
+      return r;
+    };
+    const leds = document.createElement("div");
+    leds.className = "dr-leds";
+    leds.append(...[["Accept", a.accept], ["Reveal", reveal]].map(([label, on]) =>
+      Object.assign(document.createElement("span"), { textContent: label, className: on ? "on" : "" })));
+    $("t-auto-draft").replaceChildren(row("pick", "PICK", a.picks, !!a.pick, 3), row("ban", "BAN", a.bans, !!a.ban, 3), leds);
   }
   const warn = (s.rose && s.rose.installed) || ((s.patcher || {}).state && s.patcher.state !== "ok") || s.update_available;
   fill("t-settings", warn ? [["b", s.update_available ? "Güncelleme hazır" : "Bakman gereken bir şey var", "warn"]]

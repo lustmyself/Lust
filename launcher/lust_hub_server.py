@@ -274,6 +274,14 @@ class _Handler(BaseHTTPRequestHandler):
                 lust_hub.toast(message)
             return self._send(200, json.dumps({"message": message}).encode("utf-8"), "application/json")
         if not self._authorized() or not self.path.startswith("/api/action/"):
+            # Read a small body first: closing with it unread resets the connection on Windows
+            # before the client sees the 403
+            try:
+                length = int(self.headers.get("Content-Length") or 0)
+                if 0 < length <= 4096:
+                    self.rfile.read(length)
+            except (ValueError, OSError):
+                pass
             return self._send(403)
         name = self.path.rsplit("/", 1)[-1]
         from launcher import lust_hub

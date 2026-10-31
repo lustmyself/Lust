@@ -24,12 +24,13 @@ DEFAULTS = {"accept": False, "ban": False, "pick": False, "bans": [], "picks": [
 IDLE_S = 3.0   # League closed or nothing to do
 BUSY_S = 1.0   # ready check or champ select
 CREDS_TTL_S = 30.0
+MAX_TRIES = 5
 
 _lock = threading.Lock()
 _cache: Optional[dict] = None
 _thread: Optional[threading.Thread] = None
 _creds: dict = {"at": 0.0, "value": None}
-_done: set = set()  # action ids this champ select already answered
+_done: dict = {}  # action id -> tries in this champ select
 
 
 # ---- settings ----
@@ -217,19 +218,24 @@ def _champ_select(config: dict) -> None:
               f"[Auto] Nothing to do: my open actions {[(a.get('type'), a.get('isInProgress')) for a in mine]}, "
               f"bans {config['bans']}, picks {config['picks']}")
         return
-    if found[0] in _done:
-        return
     action_id, champion, kind = found
+    # The client may answer OK and still leave the action open (seen with bans), so an
+    # action counts as done only once the session shows it completed: try again until then
+    tries = _done.get(action_id, 0)
+    if tries >= MAX_TRIES:
+        _note(f"gave-up-{action_id}", f"[Auto] Gave up on {kind} {champion} (action {action_id})")
+        return
+    _done[action_id] = tries + 1
     path = f"/lol-champ-select/v1/session/actions/{action_id}"
-    # Choose and lock in one call; older clients need the hover first and /complete after
-    done = _lcu("PATCH", path, {"championId": champion, "completed": True}) is not None
-    if not done and _lcu("PATCH", path, {"championId": champion}) is not None:
-        done = _lcu("POST", path + "/complete") is not None
+    # Hover, then lock in; the one-call form is the fallback
+    hovered = _lcu("PATCH", path, {"championId": champion}) is not None
+    done = hovered and _lcu("POST", path + "/complete") is not None
+    if not done:
+        done = _lcu("PATCH", path, {"championId": champion, "completed": True}) is not None
     if done:
-        _done.add(action_id)
-        log.info(f"[Auto] {kind} {champion} locked")
+        log.info(f"[Auto] {kind} {champion} sent (try {tries + 1})")
     else:
-        log.warning(f"[Auto] Could not {kind} {champion} (action {action_id})")
+        log.warning(f"[Auto] Could not {kind} {champion} (action {action_id}, try {tries + 1})")
 
 
 _notes: set = set()

@@ -310,11 +310,9 @@ async function lustApplyWallpaper(msg) {
     lustWallpaperState(true);
     return;
   }
-  for (let i = 0; i < 40 && !document.getElementById("elaina-bg"); i++)
-    await new Promise((resolve) => setTimeout(resolve, 250));
-  const video = document.getElementById("elaina-bg");
-  const image = document.getElementById("elaina-static-bg");
-  const wasOn = !ElainaData.get("lust-league-background") && !ElainaData.get("disable-theme-wallpaper") && !!(video && video.src);
+  console.log("[LUST] wallpaper from the app:", msg.league ? "League's own" : msg.name);
+  // Save the choice first: if the client's home page has not loaded yet, the theme's
+  // own start-up shows it from these values
   const league = !!msg.league;
   ElainaData.set("lust-league-background", league);
   document.documentElement.classList.toggle("lust-league-bg", league);
@@ -324,29 +322,42 @@ async function lustApplyWallpaper(msg) {
       ElainaData.set("Wallpaper-list", [...list, msg.name]);
     ElainaData.set("wallpaper-index", ElainaData.get("Wallpaper-list").indexOf(msg.name));
   }
-  const controls = document.querySelector(".wallpaper-controls");
-  if (league || ElainaData.get("disable-theme-wallpaper")) {
-    if (video)
-      video.src = "";
-    if (image)
-      image.src = "";
-    if (controls)
-      controls.style.display = "none";
-  } else if (!wasOn) {
-    setWallpaper();
-    setImageWallpaper();
-    wallpaperPlayPause();
-    if (controls)
-      controls.style.display = "flex";
-  } else if (msg.name) {
-    if (video)
-      video.classList.add("webm-hidden");
-    if (image)
-      image.classList.add("webm-hidden");
-    await wallpaperController.changeBG(msg.name);
-  }
   if (typeof msg.rev === "number")
     ElainaData.set("lust-wallpaper-rev", msg.rev);
+  for (let i = 0; i < 240 && !document.getElementById("elaina-bg"); i++)
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  const video = document.getElementById("elaina-bg");
+  const image = document.getElementById("elaina-static-bg");
+  const controls = document.querySelector(".wallpaper-controls");
+  if (!video || !image) {
+    lustWallpaperState(true);
+    return;
+  }
+  if (league || ElainaData.get("disable-theme-wallpaper")) {
+    video.pause();
+    video.removeAttribute("src");
+    video.load();
+    image.removeAttribute("src");
+    if (controls)
+      controls.style.display = "none";
+  } else {
+    // A wallpaper picked in the app plays, even if the last one was paused
+    if (ElainaData.get("pause-wallpaper") % 2 === 0)
+      ElainaData.set("pause-wallpaper", ElainaData.get("pause-wallpaper") + 1);
+    ElainaData.set("Wallpaper-currentTime", 0);
+    setWallpaper();
+    setImageWallpaper();
+    video.classList.remove("webm-hidden");
+    image.classList.remove("webm-hidden");
+    video.play().catch((err) => console.warn("[LUST] wallpaper play", err));
+    if (controls)
+      controls.style.display = "flex";
+    try {
+      wallpaperController.playPauseSetIcon();
+    } catch (err) {
+      console.warn("[LUST] wallpaper icon", err);
+    }
+  }
   try {
     applyWindowEffect();
   } catch (err) {

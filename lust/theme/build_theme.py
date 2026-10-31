@@ -290,10 +290,91 @@ function lustTr(text, vars) {
   return out;
 }
 
+// Lust: the desktop app picks the wallpaper. Its choice comes over the bridge when the
+// theme starts and whenever it changes; the theme tells the app what it shows.
+let lustWallpaperSent = "";
+function lustWallpaperState(force = false) {
+  const bridge = window.__lustBridge;
+  if (!bridge) return;
+  const list = ElainaData.get("Wallpaper-list") || [];
+  const league = !!ElainaData.get("lust-league-background");
+  const name = list[ElainaData.get("wallpaper-index")] || "";
+  const key = `${league}|${name}`;
+  if (!force && key === lustWallpaperSent) return;
+  lustWallpaperSent = key;
+  bridge.send({ type: "lust-wallpaper", action: "state", league, name });
+}
+async function lustApplyWallpaper(msg) {
+  if (!msg || msg.action !== "apply") return;
+  if (typeof msg.rev === "number" && msg.rev === ElainaData.get("lust-wallpaper-rev")) {
+    lustWallpaperState(true);
+    return;
+  }
+  for (let i = 0; i < 40 && !document.getElementById("elaina-bg"); i++)
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  const video = document.getElementById("elaina-bg");
+  const image = document.getElementById("elaina-static-bg");
+  const wasOn = !ElainaData.get("lust-league-background") && !ElainaData.get("disable-theme-wallpaper") && !!(video && video.src);
+  const league = !!msg.league;
+  ElainaData.set("lust-league-background", league);
+  document.documentElement.classList.toggle("lust-league-bg", league);
+  if (msg.name) {
+    const list = ElainaData.get("Wallpaper-list") || [];
+    if (!list.includes(msg.name))
+      ElainaData.set("Wallpaper-list", [...list, msg.name]);
+    ElainaData.set("wallpaper-index", ElainaData.get("Wallpaper-list").indexOf(msg.name));
+  }
+  const controls = document.querySelector(".wallpaper-controls");
+  if (league || ElainaData.get("disable-theme-wallpaper")) {
+    if (video)
+      video.src = "";
+    if (image)
+      image.src = "";
+    if (controls)
+      controls.style.display = "none";
+  } else if (!wasOn) {
+    setWallpaper();
+    setImageWallpaper();
+    wallpaperPlayPause();
+    if (controls)
+      controls.style.display = "flex";
+  } else if (msg.name) {
+    if (video)
+      video.classList.add("webm-hidden");
+    if (image)
+      image.classList.add("webm-hidden");
+    await wallpaperController.changeBG(msg.name);
+  }
+  if (typeof msg.rev === "number")
+    ElainaData.set("lust-wallpaper-rev", msg.rev);
+  try {
+    applyWindowEffect();
+  } catch (err) {
+    console.warn("[LUST] window effect", err);
+  }
+  lustWallpaperState(true);
+}
+function lustWallpaperLink(tries = 0) {
+  const bridge = window.__lustBridge;
+  if (!bridge) {
+    if (tries < 120)
+      setTimeout(() => lustWallpaperLink(tries + 1), 1000);
+    return;
+  }
+  bridge.subscribe("lust-wallpaper", (msg) => {
+    lustApplyWallpaper(msg).catch((err) => console.warn("[LUST] wallpaper", err));
+  });
+  bridge.send({ type: "lust-wallpaper", action: "get" });
+  setTimeout(() => lustWallpaperState(true), 3000);
+  // A wallpaper changed inside the client shows in the app too
+  setInterval(() => lustWallpaperState(), 5000);
+}
+
 function Settings(context) {
   ElainaData.set("settingsChangenumber", 0);
   mountLustHub();
   applyLustColors();
+  lustWallpaperLink();
 }
 
 // Lust: the LUST item in the top navigation opens the Lust hub, a centered window

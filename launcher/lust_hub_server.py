@@ -65,6 +65,44 @@ class _Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _send_file(self, path, kind: str) -> None:
+        """A wallpaper file, streamed; videos ask for byte ranges to seek."""
+        try:
+            size = path.stat().st_size
+            start, end = 0, size - 1
+            ranged = re.fullmatch(r"bytes=(\d*)-(\d*)", self.headers.get("Range", "").strip())
+            if ranged and (ranged.group(1) or ranged.group(2)):
+                if ranged.group(1):
+                    start = int(ranged.group(1))
+                    end = min(int(ranged.group(2)), size - 1) if ranged.group(2) else size - 1
+                else:
+                    start = max(size - int(ranged.group(2)), 0)
+                if start > end:
+                    self.send_response(416)
+                    self.send_header("Content-Range", f"bytes */{size}")
+                    self.end_headers()
+                    return
+            self.send_response(206 if ranged else 200)
+            self.send_header("Content-Type", kind)
+            self.send_header("Accept-Ranges", "bytes")
+            self.send_header("Content-Length", str(end - start + 1))
+            if ranged:
+                self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("X-Content-Type-Options", "nosniff")
+            self.end_headers()
+            with path.open("rb") as handle:
+                handle.seek(start)
+                left = end - start + 1
+                while left > 0:
+                    chunk = handle.read(min(left, 256 * 1024))
+                    if not chunk:
+                        break
+                    self.wfile.write(chunk)
+                    left -= len(chunk)
+        except (OSError, ConnectionError):
+            pass
+
     def do_GET(self) -> None:  # noqa: N802
         global _last_seen
         if not self._allowed_host():
@@ -109,6 +147,17 @@ class _Handler(BaseHTTPRequestHandler):
                 return self._send(403)
             from launcher import lust_patch
             return self._send(200, lust_patch.dumps(), "application/json")
+        if path == "/api/wallpapers":
+            if not self._authorized():
+                return self._send(403)
+            from launcher import lust_wallpaper
+            return self._send(200, lust_wallpaper.dumps_listing(), "application/json")
+        if path == "/wallpaper-file":
+            from urllib.parse import parse_qs
+            from launcher import lust_wallpaper
+            name = (parse_qs(self.path.split("?", 1)[-1]).get("name") or [""])[0]
+            found = lust_wallpaper.file_info(name) if name else None
+            return self._send_file(*found) if found else self._send(404)
         if path == "/api/maps":
             if not self._authorized():
                 return self._send(403)
@@ -197,6 +246,18 @@ class _Handler(BaseHTTPRequestHandler):
             except ValueError:
                 length = 0
             message = lust_fonts.import_upload(name, self.rfile, length)
+            if message:
+                lust_hub.toast(message)
+            return self._send(200, json.dumps({"message": message}).encode("utf-8"), "application/json")
+        if self._authorized() and self.path.startswith("/api/wallpapers/upload"):
+            from urllib.parse import parse_qs, unquote
+            from launcher import lust_hub, lust_wallpaper
+            name = unquote((parse_qs(self.path.split("?", 1)[-1]).get("name") or [""])[0])
+            try:
+                length = int(self.headers.get("Content-Length") or 0)
+            except ValueError:
+                length = 0
+            message = lust_wallpaper.import_upload(name, self.rfile, length)
             if message:
                 lust_hub.toast(message)
             return self._send(200, json.dumps({"message": message}).encode("utf-8"), "application/json")

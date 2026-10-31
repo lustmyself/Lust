@@ -155,7 +155,9 @@ def choose(session: dict, config: dict, pickable=None, bannable=None) -> Optiona
                 choices = [c for c in config.get("picks") or [] if c not in taken]
             else:
                 continue
-            if allowed is not None:
+            # The client's own list of what may be banned or picked now; when it leaves out
+            # every choice the list itself may be wrong, so try the choice and let the client say no
+            if allowed is not None and any(c in allowed for c in choices):
                 choices = [c for c in choices if c in allowed]
             if choices:
                 return action.get("id"), choices[0], kind
@@ -214,9 +216,15 @@ def _champ_select(config: dict) -> None:
     if not found:
         mine = [a for g in session.get("actions") or [] for a in g or []
                 if a.get("actorCellId") == session.get("localPlayerCellId") and not a.get("completed")]
+        me = session.get("localPlayerCellId")
+        friends = sorted({m.get("championPickIntent") or m.get("championId") or 0
+                          for m in session.get("myTeam") or [] if m.get("cellId") != me} - {0})
         _note(f"none-{[(a.get('id'), a.get('type'), a.get('isInProgress')) for a in mine]}",
               f"[Auto] Nothing to do: my open actions {[(a.get('type'), a.get('isInProgress')) for a in mine]}, "
-              f"bans {config['bans']}, picks {config['picks']}")
+              f"ban {'on' if config['ban'] else 'off'} {config['bans']}, "
+              f"pick {'on' if config['pick'] else 'off'} {config['picks']}, "
+              f"taken {sorted(_taken(session))}, teammates want {friends}, "
+              f"timer {(session.get('timer') or {}).get('phase')}")
         return
     action_id, champion, kind = found
     # The client may answer OK and still leave the action open (seen with bans), so an

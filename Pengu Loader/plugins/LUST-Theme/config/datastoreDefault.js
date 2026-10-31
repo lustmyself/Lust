@@ -35,6 +35,7 @@ export default {
 	"wallpaper-slideshow"           : false,
 	"wallpaper-change-slide-time"   : 10000,
 	"disable-theme-wallpaper"       : false,
+	"lust-league-background"        : true,
 	"window-effect-name"            : "transparent",
 	"window-effect-color-base"      : "#ffffff",
 	"window-effect-alpha"           : "00",

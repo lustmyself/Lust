@@ -1660,6 +1660,9 @@ function initHomepageData() {
     if (!wallpapers.includes(name)) wallpapers.push(name);
   }
   LustData.set("Wallpaper-list", wallpapers);
+  if (!LustData.has("lust-league-background"))
+    LustData.set("lust-league-background", true);
+  document.documentElement.classList.toggle("lust-league-bg", !!LustData.get("lust-league-background"));
 }
 async function updateSummonerIdentity() {
   const summonerID = await utils.getSummonerID();
@@ -2003,7 +2006,7 @@ class MainController {
     const muteAudioIcon = this.createIcon("mute-audio-icon", `${iconFolder$3}plugins-icons/mute-audio.png`);
     const audioLoopIcon = this.createIcon("audio-loop-icon", `${iconFolder$3}plugins-icons/audio-loop.png`);
     const wallpaperControls = this.createElementWithClass("div", "wallpaper-controls");
-    if (LustData.get("disable-theme-wallpaper"))
+    if (LustData.get("disable-theme-wallpaper") || LustData.get("lust-league-background"))
       wallpaperControls.style.display = "none";
     const pauseBg = this.createElementWithId("div", "pause-bg");
     const nextBg = this.createElementWithId("div", "next-bg");
@@ -2532,7 +2535,7 @@ class WallpaperAndAudio {
     document.body.prepend(audio);
   };
   setWallpaperElement = () => {
-    if (!LustData.get("disable-theme-wallpaper")) {
+    if (!LustData.get("disable-theme-wallpaper") && !LustData.get("lust-league-background")) {
       if (LustData.get("wallpaper-index") > LustData.get("Wallpaper-list").length - 1) {
         LustData.set("wallpaper-index", 0);
       }
@@ -2568,7 +2571,7 @@ class WallpaperAndAudio {
     }
   };
   setImageWallpaperElement = () => {
-    if (!LustData.get("disable-theme-wallpaper")) {
+    if (!LustData.get("disable-theme-wallpaper") && !LustData.get("lust-league-background")) {
       const imgWallpaper = document.getElementById("lust-static-bg");
       imgWallpaper.preload = "metadata";
       imgWallpaper.src = `${bgFolder$1}wallpapers/${LustData.get("Wallpaper-list")[LustData.get("wallpaper-index")]}`;
@@ -2731,7 +2734,7 @@ class WindowEffects {
   applyWindowEffect = () => {
     if (!window.Effect)
       return;
-    if (!LustData.get("disable-theme-wallpaper")) {
+    if (!LustData.get("disable-theme-wallpaper") || LustData.get("lust-league-background")) {
       window.Effect.clear();
       return;
     }
@@ -3142,6 +3145,35 @@ async function windowEffectsRow() {
 async function wallpaperSection() {
   const br = () => document.createElement("br");
   return UI.createSection("theme-settings-wallpaper", await getString("theme-settings.settings-section-wallpaper"), [
+    UI.createCheckBox(
+      lustTr("Use League's own background"),
+      "lustleaguebg",
+      "lustleaguebgbox",
+      () => {
+        const on = !!LustData.get("lust-league-background");
+        document.documentElement.classList.toggle("lust-league-bg", on);
+        const controls = document.querySelector(".wallpaper-controls");
+        const video = document.getElementById("lust-bg");
+        const imgWallpaper = document.getElementById("lust-static-bg");
+        if (!on && !LustData.get("disable-theme-wallpaper")) {
+          setWallpaper();
+          setImageWallpaper();
+          wallpaperPlayPause();
+          if (controls)
+            controls.style.display = "flex";
+        } else {
+          if (video)
+            video.src = "";
+          if (imgWallpaper)
+            imgWallpaper.src = "";
+          if (controls)
+            controls.style.display = "none";
+        }
+        applyWindowEffect();
+      },
+      true,
+      "lust-league-background"
+    ),
     UI.createButton(await getString("theme-settings.open-background-folder"), "open-background-folder", () => {
       window.openPluginsFolder(`${LustData.get("Plugin-folder-name")}/assets/backgrounds`);
     }),
@@ -4849,6 +4881,7 @@ const LUST_TR = {
   "Not a video or image file name": "Video ya da resim dosyası adı değil",
   "{name} is not in the folder": "{name} klasörde yok",
   "16:9 Size Preferred": "16:9 boyut önerilir",
+  "Use League's own background": "LoL'ün kendi arka planını kullan",
   "Add": "Ekle",
   "Delete": "Sil",
   "Drop files here, or Add to open the folder": "Dosyaları buraya bırak ya da klasörü açmak için Ekle'ye bas",

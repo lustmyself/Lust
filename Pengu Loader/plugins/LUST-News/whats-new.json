@@ -1,6 +1,7 @@
 {
-  "version": "1.4.9.59",
+  "version": "1.4.9.60",
   "en": [
+    "League's own background is back as the default when the client opens; pick a LUST wallpaper any time from the Wallpaper page in the hub (untick \"Use League's own background\")",
     "The chosen profile icon now also shows on your profile page and in the lobby",
     "New \"Remove tokens\" button on the Profile icon tab: clears the challenge tokens under your name in one click",
     "Skins that missed their base skin confirmation: Lust now raises Injection Threshold to the recommended value by itself, no \"Apply recommended\" needed",
@@ -41,6 +42,7 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "Client açıldığında artık LoL'ün kendi arka planı geliyor; LUST duvar kağıdı istersen hub'daki Duvar kağıdı sayfasından \"LoL'ün kendi arka planını kullan\" işaretini kaldır",
     "Seçtiğin profil simgesi artık profil sayfanda ve lobide de görünüyor",
     "Profil simgesi sekmesinde yeni \"Tokenleri kaldır\" butonu: isminin altındaki meydan okuma tokenlerini tek tıkla kaldırır",
     "Temel skin onayı geciken skinler: Lust, Injection Threshold'u önerilen değere kendisi yükseltir, \"Apply recommended\"a basmana gerek kalmaz",

@@ -7,7 +7,7 @@
 }
 
 
-.parties-background.ember-view .lol-uikit-background-switcher-image {
+html:not(.lust-league-bg) .parties-background.ember-view .lol-uikit-background-switcher-image {
     display: none !important;
 }
 
@@ -19,7 +19,7 @@
 	background: transparent !important;
 }
 
-.parties-background {
+html:not(.lust-league-bg) .parties-background {
 	background: linear-gradient(to bottom, rgb(255 255 255 / 26%) 0%, rgba(0,0,0,0) 50%, rgb(59 29 110 / 20%) 100%) !important;
 }
 

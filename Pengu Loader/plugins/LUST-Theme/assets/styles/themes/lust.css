@@ -52,36 +52,36 @@ html {
 	display: none !important
 }
 
-#background-ambient {
+html:not(.lust-league-bg) #background-ambient {
 	display: none !important;
 }
 
-.store-backdrop {
+html:not(.lust-league-bg) .store-backdrop {
 	background-image: unset !important;
 }
 
-.background {
+html:not(.lust-league-bg) .background {
 	background-image: unset !important;
 }
 
-.rcp-fe-lol-game-in-progress {
+html:not(.lust-league-bg) .rcp-fe-lol-game-in-progress {
 	background-image: unset !important;
 	background-color: unset !important;
 }
 
-.loading-tab::after {
+html:not(.lust-league-bg) .loading-tab::after {
 	background-image: none !important
 }
 
-.yourshop-root {
+html:not(.lust-league-bg) .yourshop-root {
     background-image: none !important;
 }
 
-.npe-root-component {
+html:not(.lust-league-bg) .npe-root-component {
     background-image: none !important;
 }
 
-div > div > .rcp-fe-lol-tft-application-background {
+html:not(.lust-league-bg) div > div > .rcp-fe-lol-tft-application-background {
 	background-image: none !important; 
 }
 

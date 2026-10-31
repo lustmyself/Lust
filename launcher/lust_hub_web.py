@@ -795,6 +795,10 @@ PAGE = r"""<!doctype html>
   #tile-spotify.cover .ht-sp-big { opacity: 0; }
   #tile-spotify.cover .ht-bg { background-size: cover; background-position: center; filter: blur(28px) saturate(1.4) brightness(.55); inset: -40px; }
   #tile-spotify.cover .ht-eq { right: 172px; }
+  .ht-pic { border-radius: 50%; transform: none; box-shadow: 0 18px 40px rgba(0, 0, 0, .55), 0 0 0 3px rgba(56, 189, 248, .55), 0 0 30px rgba(56, 189, 248, .35); }
+  #tile-icon.pic .ht-pic { opacity: 1; }
+  #tile-icon.pic:hover .ht-pic { transform: scale(1.05); }
+  #tile-icon.pic .ht-bg { filter: blur(26px) saturate(1.3) brightness(.6); inset: -40px; background-size: cover; }
   @keyframes sppulse { 50% { transform: scale(1.05); filter: drop-shadow(0 10px 50px rgba(30, 215, 96, .6)); } }
   @media (prefers-reduced-motion: reduce) { .ht-sp-big { animation: none; } }
   #tile-patch .ht-bg { background: radial-gradient(320px 200px at 85% 20%, rgba(245, 158, 11, .45), transparent 70%), linear-gradient(135deg, #3b2a0a, #0f1440); }
@@ -964,7 +968,7 @@ PAGE = r"""<!doctype html>
       <div class="ht-go">__arrow__</div>
     </div>
     <div class="ht" data-go="icon" id="tile-icon" style="--i:4;--c:56, 189, 248;--g:url(#hg5)">
-      <div class="ht-bg" id="t-icon-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i>
+      <div class="ht-bg" id="t-icon-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><i class="ht-cover ht-pic" id="t-icon-pic"></i>
       <div class="ht-in"><div class="ht-orb"><svg viewBox="0 0 30 30"><circle class="f" cx="15" cy="15" r="11"/><circle cx="15" cy="12.5" r="4"/><path d="M8 23.2a8 8 0 0 1 14 0"/></svg></div>
         <b class="ht-ttl">Profil simgesi</b><span class="ht-st" id="t-icon"></span></div>
       <div class="ht-go">__arrow__</div>
@@ -1686,7 +1690,10 @@ function drawTiles() {
   const art = t.art || {};
   const ic = t.icon;
   fill("t-icon", ic && ic.id ? [["b", ic.name || `#${ic.id}`], " · sadece sende görünür"] : ["İstediğin simge, sahip olmasan da"]);
-  setBg("t-icon-bg", (art.icon || {}).splash || "");
+  const pic = (art.icon || {}).picture || "";
+  $("tile-icon").classList.toggle("pic", !!pic);
+  if (pic && $("t-icon-pic").dataset.url !== pic) { $("t-icon-pic").dataset.url = pic; $("t-icon-pic").style.backgroundImage = `url("${pic}")`; }
+  setBg("t-icon-bg", pic || (art.icon || {}).splash || "");
   const pf = t.profile;
   fill("t-profile", pf && pf.name ? [["b", pf.name], " · profilinde"] : ["Profilinin arka planı, istediğin skin"]);
   setBg("t-profile-bg", (art.profile || {}).splash || "");

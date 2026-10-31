@@ -382,6 +382,14 @@ def _tile_art() -> dict:
         found = next((s for s in _profile().skins(champion) if words in (s["name"] + " ").casefold()), None)
         if found:
             art[key] = {"tile": found["tile"], "splash": found["splash"]}
+    # The profile icon tile shows the Sacred Sword Janna summoner icon itself
+    try:
+        from launcher import lust_icon
+        janna = next((i for i in lust_icon.icons() if "sacred sword janna" in i["title"].casefold()), None)
+        if janna:
+            art.setdefault("icon", {})["picture"] = lust_icon.image_url(janna["id"])
+    except Exception as e:  # noqa: BLE001
+        log.debug(f"[Hub] Sacred Sword Janna icon not found: {e}")
     return art
 
 

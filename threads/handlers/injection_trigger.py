@@ -295,13 +295,20 @@ class InjectionTrigger:
             lcu_skin_id = self.state.selected_skin_id
             owned_skin_ids = self.state.owned_skin_ids
             
-            # Lust custom skins: the one switched on for this champion plays on its default skin
+            # Lust custom skins: the one switched on for this champion plays on the skin picked
+            # (a chroma counts as its skin, so the mod targets the skin and the chroma rides along)
             if not selected_custom_mod:
                 try:
                     from pengu.communication.lust_custom_skins import custom_mod_for
+                    _lust_skin = effective_skin_id or ui_skin_id
+                    _lust_chromas = getattr(getattr(self.skin_scraper, "cache", None), "chroma_id_map", None) or {}
+                    try:
+                        _lust_skin = int(_lust_chromas[_lust_skin]["skinId"])
+                    except (KeyError, TypeError, ValueError):
+                        pass
                     lust_custom_skin = custom_mod_for(
                         self.state.locked_champ_id or self.state.hovered_champ_id,
-                        effective_skin_id or ui_skin_id,
+                        _lust_skin,
                     )
                     if lust_custom_skin:
                         self.state.selected_custom_mod = lust_custom_skin

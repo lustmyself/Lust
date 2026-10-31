@@ -673,13 +673,20 @@ EDITS += [
      '        if payload_type == "lust-assets":\n'),
     ('threads/handlers/injection_trigger.py',
      '            # Auto-select previously used custom mods (so users don\'t need to open the Custom Mods UI)\n',
-     '            # Lust custom skins: the one switched on for this champion plays on its default skin\n'
+     '            # Lust custom skins: the one switched on for this champion plays on the skin picked\n'
+     '            # (a chroma counts as its skin, so the mod targets the skin and the chroma rides along)\n'
      '            if not selected_custom_mod:\n'
      '                try:\n'
      '                    from pengu.communication.lust_custom_skins import custom_mod_for\n'
+     '                    _lust_skin = effective_skin_id or ui_skin_id\n'
+     '                    _lust_chromas = getattr(getattr(self.skin_scraper, "cache", None), "chroma_id_map", None) or {}\n'
+     '                    try:\n'
+     '                        _lust_skin = int(_lust_chromas[_lust_skin]["skinId"])\n'
+     '                    except (KeyError, TypeError, ValueError):\n'
+     '                        pass\n'
      '                    lust_custom_skin = custom_mod_for(\n'
      '                        self.state.locked_champ_id or self.state.hovered_champ_id,\n'
-     '                        effective_skin_id or ui_skin_id,\n'
+     '                        _lust_skin,\n'
      '                    )\n'
      '                    if lust_custom_skin:\n'
      '                        self.state.selected_custom_mod = lust_custom_skin\n'

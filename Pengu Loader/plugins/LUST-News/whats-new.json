@@ -1,6 +1,7 @@
 {
-  "version": "1.4.9.70",
+  "version": "1.4.9.71",
   "en": [
+    "A custom skin now goes in on whichever skin you pick in champ select, so a mod made for one skin (EDG Aphelios, say) works when you pick that skin",
     "Auto Ban waits for the ban phase in ranked instead of giving up during the planning seconds before it",
     "Auto Ban tries your ban list even when the client's list of bannable champions leaves them out, and the log says why when it can't ban",
     "Sign in with Discord: your Discord name and picture greet you on the home page; your LoL name stays on the Profile page",
@@ -65,6 +66,7 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "Custom skin artık champ select'te seçtiğin skinin üstüne yükleniyor: bir skin için yapılmış mod (ör. EDG Aphelios) o skini seçince çalışıyor",
     "Auto Ban, ranked'da ban aşamasından önceki niyet gösterme saniyelerinde pes etmek yerine ban aşamasını bekliyor",
     "Auto Ban, client'ın banlanabilir listesi şampiyonlarını dışarıda bıraksa da ban listeni deniyor; banlayamazsa sebebini log'a yazıyor",
     "Discord ile giriş: ana sayfada Discord adın ve profil resmin görünüyor; LoL adın Profil sayfasında duruyor",

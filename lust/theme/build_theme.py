@@ -1550,9 +1550,10 @@ PATCHES = [
     ("assets/styles/themes/theme-wallpapers.css",
      "#elaina-bg {\n\twidth:100%;\n\theight: 100%;\n",
      "#elaina-bg {\n\twidth:100%;\n\theight: 100%;\n\tobject-fit: cover;\n"),
+    # A picture wallpaper is stretched to the window: all of it shows, nothing is cut off
     ("assets/styles/themes/theme-wallpapers.css",
      "#elaina-static-bg {\n\twidth:100%;\n",
-     "#elaina-static-bg {\n\twidth:100%;\n\theight: 100%;\n\tobject-fit: cover;\n"),
+     "#elaina-static-bg {\n\twidth:100%;\n\theight: 100%;\n\tobject-fit: fill;\n\timage-rendering: auto;\n"),
     # No button that hides the top-right nav icons.
     ("index.js",
      'if (ElainaData.get("enable-hide-top-navbar-friendlist-button")) {\n      hideTopNavbarButton.addHideButton();',

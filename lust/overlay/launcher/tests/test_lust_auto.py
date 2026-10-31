@@ -1,0 +1,57 @@
+import unittest
+
+from launcher import lust_auto
+
+
+def _session(kind, me=1, completed=None, bans=(), team=()):
+    actions = [[{"id": 7, "actorCellId": me, "type": kind, "isInProgress": True, "completed": False, "championId": 0}]]
+    for cell, champion in completed or []:
+        actions.insert(0, [{"id": 100 + cell, "actorCellId": cell, "type": "pick", "completed": True,
+                            "championId": champion}])
+    return {"localPlayerCellId": me, "actions": actions, "bans": {"myTeamBans": list(bans), "theirTeamBans": []},
+            "myTeam": [{"cellId": cell, "championPickIntent": intent, "championId": 0} for cell, intent in team]}
+
+
+ON = {"accept": True, "ban": True, "pick": True, "bans": [238, 157], "picks": [103, 99]}
+
+
+class CleanTests(unittest.TestCase):
+    def test_bad_values_fall_back(self):
+        self.assertEqual(lust_auto.clean(None), lust_auto.DEFAULTS)
+        self.assertEqual(lust_auto.clean({"accept": "yes", "bans": "x"}), lust_auto.DEFAULTS)
+
+    def test_lists_keep_unique_positive_ids_up_to_the_max(self):
+        out = lust_auto.clean({"picks": [1, 1, -2, True, "3", 4, 5, 6, 7, 8]})
+        self.assertEqual(out["picks"], [1, 4, 5, 6, 7])
+
+
+class ChooseTests(unittest.TestCase):
+    def test_pick_takes_the_first_free_champion(self):
+        session = _session("pick", completed=[(6, 103)])
+        self.assertEqual(lust_auto.choose(session, ON), (7, 99, "pick"))
+
+    def test_ban_skips_what_a_teammate_wants(self):
+        session = _session("ban", team=[(2, 238)])
+        self.assertEqual(lust_auto.choose(session, ON), (7, 157, "ban"))
+
+    def test_ban_skips_banned_champions(self):
+        session = _session("ban", bans=[238])
+        self.assertEqual(lust_auto.choose(session, ON), (7, 157, "ban"))
+
+    def test_only_what_the_client_allows(self):
+        session = _session("pick")
+        self.assertEqual(lust_auto.choose(session, ON, pickable={99}), (7, 99, "pick"))
+        self.assertIsNone(lust_auto.choose(session, ON, pickable={1}))
+
+    def test_switched_off_does_nothing(self):
+        self.assertIsNone(lust_auto.choose(_session("pick"), dict(ON, pick=False)))
+
+    def test_someone_elses_turn(self):
+        self.assertIsNone(lust_auto.choose(_session("pick", me=1) | {"localPlayerCellId": 3}, ON))
+
+    def test_no_session(self):
+        self.assertIsNone(lust_auto.choose(None, ON))
+
+
+if __name__ == "__main__":
+    unittest.main()

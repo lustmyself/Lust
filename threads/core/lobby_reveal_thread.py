@@ -33,6 +33,13 @@ CHAMP_SELECT_PHASES = {"ChampSelect", "FINALIZATION"}
 # Re-send the same team now and then so a plugin that reloads mid champ select catches up
 REBROADCAST_INTERVAL_S = 5.0
 
+# The last team sent, for Lust's desktop app (its Champ select page shows it too)
+_latest: dict = {"active": False, "players": []}
+
+
+def latest() -> dict:
+    return dict(_latest)
+
 
 class LobbyRevealThread(threading.Thread):
     def __init__(self, lcu: LCU, state: SharedState):
@@ -95,6 +102,8 @@ class LobbyRevealThread(threading.Thread):
             self._send(payload)
 
     def _send(self, payload: dict) -> None:
+        global _latest
+        _latest = payload
         ui_thread = getattr(self.state, "ui_skin_thread", None)
         broadcaster = getattr(ui_thread, "broadcaster", None)
         if broadcaster is None:

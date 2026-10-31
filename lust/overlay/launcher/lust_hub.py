@@ -315,6 +315,11 @@ def _open_link(url: str) -> str:
     return ""
 
 
+def _wallpaper():
+    from launcher import lust_wallpaper
+    return lust_wallpaper
+
+
 def _auto():
     from launcher import lust_auto
     return lust_auto
@@ -368,6 +373,8 @@ def _tile_parts() -> dict:
     part("icon", icon)
     part("profile", profile)
     part("patch", lambda: _patch().summary())
+    part("wallpaper", lambda: (lambda w: {"league": w["league"], "name": w["name"], "count": len(w["files"]),
+                                          "video": _wallpaper().is_video(w["name"]) if w["name"] else False})(_wallpaper().listing()))
     return parts
 
 
@@ -569,6 +576,9 @@ ACTIONS: dict[str, Callable[[dict], str]] = {
     "open_data": lambda body: _open_data(),
     "client_panel": lambda body: _client_panel(),
     "auto_set": lambda body: _auto().update(body.get("changes") or {}),
+    "wallpaper_set": lambda body: _wallpaper().choose(body.get("name") if isinstance(body.get("name"), str) else None),
+    "wallpaper_delete": lambda body: _wallpaper().delete(str(body.get("name") or "")),
+    "wallpaper_folder": lambda body: _wallpaper().open_folder(),
     "open_link": lambda body: _open_link(str(body.get("url") or "")),
     "patch_open": lambda body: _patch().open_notes(),
 }

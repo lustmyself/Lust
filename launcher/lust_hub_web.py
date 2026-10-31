@@ -423,6 +423,32 @@ PAGE = r"""<!doctype html>
   .drop svg { width: 22px; height: 22px; color: #5eead4; flex: none; }
   .drop .btn { margin-left: auto; }
   .empty { color: var(--faint); font-size: 12px; padding: 6px 2px; }
+  .walls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .wallc { position: relative; border-radius: 16px; overflow: hidden; cursor: pointer; aspect-ratio: 16 / 9; background: #0d1238;
+    border: 2px solid rgba(255, 255, 255, .06); transition: transform .15s, border-color .15s, box-shadow .15s; }
+  .wallc:hover { transform: translateY(-3px); border-color: rgba(244, 114, 182, .5); }
+  .wallc.on { border-color: #f472b6; box-shadow: 0 10px 28px rgba(244, 114, 182, .3); }
+  .wallc img, .wallc video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .wallc .cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 26px 12px 10px; font-size: 12px; font-weight: 600;
+    background: linear-gradient(transparent, rgba(5, 7, 26, .85)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .wallc .tag { position: absolute; top: 10px; left: 10px; padding: 2px 9px; border-radius: 99px; font-size: 10.5px; font-weight: 700;
+    background: #f472b6; color: #2a0718; }
+  .wallc .kind { position: absolute; top: 10px; right: 10px; padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 700;
+    background: rgba(5, 7, 26, .7); color: #fbcfe8; }
+  .wallc .del { position: absolute; bottom: 9px; right: 9px; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center;
+    background: rgba(5, 7, 26, .75); color: var(--sub); opacity: 0; transition: opacity .15s; }
+  .wallc:hover .del { opacity: 1; }
+  .wallc .del:hover { color: #f87171; }
+  .wallc .del svg { width: 13px; height: 13px; }
+  .wallc.league { display: grid; place-items: center; background: radial-gradient(circle at 30% 20%, rgba(200, 170, 110, .35), transparent 60%), linear-gradient(135deg, #1b1a0e, #0d1238); }
+  .wallc.league svg { width: 64px; height: 64px; }
+  #wall-drop.over { border-color: #f472b6; background: rgba(244, 114, 182, .07); }
+  #wall-drop svg { color: #f9a8d4; }
+  .ht-vid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .6s; }
+  #tile-wall.vid .ht-vid { opacity: 1; }
+  #tile-wall .ht-bg { opacity: 1; animation: none; inset: 0; background: radial-gradient(320px 200px at 85% 25%, rgba(244, 114, 182, .35), transparent 70%), linear-gradient(135deg, #2a1030, #0f1440); }
+  #tile-wall .ht-bg.on { background-size: cover; background-position: center; }
+  #tile-wall .ht-mark { opacity: .5; }
   /* Custom skins: one row per file, the champion it plays on and its switch */
   .sk-head { display: flex; align-items: center; gap: 10px; margin: 4px 2px 10px; }
   .sk-head .section { margin: 0; }
@@ -946,7 +972,7 @@ PAGE = r"""<!doctype html>
     <div class="ht" data-go="lol" id="tile-lol" style="--i:0;--c:200, 170, 110;--g:url(#hg3)">
       <div class="ht-bg" id="t-lol-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><div class="ht-mark" id="t-lol-mark">__lolbig__</div><img class="ht-emb" id="t-lol-emb" alt="" hidden>
       <div class="ht-in"><div class="ht-orb art">__lol__</div>
-        <b class="ht-ttl">LoL</b><span class="ht-st" id="t-lol"></span></div>
+        <b class="ht-ttl">Profil</b><span class="ht-st" id="t-lol"></span></div>
       <div class="ht-go">__arrow__</div>
     </div>
     <div class="ht" data-go="skins" id="tile-maps" style="--i:1;--c:52, 211, 153;--g:url(#hg2)">
@@ -955,10 +981,10 @@ PAGE = r"""<!doctype html>
         <b class="ht-ttl">Skinler ve Haritalar</b><span class="ht-st" id="t-maps"></span></div>
       <div class="ht-go">__arrow__</div>
     </div>
-    <div class="ht" data-go="patch" id="tile-patch" style="--i:2;--c:245, 158, 11;--g:url(#hg3)">
-      <div class="ht-bg" id="t-patch-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><div class="ht-glyph gold" id="t-patch-ver"></div><div class="ht-faces" id="t-patch-faces"></div>
-      <div class="ht-in"><div class="ht-orb"><svg viewBox="0 0 30 30"><path class="f" d="M8 4h11l5 5v17H8z"/><path d="M19 4v5h5M12 15h8M12 19h5"/><path d="m20.5 24 2.5-3 2.5 3"/></svg></div>
-        <b class="ht-ttl">Patch notes</b><span class="ht-st" id="t-patch"></span></div>
+    <div class="ht" data-go="wallpaper" id="tile-wall" style="--i:2;--c:244, 114, 182;--g:url(#hg6)">
+      <div class="ht-bg" id="t-wall-bg"></div><video class="ht-vid" id="t-wall-vid" muted loop playsinline preload="metadata"></video><div class="ht-ov"></div><i class="ht-shine"></i>
+      <div class="ht-in"><div class="ht-orb"><svg viewBox="0 0 30 30"><rect class="f" x="3" y="6" width="24" height="17" rx="3"/><path d="m3.5 20 6.5-6.5 4.5 4.5 4-4 7.5 7.5"/><circle class="s" cx="20" cy="11.5" r="2"/><path d="M10 26h10"/></svg></div>
+        <b class="ht-ttl">Duvar kağıdı</b><span class="ht-st" id="t-wall"></span></div>
       <div class="ht-go">__arrow__</div>
     </div>
     <div class="ht" data-go="fonts" id="tile-fonts" style="--i:3;--c:251, 146, 60;--g:url(#hg4)">
@@ -1060,6 +1086,14 @@ PAGE = r"""<!doctype html>
     </div>
   </section>
 
+  <section class="page" id="page-wallpaper">
+    <div class="section">LoL istemcisinin arka planı · birini seç</div>
+    <div class="walls" id="walls"></div>
+    <div class="drop" id="wall-drop">__download__<div><b>Duvar kağıdı ekle</b><br>Resim (.jpg, .png, .webp, .gif) veya video (.mp4, .webm) dosyasını buraya sürükle</div>
+      <button class="btn" data-act="wallpaper_folder">Klasörü aç</button>
+    </div>
+    <div class="note" id="wall-note">Seçtiğin duvar kağıdı League açıksa hemen, kapalıysa açılınca uygulanır.</div>
+  </section>
   <section class="page" id="page-maps">
     <div class="seg mods-seg"><button data-goto="skins" data-tab="skins">Custom skinler</button><button data-goto="maps" data-tab="maps">Haritalar</button></div>
     <div class="section">Sonraki maçın haritası · bir tane seçilir</div>
@@ -1560,8 +1594,8 @@ async function poll() {
   catch (e) { if (++failures >= 3) $("lost").style.display = "grid"; }
 }
 // ---- pages: the home tiles lead to each one, Esc or the back button comes home ----
-const PAGES = { home: "", lol: "LoL", spotify: "Spotify", maps: "Skinler ve Haritalar", fonts: "Fontlar", skins: "Skinler ve Haritalar",
-  profile: "Profil arka planı", icon: "Profil simgesi", settings: "Ayarlar", patch: "Patch notes", auto: "Champ select" };
+const PAGES = { home: "", lol: "Profil", spotify: "Spotify", maps: "Skinler ve Haritalar", fonts: "Fontlar", skins: "Skinler ve Haritalar",
+  profile: "Profil arka planı", icon: "Profil simgesi", settings: "Ayarlar", patch: "Patch notes", wallpaper: "Duvar kağıdı", auto: "Champ select" };
 let page = "home";
 function showPage(name) {
   if (!(name in PAGES)) name = "home";
@@ -1580,6 +1614,7 @@ function showPage(name) {
   if (name === "profile") loadProfile();
   if (name === "icon") loadIcons();
   if (name === "patch") loadPatch();
+  if (name === "wallpaper") loadWalls();
   if (name === "auto") loadAuto();
 }
 const awake = () => !document.hidden && !(state && state.resting);
@@ -1675,15 +1710,18 @@ function drawTiles() {
   fill("t-maps", sk.count ? [["b", `${sk.count} custom skin`], ` · ${sk.on || 0} açık · ${mapText}`] : [["b", mapText], " · custom skin ekle"]);
   if (mp && mp.preview) setBg("t-maps-bg", `/map-preview?id=${encodeURIComponent(mp.id)}`);
   else setBg("t-maps-bg", RIFT, "rift");
-  const pt = t.patch;
-  fill("t-patch", pt && pt.version ? [["b", `${pt.changed} şampiyon`], " değişti"] : ["Son yamada neler değişti"]);
-  $("t-patch-ver").textContent = (pt && pt.version) || "";
-  const faces = ((pt && pt.icons) || []).join("|");
-  if ($("t-patch-faces").dataset.key !== faces) {
-    $("t-patch-faces").dataset.key = faces;
-    $("t-patch-faces").replaceChildren(...((pt && pt.icons) || []).map((u) => {
-      const i = document.createElement("i"); i.style.backgroundImage = `url("${u}")`; return i;
-    }));
+  const wl = t.wallpaper;
+  fill("t-wall", wl && !wl.league && wl.name ? [["b", wl.name.replace(/\.[^.]+$/, "")], ` · ${wl.count} duvar kağıdı`]
+    : [["b", "LoL'ün kendi arka planı"], wl && wl.count ? ` · ${wl.count} duvar kağıdı` : ""]);
+  const wurl = wl && !wl.league && wl.name ? `/wallpaper-file?name=${encodeURIComponent(wl.name)}` : "";
+  const vid = $("t-wall-vid");
+  $("tile-wall").classList.toggle("vid", !!(wurl && wl.video));
+  if (wurl && wl.video) {
+    if (vid.dataset.url !== wurl) { vid.dataset.url = wurl; vid.src = wurl; vid.play().catch(() => {}); }
+    setBg("t-wall-bg", "");
+  } else {
+    if (vid.dataset.url) { vid.dataset.url = ""; vid.removeAttribute("src"); vid.load(); }
+    setBg("t-wall-bg", wurl);
   }
   const ft = t.fonts;
   fill("t-fonts", ft && ft.name ? [["b", ft.name], " · oyun içi yazı tipi"] : [["b", "League'in fontu"], " · oyun içi yazı tipi"]);
@@ -1920,6 +1958,73 @@ drop.addEventListener("drop", async (e) => {
     } catch (err) { showToast("Eklenemedi"); }
   }
   mapsKey = ""; loadMaps();
+});
+
+// ---- wallpaper ----
+let wallsKey = "";
+function wallCard(w, data) {
+  const card = document.createElement("div");
+  const on = w ? !data.league && data.name === w.name : data.league;
+  card.className = "wallc" + (on ? " on" : "") + (w ? "" : " league");
+  if (!w) {
+    card.innerHTML = `__lol__`;
+  } else if (w.video) {
+    const v = document.createElement("video");
+    v.muted = true; v.loop = true; v.playsInline = true; v.preload = "metadata";
+    v.src = `/wallpaper-file?name=${encodeURIComponent(w.name)}#t=0.5`;
+    card.addEventListener("mouseenter", () => v.play().catch(() => {}));
+    card.addEventListener("mouseleave", () => v.pause());
+    card.appendChild(v);
+    const k = document.createElement("i"); k.className = "kind"; k.textContent = "Video"; card.appendChild(k);
+  } else {
+    const img = document.createElement("img");
+    img.loading = "lazy"; img.src = `/wallpaper-file?name=${encodeURIComponent(w.name)}`;
+    card.appendChild(img);
+  }
+  const cap = document.createElement("div"); cap.className = "cap";
+  cap.textContent = w ? w.name : "LoL'ün kendi arka planı";
+  card.appendChild(cap);
+  if (on) { const tag = document.createElement("i"); tag.className = "tag"; tag.textContent = "Seçili"; card.appendChild(tag); }
+  card.addEventListener("click", () => act("wallpaper_set", { name: w ? w.name : null }).then(() => { wallsKey = ""; setTimeout(loadWalls, 300); loadTiles(); }));
+  if (w) {
+    const del = document.createElement("div");
+    del.className = "del"; del.title = "Sil"; del.innerHTML = ICON_TRASH;
+    del.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (del.dataset.armed && Date.now() - Number(del.dataset.armed) < 3000) {
+        act("wallpaper_delete", { name: w.name }).then(() => { wallsKey = ""; setTimeout(loadWalls, 300); });
+      } else { del.dataset.armed = Date.now(); showToast("Silmek için tekrar bas"); }
+    });
+    card.appendChild(del);
+  }
+  return card;
+}
+async function loadWalls() {
+  let data;
+  try { data = await api("/api/wallpapers"); } catch (e) { return; }
+  const key = JSON.stringify(data);
+  if (key === wallsKey) return;
+  wallsKey = key;
+  const list = $("walls");
+  list.innerHTML = "";
+  list.appendChild(wallCard(null, data));
+  data.files.forEach((w) => list.appendChild(wallCard(w, data)));
+}
+setInterval(() => { if ($("page-wallpaper").classList.contains("active")) loadWalls(); }, 4000);
+const wallDrop = $("wall-drop");
+["dragenter", "dragover"].forEach((t) => wallDrop.addEventListener(t, (e) => { e.preventDefault(); wallDrop.classList.add("over"); }));
+["dragleave", "drop"].forEach((t) => wallDrop.addEventListener(t, (e) => { e.preventDefault(); wallDrop.classList.remove("over"); }));
+wallDrop.addEventListener("drop", async (e) => {
+  for (const file of e.dataTransfer.files) {
+    showToast(`${file.name} ekleniyor…`);
+    try {
+      const r = await fetch(`/api/wallpapers/upload?name=${encodeURIComponent(file.name)}`,
+        { method: "POST", headers: { "X-Lust-Hub": TOKEN }, body: file });
+      const out = await r.json();
+      if (out.message) showToast(out.message);
+    } catch (err) { showToast("Eklenemedi"); }
+  }
+  wallsKey = ""; loadWalls();
 });
 
 // ---- fonts ----

@@ -307,6 +307,7 @@ hiddenimports = [
     'launcher.lust_client',
     'launcher.lust_patch',
     'launcher.lust_auto',
+    'launcher.lust_wallpaper',
     'launcher.lust_profile',
     'launcher.lust_icon',
     'injection.tools.patcher_manifest',

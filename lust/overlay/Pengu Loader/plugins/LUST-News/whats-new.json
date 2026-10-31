@@ -1,6 +1,9 @@
 {
-  "version": "1.4.9.64",
+  "version": "1.4.9.65",
   "en": [
+    "The Patch notes tile is now the Wallpaper tile: pick the League client's background (picture or video, or League's own) from the app, or drop a new one on the page",
+    "The LoL tile is now called Profile",
+    "The LUST tab no longer shows at the top of the League client",
     "The Profile icon tile shows the Sacred Sword Janna icon across the tile",
     "Custom skins are back in the app: the Maps tile is now \"Skins and Maps\", with Custom skins and Maps on one page",
     "Tick as many custom skins as you like, one per champion; one map is picked at a time",
@@ -51,6 +54,9 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "Patch notes kutucuğu artık Duvar kağıdı: LoL istemcisinin arka planını (resim, video ya da LoL'ün kendisi) uygulamadan seç, yenisini sayfaya sürükleyip ekle",
+    "LoL kutucuğunun adı artık Profil",
+    "LoL istemcisinin üstündeki LUST sekmesi artık görünmüyor",
     "Profil simgesi kutucuğunda Sacred Sword Janna simgesi kutucuğu kaplıyor",
     "Custom skinler uygulamaya geri döndü: Haritalar kutucuğu artık \"Skinler ve Haritalar\", Custom skinler ve Haritalar aynı sayfada",
     "İstediğin kadar custom skini tikle, her şampiyon için bir tane; harita ise tek seçilir",

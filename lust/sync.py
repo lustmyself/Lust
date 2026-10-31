@@ -1169,7 +1169,7 @@ def install(tree):
 # select stays). Lust's client panel (theme, wallpaper, plugins) opens from the app's
 # Settings, through the bridge; lust_auto runs Auto Accept/Ban/Pick from the app.
 HIDE_NAV_CSS = r"""    /* Lust: everything is in the desktop app, no LUST tab in the client */
-    lol-uikit-navigation-item.menu_item_Golden\\ Lust {
+    lol-uikit-navigation-item.menu_item_Golden.Lust {
       display: none !important;
     }
 
@@ -1198,6 +1198,20 @@ EDITS += [
      '            log.debug(f"[Client] The app cannot reach the client panel: {e}")\n'),
     ("Lust.spec", "    'launcher.lust_fonts',\n",
      "    'launcher.lust_fonts',\n    'launcher.lust_client',\n    'launcher.lust_patch',\n    'launcher.lust_auto',\n"),
+]
+
+
+# Wallpaper from the desktop app (launcher/lust_wallpaper.py): the theme asks for the app's
+# choice and reports what it shows over the bridge
+EDITS += [
+    ('pengu/communication/message_handler.py',
+     '        if payload_type == "lust-assets":\n',
+     '        if payload_type == "lust-wallpaper":\n'
+     '            from launcher.lust_wallpaper import bridge_reply as _lust_wallpaper_reply\n'
+     '            self._send_response(json.dumps(_lust_wallpaper_reply(payload)))\n'
+     '            return\n'
+     '        if payload_type == "lust-assets":\n'),
+    ("Lust.spec", "    'launcher.lust_auto',\n", "    'launcher.lust_auto',\n    'launcher.lust_wallpaper',\n"),
 ]
 
 

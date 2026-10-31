@@ -228,7 +228,7 @@
     }
 
     /* Lust: everything is in the desktop app, no LUST tab in the client */
-    lol-uikit-navigation-item.menu_item_Golden\\ Lust {
+    lol-uikit-navigation-item.menu_item_Golden.Lust {
       display: none !important;
     }
 

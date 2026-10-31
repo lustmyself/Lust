@@ -86,9 +86,13 @@ class LockInTests(unittest.TestCase):
         self.assertEqual(sent, [("PATCH", "/lol-champ-select/v1/session/actions/7", {"championId": 238}),
                                 ("POST", "/lol-champ-select/v1/session/actions/7/complete", None)])
 
-    def test_an_action_left_open_is_tried_again_a_few_times(self):
+    def test_an_action_left_open_is_tried_again_both_ways(self):
         sent = self._run(_session("ban"), lust_auto.MAX_TRIES + 3)
-        self.assertEqual(len([c for c in sent if c[0] == "POST"]), lust_auto.MAX_TRIES)
+        posts = [c for c in sent if c[0] == "POST"]
+        one_call = [c for c in sent if c[2] == {"championId": 238, "completed": True}]
+        self.assertEqual(len(posts) + len(one_call), lust_auto.MAX_TRIES)
+        self.assertEqual(sent[2], ("PATCH", "/lol-champ-select/v1/session/actions/7",
+                                   {"championId": 238, "completed": True}))
 
     def test_planning_phase_waits_and_keeps_the_tries(self):
         planning = dict(_session("ban"), timer={"phase": "PLANNING"})

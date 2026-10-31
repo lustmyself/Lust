@@ -3,6 +3,8 @@
   "en": [
     "The chosen profile icon now also shows on your profile page and in the lobby",
     "New \"Remove tokens\" button on the Profile icon tab: clears the challenge tokens under your name in one click",
+    "Skins that missed their base skin confirmation: Lust now raises Injection Threshold to the recommended value by itself, no \"Apply recommended\" needed",
+    "Troubleshooting no longer keeps an old \"Pengu Loader could not be activated\" error once Lust is in the client",
     "New Profile icon tab in the hub: use any summoner icon, owned or not, as your own icon in the client; only you see it, everyone else keeps seeing your real icon",
     "New Fonts tab in the hub (under Maps): pick the in-game font; Korean (UttumDotum) is the default",
     "Fixed the LUST tab at the top of the client opening the core settings instead of the Lust hub",
@@ -41,6 +43,8 @@
   "tr": [
     "Seçtiğin profil simgesi artık profil sayfanda ve lobide de görünüyor",
     "Profil simgesi sekmesinde yeni \"Tokenleri kaldır\" butonu: isminin altındaki meydan okuma tokenlerini tek tıkla kaldırır",
+    "Temel skin onayı geciken skinler: Lust, Injection Threshold'u önerilen değere kendisi yükseltir, \"Apply recommended\"a basmana gerek kalmaz",
+    "Lust istemcide göründükten sonra Sorun giderme'de eski \"Pengu Loader could not be activated\" hatası kalmaz",
     "Hub'da yeni Profil simgesi sekmesi: sahip olmadığın simgeler dahil istediğin sihirdar simgesini istemcide kendi simgen yap; yalnızca sen görürsün, diğerleri gerçek simgeni görür",
     "Hub'da yeni Fontlar sekmesi (Haritalar'ın altında): oyun fontunu seç; Korean (UttumDotum) varsayılan",
     "İstemcinin üstündeki LUST sekmesinin Lust hub yerine çekirdek ayarlarını açması düzeltildi",

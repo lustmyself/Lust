@@ -1225,6 +1225,18 @@ class InjectionTrigger:
                                     from injection.config.base_skin_tracker import get_stats as _get_skin_stats
                                     stats = _get_skin_stats()
                                     rec_ms = stats.get("recommended_threshold_ms")
+                                    # Lust: take the recommendation itself while it is above the current threshold
+                                    if rec_ms is not None:
+                                        rec_s = round(float(rec_ms) / 1000.0, 2)
+                                        if not isinstance(threshold_s, (int, float)) or rec_s > float(threshold_s) + 0.001:
+                                            from config import set_config_option
+                                            set_config_option("General", "injection_threshold", str(rec_s))
+                                            if self.injection_manager is not None:
+                                                self.injection_manager.refresh_injection_threshold()
+                                            log.info(f"[INJECT] Injection threshold raised to the recommended {rec_s}s")
+                                            from utils.core.issue_reporter import remove_issues
+                                            remove_issues(lambda line, fix: "Base skin verification failed" in line)
+                                            break
                                     hint = "Retry your skin selection. If the warning persists, increase Injection Threshold."
                                     if rec_ms is not None:
                                         hint = (

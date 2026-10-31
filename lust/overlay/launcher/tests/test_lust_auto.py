@@ -90,6 +90,12 @@ class LockInTests(unittest.TestCase):
         sent = self._run(_session("ban"), lust_auto.MAX_TRIES + 3)
         self.assertEqual(len([c for c in sent if c[0] == "POST"]), lust_auto.MAX_TRIES)
 
+    def test_planning_phase_waits_and_keeps_the_tries(self):
+        planning = dict(_session("ban"), timer={"phase": "PLANNING"})
+        self.assertEqual(self._run(planning, 10), [])
+        sent = self._run(dict(_session("ban"), timer={"phase": "BAN_PICK"}), 1)
+        self.assertEqual(len(sent), 2)
+
 
 if __name__ == "__main__":
     unittest.main()

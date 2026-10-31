@@ -227,6 +227,11 @@ def _champ_select(config: dict) -> None:
               f"timer {(session.get('timer') or {}).get('phase')}")
         return
     action_id, champion, kind = found
+    # Ranked opens with a planning phase where the ban already shows as in progress but the
+    # client won't take it yet: wait for the ban phase instead of using up the tries
+    if (session.get("timer") or {}).get("phase") == "PLANNING":
+        _note("planning", "[Auto] Planning phase: waiting for the ban phase")
+        return
     # The client may answer OK and still leave the action open (seen with bans), so an
     # action counts as done only once the session shows it completed: try again until then
     tries = _done.get(action_id, 0)

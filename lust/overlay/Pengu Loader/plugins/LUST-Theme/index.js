@@ -3575,6 +3575,10 @@ class AddCss {
       LustData.set("lust-profile-background-shown", true);
       LustData.set("hide-profile-background", false);
     }
+    if (!LustData.get("lust-gamemode-icons-reset")) {
+      LustData.set("lust-gamemode-icons-reset", true);
+      LustData.set("Custom-Gamemode-Icon", false);
+    }
     let addonCssList = {
       "componentsCss": [
         {

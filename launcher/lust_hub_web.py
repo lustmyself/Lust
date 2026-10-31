@@ -232,10 +232,27 @@ PAGE = r"""<!doctype html>
   .tip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #c8aa6e; box-shadow: 0 0 8px #c8aa6e; }
   .tip b { color: #f0e6d2; font-weight: 600; letter-spacing: .4px; }
   .hero { margin-bottom: 14px; }
+  /* Profile card: bigger text, it spans the whole window */
+  .hero { min-height: 260px; padding: 30px 32px !important; }
+  .hero small { font-size: 14px; }
+  .hero h2 { font-size: 30px; font-weight: 800; margin: 4px 0 14px; letter-spacing: -.01em; }
+  .hero-chips { gap: 8px; }
+  .chip { font-size: 14px; padding: 6px 14px; }
+  .hero-cut { font-size: 14px; gap: 14px; margin-top: 14px; }
+  .hero-cut .cut::before { width: 9px; height: 9px; }
+  .hero-cut .need { padding: 3px 11px; }
+  .hero p { font-size: 14px; margin-top: 12px; }
+  .hero-last { padding: 16px 20px; border-radius: 16px; }
+  .hero-last b { font-size: 22px; margin: 4px 0; }
+  .hero-last span { font-size: 14px; }
 
   .grid { display: grid; gap: 10px; }
   .g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dismiss { flex: none; width: 30px; height: 30px; margin-left: 4px; border: 0; border-radius: 9px; display: grid; place-items: center;
+    background: rgba(255, 255, 255, .05); color: var(--sub); cursor: pointer; transition: background .15s, color .15s; }
+  .dismiss:hover { background: rgba(255, 255, 255, .12); color: #fff; }
+  .dismiss svg { width: 13px; height: 13px; }
   .card { background: rgba(30, 27, 42, .42); backdrop-filter: blur(16px) saturate(1.2); border-radius: 14px;
     padding: 13px 14px; border: 1px solid rgba(255, 255, 255, .06); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05); }
   .tile { display: flex; align-items: center; gap: 12px; cursor: pointer; transition: background .15s, transform .15s, border-color .15s; }
@@ -724,6 +741,8 @@ PAGE = r"""<!doctype html>
   .hm-name b { background: linear-gradient(90deg, #a99dff, #f0abfc); -webkit-background-clip: text; color: transparent; }
   .hm-name i { font-style: normal; color: var(--faint); font-weight: 600; }
   .hm-sub { margin-top: 6px; color: var(--sub); font-size: 13px; min-height: 18px; }
+  .hm-seg { margin: 0 0 4px 10px; flex: none; }
+  .hm-seg button { padding: 6px 13px; font-size: 12.5px; }
   .hm-play { margin-left: auto; flex: none; display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 22px 0 8px;
     border: 0; border-radius: 16px; cursor: pointer; color: #fff; font: inherit; font-weight: 700; font-size: 14.5px;
     background: linear-gradient(135deg, #6d5dfc, #a855f7); box-shadow: 0 14px 30px -12px rgba(109, 93, 252, .9);
@@ -800,15 +819,24 @@ PAGE = r"""<!doctype html>
   .ht-glyph.gold { background: linear-gradient(160deg, rgba(253, 230, 138, .6), rgba(245, 158, 11, .06)); -webkit-background-clip: text; }
   #tile-patch .ht-bg, #tile-fonts .ht-bg, #tile-auto .ht-bg, #tile-settings .ht-bg, #tile-spotify .ht-bg { opacity: 1; animation: none; inset: 0; }
   #tile-lol .ht-bg { opacity: 1; animation: none; inset: 0; background: radial-gradient(360px 240px at 82% 45%, color-mix(in srgb, var(--tc, #c8aa6e) 42%, transparent), transparent 70%), radial-gradient(260px 200px at 10% 110%, rgba(10, 200, 185, .18), transparent 70%), linear-gradient(135deg, #2a2210, #0f1440); }
-  .ht-mark, .ht-emb { position: absolute; right: 18px; top: 50%; pointer-events: none; animation: htfloat 6s ease-in-out infinite; }
+  .ht-mark { position: absolute; right: 18px; top: 50%; pointer-events: none; animation: htfloat 6s ease-in-out infinite; }
+  .ht-art { position: absolute; inset: 0; background-size: cover; background-position: right 22%; opacity: 0; transition: opacity .6s;
+    -webkit-mask-image: linear-gradient(90deg, transparent 10%, #000 58%); mask-image: linear-gradient(90deg, transparent 10%, #000 58%); }
+  .ht-art.on { opacity: .9; }
+  #tile-lol:hover .ht-art { transform: scale(1.04); }
+  .ht-art { transition: opacity .6s, transform .6s; }
+  .ht-rank { position: absolute; top: 16px; right: 16px; display: flex; align-items: center; gap: 7px; padding: 5px 11px 5px 9px;
+    border-radius: 99px; font-size: 11.5px; font-weight: 700; letter-spacing: .02em; color: #fff;
+    background: rgba(8, 10, 30, .62); border: 1px solid color-mix(in srgb, var(--tc, #c8aa6e) 70%, transparent);
+    box-shadow: 0 0 18px color-mix(in srgb, var(--tc, #c8aa6e) 35%, transparent); backdrop-filter: blur(6px); }
+  .ht-rank::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--tc, #c8aa6e);
+    box-shadow: 0 0 8px var(--tc, #c8aa6e); }
+  .ht-rank[hidden] { display: none; }
   .ht-mark { width: 150px; height: 150px; margin-top: -88px; opacity: .32; }
   .ht-mark svg { width: 100%; height: 100%; }
-  .ht-emb { width: 200px; height: 200px; margin-top: -112px; right: 4px; object-fit: contain; animation-name: htfloat-emb;
-    filter: drop-shadow(0 10px 30px color-mix(in srgb, var(--tc, #c8aa6e) 70%, transparent)); }
-  @keyframes htfloat-emb { from, to { transform: scale(4.5); } 50% { transform: scale(4.5) translateY(-2px); } }
-  .ht-mark[hidden], .ht-emb[hidden] { display: none; }
+  .ht-mark[hidden] { display: none; }
   @keyframes htfloat { 50% { transform: translateY(-6px); } }
-  @media (prefers-reduced-motion: reduce) { .ht-mark { animation: none; } .ht-emb { animation: none; transform: scale(4.5); } }
+  @media (prefers-reduced-motion: reduce) { .ht-mark { animation: none; } }
   #tile-spotify .ht-bg { background: radial-gradient(340px 220px at 88% 70%, rgba(30, 215, 96, .32), transparent 70%), linear-gradient(135deg, #0c2a1a, #0f1440); }
   .ht-sp-big { position: absolute; right: -34px; bottom: -48px; width: 200px; height: 200px; pointer-events: none;
     opacity: .9; filter: drop-shadow(0 10px 40px rgba(30, 215, 96, .35)); }
@@ -829,7 +857,6 @@ PAGE = r"""<!doctype html>
   @media (prefers-reduced-motion: reduce) { .ht-sp-big { animation: none; } }
   #tile-patch .ht-bg { background: radial-gradient(320px 200px at 85% 20%, rgba(245, 158, 11, .45), transparent 70%), linear-gradient(135deg, #3b2a0a, #0f1440); }
   #tile-fonts .ht-bg { background: radial-gradient(380px 220px at 90% 10%, rgba(251, 146, 60, .25), transparent 70%), linear-gradient(135deg, #2a1530, #0f1440); }
-  #tile-auto .ht-bg { background: radial-gradient(360px 220px at 90% 10%, rgba(244, 63, 94, .3), transparent 70%), linear-gradient(135deg, #2b0f24, #0f1440); }
   #tile-settings .ht-bg { background: conic-gradient(from 200deg at 80% 30%, rgba(109, 93, 252, .45), rgba(56, 189, 248, .2), rgba(244, 114, 182, .3), rgba(109, 93, 252, .45)); filter: blur(30px); }
   #tile-maps .ht-bg.rift { background-size: 70%; background-position: 115% 30%; background-repeat: no-repeat; opacity: .55; }
   .ht-faces { position: absolute; right: 22px; top: 20px; display: flex; }
@@ -840,11 +867,35 @@ PAGE = r"""<!doctype html>
   .ht-eq i { width: 4px; border-radius: 2px; background: #1ed760; animation: hteq 1s ease-in-out infinite; }
   .ht-eq i:nth-child(2) { animation-delay: -.3s; } .ht-eq i:nth-child(3) { animation-delay: -.6s; } .ht-eq i:nth-child(4) { animation-delay: -.15s; }
   @keyframes hteq { 0%, 100% { height: 5px; } 50% { height: 22px; } }
-  .ht-checks { position: absolute; right: 22px; top: 22px; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
-  .ht-checks span { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 99px;
-    font-size: 11px; font-weight: 700; background: rgba(0, 0, 0, .3); border: 1px solid rgba(255, 255, 255, .1); color: var(--faint); }
-  .ht-checks span.on { color: #fecdd3; border-color: rgba(244, 63, 94, .5); background: rgba(244, 63, 94, .18); }
-  .ht-checks span.on::before { content: "✓"; color: #fb7185; }
+  /* Champ select tile: a small draft board with the ban and pick lists */
+  #tile-auto .ht-bg { background:
+      repeating-linear-gradient(115deg, rgba(255, 255, 255, .025) 0 1px, transparent 1px 14px),
+      radial-gradient(300px 200px at 78% 30%, rgba(244, 63, 94, .28), transparent 70%),
+      radial-gradient(240px 180px at 95% 100%, rgba(200, 170, 110, .16), transparent 70%),
+      linear-gradient(135deg, #2b0f24, #0f1440); }
+  .ht-draft { position: absolute; right: 20px; top: 20px; display: flex; flex-direction: column; gap: 9px; align-items: flex-end; }
+  .dr-row { display: flex; align-items: center; gap: 8px; transition: opacity .3s, filter .3s; }
+  .dr-row.off { opacity: .35; filter: grayscale(1); }
+  .dr-row em { font-style: normal; font-size: 9.5px; font-weight: 800; letter-spacing: .16em; width: 30px; text-align: right; }
+  .dr-row.ban em { color: #fb7185; } .dr-row.pick em { color: #e8c983; }
+  .dr-row .dr-faces { display: flex; gap: 5px; }
+  .dr-row i { position: relative; width: 32px; height: 32px; border-radius: 9px; background: #0d1238 center / 112% no-repeat;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, .45); }
+  .dr-row.ban i { border: 1.5px solid rgba(244, 63, 94, .75); filter: saturate(.55) brightness(.8); }
+  .dr-row.ban i::after { content: ""; position: absolute; inset: 0; border-radius: 8px;
+    background: linear-gradient(135deg, transparent 46%, rgba(251, 113, 133, .95) 46% 54%, transparent 54%); }
+  .dr-row.pick i { border: 1.5px solid rgba(200, 170, 110, .8); }
+  .dr-row.pick i:first-child { width: 38px; height: 38px; border-color: #f0d38a; box-shadow: 0 0 16px rgba(240, 211, 138, .45), 0 4px 10px rgba(0, 0, 0, .45); }
+  .dr-row i.empty { background: rgba(255, 255, 255, .04); border-style: dashed; filter: none; }
+  .dr-row i.empty::after { display: none; }
+  .dr-leds { display: flex; gap: 6px; margin-top: 2px; }
+  .dr-leds span { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px; border-radius: 99px; font-size: 10.5px;
+    font-weight: 700; color: var(--faint); background: rgba(0, 0, 0, .32); border: 1px solid rgba(255, 255, 255, .08); }
+  .dr-leds span::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: rgba(255, 255, 255, .25); }
+  .dr-leds span.on { color: #fecdd3; border-color: rgba(244, 63, 94, .45); }
+  .dr-leds span.on::before { background: #4ade80; box-shadow: 0 0 6px #4ade80; }
+  .ht:hover .dr-row.pick i:first-child { transform: translateY(-2px); }
+  .dr-row i { transition: transform .2s; }
 
   /* Champ select page: Auto Accept, Ban, Pick, Lobby Reveal */
   .au-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
@@ -948,6 +999,7 @@ PAGE = r"""<!doctype html>
     <div class="home-head">
       <div class="hm-text"><small id="hm-hi">Hoş geldin</small><h2 class="hm-name" id="hm-name">Lust başlıyor</h2>
         <div class="hm-sub" id="hm-sub"></div></div>
+      <div class="seg status-seg hm-seg" id="hm-seg" title="LoL'de nasıl görüneceğin (Lust Offline)"><button data-status="online">Çevrimiçi</button><button data-status="offline">Çevrimdışı</button><button data-status="mobile">Mobil</button></div>
       <button class="hm-play" id="hm-league" data-act="league"><i class="hm-orb">__play__</i><span id="hm-league-t">League'i aç</span></button>
     </div>
     <div class="bar busy" id="h-bar"><i></i></div>
@@ -956,11 +1008,13 @@ PAGE = r"""<!doctype html>
       <div class="ico">__close__</div>
       <div class="t"><b>Rose da kurulu</b><span>İkisi aynı anda çalışınca LoL'de Rose'un gül simgesi çıkar ve çakışırlar. Lust, Rose'un yaptığı her şeyi zaten yapıyor.</span></div>
       <button class="btn danger" style="margin-left:auto" data-act="rose_uninstall">Rose'u kaldır</button>
+      <button class="dismiss" data-dismiss="rose" title="Kapat">__close__</button>
     </div>
     <div class="card rose" id="ltk" hidden>
       <div class="ico">__close__</div>
       <div class="t"><b id="ltk-t"></b><span id="ltk-b"></span></div>
       <button class="btn primary" style="margin-left:auto" id="ltk-btn" data-act="patcher_download">İndirme sayfasını aç</button>
+      <button class="dismiss" data-dismiss="ltk" title="Kapat">__close__</button>
     </div>
     <div class="card prompt" id="prompt" hidden>
       <div class="t"><b id="q-title"></b><span id="q-body"></span></div>
@@ -970,7 +1024,7 @@ PAGE = r"""<!doctype html>
     </div>
     <div class="hgrid" id="hgrid">
     <div class="ht" data-go="lol" id="tile-lol" style="--i:0;--c:200, 170, 110;--g:url(#hg3)">
-      <div class="ht-bg" id="t-lol-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><div class="ht-mark" id="t-lol-mark">__lolbig__</div><img class="ht-emb" id="t-lol-emb" alt="" hidden>
+      <div class="ht-bg" id="t-lol-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><i class="ht-art" id="t-lol-art"></i><div class="ht-mark" id="t-lol-mark">__lolbig__</div><span class="ht-rank" id="t-lol-rank" hidden></span>
       <div class="ht-in"><div class="ht-orb art">__lol__</div>
         <b class="ht-ttl">Profil</b><span class="ht-st" id="t-lol"></span></div>
       <div class="ht-go">__arrow__</div>
@@ -1012,7 +1066,7 @@ PAGE = r"""<!doctype html>
       <div class="ht-go">__arrow__</div>
     </div>
     <div class="ht" data-go="auto" id="tile-auto" style="--i:7;--c:244, 63, 94;--g:url(#hg1)">
-      <div class="ht-bg" id="t-auto-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><div class="ht-checks" id="t-auto-checks"></div>
+      <div class="ht-bg" id="t-auto-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><div class="ht-draft" id="t-auto-draft"></div>
       <div class="ht-in"><div class="ht-orb"><svg viewBox="0 0 30 30"><path class="f" d="M5 22 3 9l6.5 5L15 5l5.5 9L27 9l-2 13z"/><path d="M6 26h18"/></svg></div>
         <b class="ht-ttl">Champ select</b><span class="ht-st" id="t-auto"></span></div>
       <div class="ht-go">__arrow__</div>
@@ -1046,7 +1100,7 @@ PAGE = r"""<!doctype html>
     <div class="card appear" style="margin-top:12px">
       <div class="ico">__user__</div>
       <div class="t"><b>Görün</b><span id="ap-sub"></span></div>
-      <div class="seg" id="seg">
+      <div class="seg status-seg" id="seg">
         <button data-status="online">Çevrimiçi</button><button data-status="offline">Çevrimdışı</button><button data-status="mobile">Mobil</button>
       </div>
     </div>
@@ -1224,6 +1278,18 @@ PAGE = r"""<!doctype html>
 <div id="lost">Lust yeniden başlıyor…</div>
 <script>
 const TOKEN = __TOKEN__;
+// Warnings closed with their X stay closed until Lust starts again (a new token), and a
+// different warning on the same card shows again
+let dismissed = {};
+try {
+  const saved = JSON.parse(localStorage.getItem("lust-dismissed") || "{}");
+  if (saved.token === TOKEN) dismissed = saved.keys || {};
+} catch (e) { /* storage off: closed warnings come back on the next window */ }
+const isDismissed = (card, state) => dismissed[card] === String(state);
+function dismiss(card, state) {
+  dismissed[card] = String(state);
+  try { localStorage.setItem("lust-dismissed", JSON.stringify({ token: TOKEN, keys: dismissed })); } catch (e) { /* see above */ }
+}
 const THEMES = __THEMES__;
 const $ = (id) => document.getElementById(id);
 let state = null, toastId = null, quitArmed = 0, choice = null, newsKey = "", failures = 0;
@@ -1521,9 +1587,9 @@ function render(s) {
   $("h-bar").classList.toggle("busy", busy);
   $("h-bar").firstElementChild.style.width = busy ? "" : `${s.progress}%`;
 
-  $("rose").hidden = !(s.rose && s.rose.installed);
+  $("rose").hidden = !(s.rose && s.rose.installed) || isDismissed("rose", "installed");
   const ltk = s.patcher || {};
-  $("ltk").hidden = !ltk.state || ltk.state === "ok";
+  $("ltk").hidden = !ltk.state || ltk.state === "ok" || isDismissed("ltk", ltk.state);
   if (!$("ltk").hidden) {
     $("ltk-t").textContent = LTK_TITLE[ltk.state] || LTK_TITLE.missing;
     $("ltk-b").textContent = ltk.waiting
@@ -1539,7 +1605,7 @@ function render(s) {
     $("q-body").textContent = `Sendeki sürüm ${s.prompt.current}. Şimdi kurulsun mu?`;
   }
   $("ap-sub").textContent = off.running ? (STATUS[off.status] || "Çevrimiçi") : "Seçmek için League'i buradan aç";
-  document.querySelectorAll("#seg button").forEach((b) => {
+  document.querySelectorAll(".status-seg button").forEach((b) => {
     b.disabled = !off.running || starting;
     b.classList.toggle("on", !!off.running && off.status === b.dataset.status);
   });
@@ -1679,7 +1745,6 @@ function drawHome(s) {
 let tiles = {}, auto = null;
 const TIER_COLOR = { iron: "#8a7a73", bronze: "#b0703f", silver: "#a9b8c6", gold: "#e0b54a", platinum: "#4fc1b5",
   emerald: "#2ecc71", diamond: "#5b8def", master: "#b14fe0", grandmaster: "#e0453f", challenger: "#f2c94c" };
-const EMBLEM = "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblem/emblem-";
 // Summoner's Rift art from the client's own game mode assets; the minimap if neither loads
 const SRU = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/content/src/leagueclient/gamemodeassets/classic_sru/img/";
 const RIFT = [SRU + "champ-select-flyout-background.jpg", SRU + "gameflow-background.jpg",
@@ -1692,16 +1757,24 @@ function drawTiles() {
   if (hero.last) lol.push(`${lol.length ? " · " : ""}Son maç ${hero.last.champion}`);
   if (off.running) lol.push(` · ${STATUS[off.status] || "Çevrimiçi"}`);
   fill("t-lol", lol.length ? lol : [s.league ? "League açık" : "Profilin, rank sınırları ve Lust Offline"]);
-  const emb = $("t-lol-emb"), tier = (hero.tier || "").toLowerCase();
-  const embUrl = tier ? EMBLEM + tier + ".png" : "";
+  // The last match's champion splash, and the season's win rate in the rank's colour
+  const tier = (hero.tier || "").toLowerCase();
   $("tile-lol").style.setProperty("--tc", TIER_COLOR[tier] || "#c8aa6e");
-  if (emb.dataset.url !== embUrl) {
-    emb.dataset.url = embUrl;
-    emb.hidden = true; $("t-lol-mark").hidden = false;
-    if (embUrl) {
-      emb.onload = () => { emb.hidden = false; $("t-lol-mark").hidden = true; };
-      emb.onerror = () => { emb.hidden = true; $("t-lol-mark").hidden = false; };
-      emb.src = embUrl;
+  const games = (hero.wins || 0) + (hero.losses || 0);
+  $("t-lol-rank").hidden = !games;
+  if (games) $("t-lol-rank").textContent = `%${Math.round(100 * hero.wins / games)} kazanma · ${games} maç`;
+  const lolArt = $("t-lol-art"), lolArtUrl = hero.image ? `/hero.jpg?v=${hero.image}` : "";
+  if (lolArt.dataset.url !== lolArtUrl) {
+    lolArt.dataset.url = lolArtUrl;
+    lolArt.classList.remove("on"); $("t-lol-mark").hidden = false;
+    if (lolArtUrl) {
+      const img = new Image();
+      img.onload = () => {
+        if (lolArt.dataset.url !== lolArtUrl) return;
+        lolArt.style.backgroundImage = `url("${lolArtUrl}")`;
+        lolArt.classList.add("on"); $("t-lol-mark").hidden = true;
+      };
+      img.src = lolArtUrl;
     }
   }
   const mp = t.maps;
@@ -1749,12 +1822,30 @@ function drawTiles() {
   const names = [["accept", "Accept"], ["ban", "Ban"], ["pick", "Pick"]];
   const reveal = !!((a.reveal || {}).on);
   const onCount = names.filter(([k]) => a[k]).length + (reveal ? 1 : 0);
-  fill("t-auto", onCount ? [["b", `${onCount} özellik açık`], " · Auto Accept, Ban, Pick, Lobby Reveal"] : ["Auto Accept, Ban, Pick ve Lobby Reveal"]);
-  const checks = JSON.stringify([...names.map(([k]) => !!a[k]), reveal]);
-  if ($("t-auto-checks").dataset.key !== checks) {
-    $("t-auto-checks").dataset.key = checks;
-    $("t-auto-checks").replaceChildren(...[...names, ["reveal", "Reveal"]].map(([k, label]) =>
-      Object.assign(document.createElement("span"), { textContent: label, className: (k === "reveal" ? reveal : a[k]) ? "on" : "" })));
+  fill("t-auto", onCount ? [["b", `${onCount}/4 açık`], " · sıra gelince senin yerine"] : ["Auto Accept, Ban, Pick ve Lobby Reveal"]);
+  const draftKey = JSON.stringify([a.ban, a.pick, a.accept, reveal, a.bans, a.picks]);
+  if ($("t-auto-draft").dataset.key !== draftKey) {
+    $("t-auto-draft").dataset.key = draftKey;
+    const row = (kind, label, ids, on, slots) => {
+      const r = document.createElement("div");
+      r.className = `dr-row ${kind}${on ? "" : " off"}`;
+      const faces = document.createElement("span");
+      faces.className = "dr-faces";
+      const list = (ids || []).slice(0, slots);
+      for (let n = 0; n < slots; n++) {
+        const i = document.createElement("i");
+        if (list[n]) i.style.backgroundImage = `url("${CHAMP_ICON(list[n])}")`;
+        else i.className = "empty";
+        faces.append(i);
+      }
+      r.append(Object.assign(document.createElement("em"), { textContent: label }), faces);
+      return r;
+    };
+    const leds = document.createElement("div");
+    leds.className = "dr-leds";
+    leds.append(...[["Accept", a.accept], ["Reveal", reveal]].map(([label, on]) =>
+      Object.assign(document.createElement("span"), { textContent: label, className: on ? "on" : "" })));
+    $("t-auto-draft").replaceChildren(row("pick", "PICK", a.picks, !!a.pick, 3), row("ban", "BAN", a.bans, !!a.ban, 3), leds);
   }
   const warn = (s.rose && s.rose.installed) || ((s.patcher || {}).state && s.patcher.state !== "ok") || s.update_available;
   fill("t-settings", warn ? [["b", s.update_available ? "Güncelleme hazır" : "Bakman gereken bir şey var", "warn"]]
@@ -2350,7 +2441,12 @@ document.querySelectorAll("[data-act]").forEach((el) => el.addEventListener("cli
   if (el.classList.contains("live")) return;
   act(el.dataset.act, el.dataset.body ? JSON.parse(el.dataset.body) : {});
 }));
-document.querySelectorAll("#seg button").forEach((b) => b.addEventListener("click", () => act("status", { value: b.dataset.status })));
+document.querySelectorAll("[data-dismiss]").forEach((b) => b.addEventListener("click", () => {
+  const card = b.dataset.dismiss, st = state || {};
+  dismiss(card, card === "ltk" ? (st.patcher || {}).state : "installed");
+  $(card).hidden = true;
+}));
+document.querySelectorAll(".status-seg button").forEach((b) => b.addEventListener("click", () => act("status", { value: b.dataset.status })));
 $("a-quit").addEventListener("click", () => {
   if (Date.now() - quitArmed < 3000) { act("quit"); return; }
   quitArmed = Date.now(); state && render(state); setTimeout(() => state && render(state), 3100);

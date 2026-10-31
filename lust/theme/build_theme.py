@@ -1393,6 +1393,16 @@ PATCHES = [
      '      ElainaData.set("lust-profile-background-shown", true);\n'
      '      ElainaData.set("hide-profile-background", false);\n'
      '    }\n'),
+    # League's own game mode icons in the play menu (the theme's recoloured ones are off by
+    # default, and off once for players who had them on; they can turn them on again)
+    ("config/datastoreDefault.js", '"Custom-Gamemode-Icon"\t\t\t: true,', '"Custom-Gamemode-Icon"\t\t\t: false,'),
+    ("index.js",
+     '      ElainaData.set("hide-profile-background", false);\n    }\n',
+     '      ElainaData.set("hide-profile-background", false);\n    }\n'
+     '    if (!ElainaData.get("lust-gamemode-icons-reset")) {\n'
+     '      ElainaData.set("lust-gamemode-icons-reset", true);\n'
+     '      ElainaData.set("Custom-Gamemode-Icon", false);\n'
+     '    }\n'),
     # League's own status icons in the friend list: a flat green fill turned the round
     # masked online icon into a square, and position:relative moved it
     ("assets/styles/themes/rcp-fe-viewport-sidebar.css",

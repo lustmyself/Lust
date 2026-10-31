@@ -460,6 +460,7 @@ ACTIONS: dict[str, Callable[[dict], str]] = {
     "skin_search": lambda body: _skins().search_update(str(body.get("name") or "")),
     "profile_background": lambda body: _profile().set_background(body.get("skinId")),
     "profile_icon": lambda body: _icon().choose(body.get("iconId")),
+    "clear_tokens": lambda body: _icon().clear_tokens(),
     "auto_update": lambda body: _toggle_auto_update(),
     "setting": lambda body: _set_setting(body),
     "clear_cache": lambda body: _clear_cache(),

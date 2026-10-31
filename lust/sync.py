@@ -1021,6 +1021,37 @@ EDITS += [
     ("Lust.spec", "    'launcher.lust_maps',\n", "    'launcher.lust_maps',\n    'launcher.lust_profile',\n"),
 ]
 
+# Troubleshooting: a slow base skin confirmation raises Injection Threshold by itself (to the
+# tracker's recommendation) instead of asking the player to press "Apply recommended", and the
+# "Pengu Loader could not be activated" report goes away once the client plugins connect.
+EDITS += [
+    ('threads/handlers/injection_trigger.py',
+     '                                    rec_ms = stats.get("recommended_threshold_ms")\n'
+     '                                    hint = "Retry your skin selection. If the warning persists, increase Injection Threshold."\n',
+     '                                    rec_ms = stats.get("recommended_threshold_ms")\n'
+     '                                    # Lust: take the recommendation itself while it is above the current threshold\n'
+     '                                    if rec_ms is not None:\n'
+     '                                        rec_s = round(float(rec_ms) / 1000.0, 2)\n'
+     '                                        if not isinstance(threshold_s, (int, float)) or rec_s > float(threshold_s) + 0.001:\n'
+     '                                            from config import set_config_option\n'
+     '                                            set_config_option("General", "injection_threshold", str(rec_s))\n'
+     '                                            if self.injection_manager is not None:\n'
+     '                                                self.injection_manager.refresh_injection_threshold()\n'
+     '                                            log.info(f"[INJECT] Injection threshold raised to the recommended {rec_s}s")\n'
+     '                                            from utils.core.issue_reporter import remove_issues\n'
+     '                                            remove_issues(lambda line, fix: "Base skin verification failed" in line)\n'
+     '                                            break\n'
+     '                                    hint = "Retry your skin selection. If the warning persists, increase Injection Threshold."\n'),
+    ('pengu/core/websocket_server.py',
+     '        self._connections.add(websocket)\n',
+     '        self._connections.add(websocket)\n'
+     '        try:  # Lust: a plugin reached the bridge, so Pengu Loader is active\n'
+     '            from utils.integration.pengu_loader import _clear_stale_activation_issue\n'
+     '            _clear_stale_activation_issue()\n'
+     '        except Exception:  # noqa: BLE001\n'
+     '            pass\n'),
+]
+
 # Profile icon (launcher/lust_icon.py): the LUST-ProfileIcon plugin asks for the chosen icon
 EDITS += [
     ('pengu/communication/message_handler.py',

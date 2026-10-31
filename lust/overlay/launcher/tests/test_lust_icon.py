@@ -74,3 +74,18 @@ class IconTests(unittest.TestCase):
         self.assertEqual(response.status, 200)
         self.assertEqual(data["chosen"], 29)
         self.assertEqual(len(data["icons"]), 3)
+
+
+class TokenTests(unittest.TestCase):
+    def test_clear_tokens_needs_the_client(self):
+        with patch("launcher.lust_offline._lcu_credentials", return_value=None):
+            self.assertIn("LoL açık olmalı", lust_icon.clear_tokens())
+
+    def test_clear_tokens_posts_an_empty_list(self):
+        with patch("launcher.lust_offline._lcu_credentials", return_value=(1234, "t")), \
+                patch("launcher.lust_profile._lcu", return_value={}) as lcu:
+            self.assertEqual(lust_hub.ACTIONS["clear_tokens"]({}), "Tokenler kaldırıldı")
+        lcu.assert_called_once_with("POST", lust_icon.TOKENS_PATH, {"challengeIds": []})
+        with patch("launcher.lust_offline._lcu_credentials", return_value=(1234, "t")), \
+                patch("launcher.lust_profile._lcu", return_value=None):
+            self.assertIn("tekrar dene", lust_icon.clear_tokens())

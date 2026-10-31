@@ -128,6 +128,23 @@ def choose(icon_id) -> str:
     return f"Profil simgesi: {name}"
 
 
+# ---- challenge tokens ----
+
+TOKENS_PATH = "/lol-challenges/v1/update-player-preferences/"
+
+
+def clear_tokens() -> str:
+    """Take the challenge tokens off the profile (saved on Riot's side, like the client's own editor)."""
+    from launcher.lust_offline import _lcu_credentials
+    from launcher.lust_profile import _lcu
+    if not _lcu_credentials():
+        return "Tokenleri kaldırmak için LoL açık olmalı"
+    if _lcu("POST", TOKENS_PATH, {"challengeIds": []}) is None:
+        return "LoL tokenleri kaldıramadı, birazdan tekrar dene"
+    log.info("[Icon] Challenge tokens cleared")
+    return "Tokenler kaldırıldı"
+
+
 # ---- the hub and the plugin ----
 
 def listing() -> dict:

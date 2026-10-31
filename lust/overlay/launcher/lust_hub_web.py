@@ -773,14 +773,16 @@ PAGE = r"""<!doctype html>
     background: linear-gradient(160deg, rgba(255, 255, 255, .22), rgba(255, 255, 255, .02)); -webkit-background-clip: text; color: transparent; }
   .ht-glyph.gold { background: linear-gradient(160deg, rgba(253, 230, 138, .6), rgba(245, 158, 11, .06)); -webkit-background-clip: text; }
   #tile-patch .ht-bg, #tile-fonts .ht-bg, #tile-auto .ht-bg, #tile-settings .ht-bg, #tile-spotify .ht-bg { opacity: 1; animation: none; inset: 0; }
-  #tile-lol .ht-bg { opacity: 1; animation: none; inset: 0; background: radial-gradient(360px 240px at 82% 45%, rgba(200, 170, 110, .38), transparent 70%), radial-gradient(260px 200px at 10% 110%, rgba(10, 200, 185, .18), transparent 70%), linear-gradient(135deg, #2a2210, #0f1440); }
+  #tile-lol .ht-bg { opacity: 1; animation: none; inset: 0; background: radial-gradient(360px 240px at 82% 45%, color-mix(in srgb, var(--tc, #c8aa6e) 42%, transparent), transparent 70%), radial-gradient(260px 200px at 10% 110%, rgba(10, 200, 185, .18), transparent 70%), linear-gradient(135deg, #2a2210, #0f1440); }
   .ht-mark, .ht-emb { position: absolute; right: 18px; top: 50%; pointer-events: none; animation: htfloat 6s ease-in-out infinite; }
   .ht-mark { width: 150px; height: 150px; margin-top: -88px; opacity: .32; }
   .ht-mark svg { width: 100%; height: 100%; }
-  .ht-emb { width: 230px; height: 230px; margin-top: -128px; right: -6px; object-fit: contain; filter: drop-shadow(0 12px 40px rgba(200, 170, 110, .45)); }
+  .ht-emb { width: 200px; height: 200px; margin-top: -112px; right: 4px; object-fit: contain; animation-name: htfloat-emb;
+    filter: drop-shadow(0 10px 30px color-mix(in srgb, var(--tc, #c8aa6e) 70%, transparent)); }
+  @keyframes htfloat-emb { from, to { transform: scale(4.5); } 50% { transform: scale(4.5) translateY(-2px); } }
   .ht-mark[hidden], .ht-emb[hidden] { display: none; }
   @keyframes htfloat { 50% { transform: translateY(-6px); } }
-  @media (prefers-reduced-motion: reduce) { .ht-mark, .ht-emb { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .ht-mark { animation: none; } .ht-emb { animation: none; transform: scale(4.5); } }
   #tile-spotify .ht-bg { background: radial-gradient(340px 220px at 88% 70%, rgba(30, 215, 96, .32), transparent 70%), linear-gradient(135deg, #0c2a1a, #0f1440); }
   .ht-sp-big { position: absolute; right: -34px; bottom: -48px; width: 200px; height: 200px; pointer-events: none;
     opacity: .9; filter: drop-shadow(0 10px 40px rgba(30, 215, 96, .35)); }
@@ -930,7 +932,7 @@ PAGE = r"""<!doctype html>
     </div>
     <div class="hgrid" id="hgrid">
     <div class="ht" data-go="lol" id="tile-lol" style="--i:0;--c:200, 170, 110;--g:url(#hg3)">
-      <div class="ht-bg" id="t-lol-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><div class="ht-mark" id="t-lol-mark">__lol__</div><img class="ht-emb" id="t-lol-emb" alt="" hidden>
+      <div class="ht-bg" id="t-lol-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><div class="ht-mark" id="t-lol-mark">__lolbig__</div><img class="ht-emb" id="t-lol-emb" alt="" hidden>
       <div class="ht-in"><div class="ht-orb art">__lol__</div>
         <b class="ht-ttl">LoL</b><span class="ht-st" id="t-lol"></span></div>
       <div class="ht-go">__arrow__</div>
@@ -1628,6 +1630,8 @@ function drawHome(s) {
 }
 
 let tiles = {}, auto = null;
+const TIER_COLOR = { iron: "#8a7a73", bronze: "#b0703f", silver: "#a9b8c6", gold: "#e0b54a", platinum: "#4fc1b5",
+  emerald: "#2ecc71", diamond: "#5b8def", master: "#b14fe0", grandmaster: "#e0453f", challenger: "#f2c94c" };
 const EMBLEM = "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblem/emblem-";
 // Summoner's Rift art from the client's own game mode assets; the minimap if neither loads
 const SRU = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/content/src/leagueclient/gamemodeassets/classic_sru/img/";
@@ -1643,6 +1647,7 @@ function drawTiles() {
   fill("t-lol", lol.length ? lol : [s.league ? "League açık" : "Profilin, rank sınırları ve Lust Offline"]);
   const emb = $("t-lol-emb"), tier = (hero.tier || "").toLowerCase();
   const embUrl = tier ? EMBLEM + tier + ".png" : "";
+  $("tile-lol").style.setProperty("--tc", TIER_COLOR[tier] || "#c8aa6e");
   if (emb.dataset.url !== embUrl) {
     emb.dataset.url = embUrl;
     emb.hidden = true; $("t-lol-mark").hidden = false;
@@ -2305,6 +2310,8 @@ def _svg(path: str) -> str:
 
 def render(token: str, version: str, themes: list) -> str:
     page = PAGE.replace("__TOKEN__", json.dumps(token)).replace("__VERSION__", version)
+    # The big copy gets its own gradient ids: a hidden copy's ids would blank the small one
+    page = page.replace("__lolbig__", LOL_MARK.replace("hx-gold", "hx-gold-b").replace("hx-blue", "hx-blue-b"))
     page = page.replace("__lol__", LOL_MARK)
     page = page.replace("__THEMES__", json.dumps(themes, ensure_ascii=False))
     for name, path in ICONS.items():

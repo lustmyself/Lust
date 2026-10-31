@@ -24,7 +24,7 @@ DEFAULTS = {"accept": False, "ban": False, "pick": False, "bans": [], "picks": [
 IDLE_S = 3.0   # League closed or nothing to do
 BUSY_S = 1.0   # ready check or champ select
 CREDS_TTL_S = 30.0
-MAX_TRIES = 5
+MAX_TRIES = 30  # about one a second: the client can ignore a lock-in for the first seconds of a turn
 
 _lock = threading.Lock()
 _cache: Optional[dict] = None
@@ -240,15 +240,19 @@ def _champ_select(config: dict) -> None:
         return
     _done[action_id] = tries + 1
     path = f"/lol-champ-select/v1/session/actions/{action_id}"
-    # Hover, then lock in; the one-call form is the fallback
-    hovered = _lcu("PATCH", path, {"championId": champion}) is not None
-    done = hovered and _lcu("POST", path + "/complete") is not None
-    if not done:
-        done = _lcu("PATCH", path, {"championId": champion, "completed": True}) is not None
-    if done:
-        log.info(f"[Auto] {kind} {champion} sent (try {tries + 1})")
+    # Hover, then lock in. The client answers OK and still keeps the turn open at times, so the
+    # tries take turns between the two ways of locking in until the session shows it done
+    if tries % 2 == 0:
+        hovered = _lcu("PATCH", path, {"championId": champion}) is not None
+        done = hovered and _lcu("POST", path + "/complete") is not None
     else:
+        done = _lcu("PATCH", path, {"championId": champion, "completed": True}) is not None
+    if not done:
         log.warning(f"[Auto] Could not {kind} {champion} (action {action_id}, try {tries + 1})")
+    elif tries == 0:
+        log.info(f"[Auto] {kind} {champion} sent")
+    elif tries % 10 == 0:
+        log.info(f"[Auto] {kind} {champion} still open after {tries} tries, trying again")
 
 
 _notes: set = set()

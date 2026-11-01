@@ -221,6 +221,14 @@ class _Handler(BaseHTTPRequestHandler):
                 return self._send(200, lust_media.cover_path().read_bytes(), "image/jpeg")
             except OSError:
                 return self._send(404)
+        # The home page's fonts (Anton, Barlow Condensed; OFL), bundled in assets/lust_hub_fonts
+        match = re.fullmatch(r"/hubfont/([A-Za-z-]+\.ttf)", path)
+        if match:
+            try:
+                from utils.core.paths import get_asset_path
+                return self._send(200, get_asset_path("lust_hub_fonts/" + match.group(1)).read_bytes(), "font/ttf")
+            except OSError:
+                return self._send(404)
         if path == "/icon.png":
             try:
                 from utils.core.paths import get_asset_path

@@ -922,22 +922,39 @@ PAGE = r"""<!doctype html>
     padding: 4px 9px; border-radius: 99px; background: rgba(6, 40, 30, .7); border: 1px solid rgba(52, 211, 153, .4); }
 
   /* Champ select: the first ban crossed out, the first pick in a gold ring, a light for each switch */
-  .ht-cs { position: absolute; right: 22px; top: 18px; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
-  .cs-duo { display: flex; align-items: flex-end; gap: 14px; }
-  .cs-p { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-  .cs-p i { display: block; border-radius: 50%; background: #0d1238 center / 112% no-repeat; box-shadow: 0 10px 24px rgba(0, 0, 0, .55); }
-  .cs-p em { font-style: normal; font-size: 9.5px; font-weight: 800; letter-spacing: .16em; }
-  .cs-p.pick i { width: 64px; height: 64px; border: 2px solid #f0d38a; box-shadow: 0 0 0 4px rgba(240, 211, 138, .15), 0 0 24px rgba(240, 211, 138, .45); }
-  .cs-p.pick em { color: #e8c983; }
-  .cs-p.ban i { position: relative; width: 44px; height: 44px; border: 2px solid rgba(244, 63, 94, .8); filter: saturate(.4) brightness(.75); }
-  .cs-p.ban i::after { content: ""; position: absolute; inset: 0; border-radius: 50%;
-    background: linear-gradient(135deg, transparent 45%, rgba(251, 113, 133, .95) 45% 55%, transparent 55%); }
-  .cs-p.ban em { color: #fb7185; }
-  .cs-p.off { opacity: .35; filter: grayscale(1); }
-  .cs-p i.empty { background: rgba(255, 255, 255, .05); border-style: dashed; filter: none; box-shadow: none; }
-  .cs-p i.empty::after { display: none; }
-  .ht:hover .cs-p.pick i { transform: scale(1.06); }
-  .cs-p i { transition: transform .25s cubic-bezier(.3, 1.6, .5, 1); }
+  /* A draft panel down the right of the tile: switches, five pick slots, five ban slots */
+  .ht-cs { position: absolute; top: 14px; bottom: 14px; right: 66px; left: 44%; z-index: 1; display: flex; flex-direction: column; gap: 7px;
+    padding: 9px 10px 10px; border-radius: 16px; background: linear-gradient(160deg, rgba(10, 12, 38, .72), rgba(30, 8, 26, .6));
+    border: 1px solid rgba(244, 63, 94, .22); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05), 0 16px 34px -18px rgba(0, 0, 0, .9);
+    backdrop-filter: blur(6px); transition: border-color .3s; }
+  .ht:hover .ht-cs { border-color: rgba(244, 63, 94, .45); }
+  #tile-auto .ht-in { padding-right: calc(56% + 8px); }
+  #tile-auto .ht-st { white-space: normal; }
+  .ht-cs { container-type: inline-size; }
+  .ht-cs .dr-leds { margin: 0; gap: 3px; flex-wrap: nowrap; }
+  .ht-cs .dr-leds span { height: 18px; padding: 0 5px; font-size: 9px; gap: 4px; }
+  @container (max-width: 176px) { .ht-cs .dr-leds { display: none; } }
+  .cs-row { display: flex; gap: 5px; min-height: 0; transition: opacity .3s, filter .3s; }
+  .cs-row.off { opacity: .35; filter: grayscale(1); }
+  .cs-row.pick { flex: 1; }
+  /* Picks: tall slots like champ select's, the first one in gold */
+  .cs-row.pick i { position: relative; flex: 1; min-width: 0; border-radius: 9px; background: #0d1238 center 28% / cover no-repeat;
+    border: 1.5px solid rgba(200, 170, 110, .5); box-shadow: 0 6px 14px rgba(0, 0, 0, .5);
+    transition: transform .25s cubic-bezier(.3, 1.6, .5, 1), flex-grow .35s; }
+  .cs-row.pick i::after { content: attr(data-n); position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 0 3px; text-align: center;
+    border-radius: 0 0 8px 8px; font-size: 10px; font-weight: 800; color: #f5e6c4; background: linear-gradient(transparent, rgba(5, 7, 24, .85)); }
+  .cs-row.pick i:first-child:not(.empty) { flex-grow: 1.5; border: 2px solid #f0d38a;
+    box-shadow: 0 0 0 3px rgba(240, 211, 138, .12), 0 0 20px rgba(240, 211, 138, .4), 0 6px 14px rgba(0, 0, 0, .5); }
+  .ht:hover .cs-row.pick i:not(.empty) { transform: translateY(-2px); }
+  /* Bans: crossed out rounds */
+  .cs-row.ban { justify-content: space-between; align-items: center; }
+  .cs-row.ban > i { position: relative; flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; background: #0d1238 center / 112% no-repeat;
+    border: 1.5px solid rgba(244, 63, 94, .75); filter: saturate(.45) brightness(.75); }
+  .cs-row.ban > i::after { content: ""; position: absolute; inset: 0; border-radius: 50%;
+    background: linear-gradient(135deg, transparent 44%, rgba(251, 113, 133, .95) 44% 56%, transparent 56%); }
+  .cs-row.ban > em { font-style: normal; font-size: 9px; font-weight: 800; letter-spacing: .14em; color: #fb7185; margin-right: 2px; }
+  .cs-row i.empty { background: rgba(255, 255, 255, .035); border-style: dashed; border-color: rgba(255, 255, 255, .15); filter: none; box-shadow: none; }
+  .cs-row i.empty::after { background: none; color: rgba(255, 255, 255, .22); }
 
   /* Champ select page: Auto Accept, Ban, Pick, Lobby Reveal */
   .au-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
@@ -1890,26 +1907,30 @@ function drawTiles() {
   const names = [["accept", "Accept"], ["ban", "Ban"], ["pick", "Pick"]];
   const reveal = !!((a.reveal || {}).on);
   const onCount = names.filter(([k]) => a[k]).length + (reveal ? 1 : 0);
-  fill("t-auto", onCount ? [["b", `${onCount}/4 açık`], " · sıra gelince senin yerine"] : ["Auto Accept, Ban, Pick ve Lobby Reveal"]);
+  fill("t-auto", onCount ? [["b", `${onCount}/4 açık`]] : ["Hepsi kapalı"]);
   const draftKey = JSON.stringify([a.ban, a.pick, a.accept, reveal, a.bans, a.picks]);
   if ($("t-auto-draft").dataset.key !== draftKey) {
     $("t-auto-draft").dataset.key = draftKey;
-    const face = (kind, label, id, on) => {
-      const p = document.createElement("div");
-      p.className = `cs-p ${kind}${on ? "" : " off"}`;
-      const i = document.createElement("i");
-      if (id) i.style.backgroundImage = `url("${CHAMP_ICON(id)}")`; else i.className = "empty";
-      p.append(i, Object.assign(document.createElement("em"), { textContent: label }));
-      return p;
+    // Five pick slots and five ban slots, filled in list order
+    const row = (kind, ids, on) => {
+      const r = document.createElement("div");
+      r.className = `cs-row ${kind}${on ? "" : " off"}`;
+      if (kind === "ban") r.append(Object.assign(document.createElement("em"), { textContent: "BAN" }));
+      const list = (ids || []).slice(0, 5);
+      for (let n = 0; n < 5; n++) {
+        const i = document.createElement("i");
+        if (list[n]) i.style.backgroundImage = `url("${CHAMP_ICON(list[n])}")`;
+        else i.className = "empty";
+        if (kind === "pick") i.dataset.n = String(n + 1);
+        r.append(i);
+      }
+      return r;
     };
-    const duo = document.createElement("div");
-    duo.className = "cs-duo";
-    duo.append(face("ban", "BAN", (a.bans || [])[0], !!a.ban), face("pick", "PICK", (a.picks || [])[0], !!a.pick));
     const leds = document.createElement("div");
     leds.className = "dr-leds";
     leds.append(...[["Accept", a.accept], ["Ban", a.ban], ["Pick", a.pick], ["Reveal", reveal]].map(([label, on]) =>
       Object.assign(document.createElement("span"), { textContent: label, className: on ? "on" : "" })));
-    $("t-auto-draft").replaceChildren(duo, leds);
+    $("t-auto-draft").replaceChildren(leds, row("pick", a.picks, !!a.pick), row("ban", a.bans, !!a.ban));
   }
   const warn = (s.rose && s.rose.installed) || ((s.patcher || {}).state && s.patcher.state !== "ok") || s.update_available;
   fill("t-settings", warn ? [["b", s.update_available ? "Güncelleme hazır" : "Bakman gereken bir şey var", "warn"]]

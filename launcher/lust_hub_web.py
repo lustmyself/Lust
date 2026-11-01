@@ -1122,7 +1122,16 @@ PAGE = r"""<!doctype html>
   #tile-spotify.cover:hover .ht-cover { transform: skewX(6deg) scale(1.04); }
   .ht-rank, .ht-faces em { border-radius: 0; font-family: var(--p3-cond); font-weight: 800; font-style: italic; font-size: 14px;
     background: var(--p3-ink); color: var(--p3-cyan); border: 2px solid var(--p3-cyan); box-shadow: none; backdrop-filter: none; }
-  .ht-cs { border-radius: 0; background: rgba(2, 11, 46, .78); border-color: rgba(189, 243, 255, .25); }
+  /* Champ select: the draft panel fills the whole tile, see-through; the title sits over the picks */
+  .ht-cs { inset: 46px 22px 14px 22px; left: 22px; right: 22px; border-radius: 0; background: none; border: 0; box-shadow: none;
+    backdrop-filter: none; padding: 0; }
+  .ht-cs .cs-row.ban { order: -1; justify-content: flex-start; gap: 6px; }
+  .ht-cs .dr-leds { order: -2; position: absolute; top: -36px; right: 0; }
+  .ht-cs .cs-row.pick i { border-radius: 0; opacity: .8; }
+  #tile-auto .ht-in { position: relative; z-index: 2; padding-right: 30px; background: linear-gradient(0deg, rgba(2, 11, 46, .95) 4%, rgba(2, 11, 46, .55) 30%, transparent 48%); }
+  /* Spotify: a bigger album cover */
+  .ht-cover { width: 150px; height: 150px; margin-top: -100px; right: 30px; }
+  #tile-spotify.cover .ht-eq { right: 200px; }
   .ht-glyph { font-family: var(--p3-big); font-weight: 400; letter-spacing: 0; font-size: 96px; }
   @media (prefers-reduced-motion: reduce) { .ht { animation: none; } }
 </style>

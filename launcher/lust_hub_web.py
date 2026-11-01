@@ -1019,6 +1019,112 @@ PAGE = r"""<!doctype html>
   .client-card .t span { display: block; max-width: 620px; }
   .mods-seg { margin: 0 0 16px; width: max-content; background: rgba(13, 18, 56, .7); }
   .mods-seg button.on { background: linear-gradient(135deg, #6d5dfc, #38bdf8); color: #fff; }
+
+  /* ==== Persona-style home: deep blue, slanted tiles, big condensed type ==== */
+  @font-face { font-family: "Anton"; src: url("/hubfont/Anton-Regular.ttf") format("truetype"); font-display: swap; }
+  @font-face { font-family: "Barlow Condensed"; font-weight: 600; src: url("/hubfont/BarlowCondensed-SemiBold.ttf") format("truetype"); font-display: swap; }
+  @font-face { font-family: "Barlow Condensed"; font-weight: 700; src: url("/hubfont/BarlowCondensed-Bold.ttf") format("truetype"); font-display: swap; }
+  @font-face { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; src: url("/hubfont/BarlowCondensed-ExtraBoldItalic.ttf") format("truetype"); font-display: swap; }
+  :root { --p3-ink: #020b2e; --p3-blue: #1336c9; --p3-cyan: #3ee6ff; --p3-ice: #bdf3ff; --p3-white: #f4fbff; --p3-hot: #ff3d7f;
+    --p3-big: "Anton", "Bahnschrift", "Impact", sans-serif; --p3-cond: "Barlow Condensed", "Bahnschrift", "Segoe UI", sans-serif;
+    --bg: #04103a; }
+  .ambient { background:
+      radial-gradient(circle at 1px 1px, rgba(120, 200, 255, .14) 1.4px, transparent 1.6px) 0 0 / 14px 14px,
+      radial-gradient(900px 600px at 12% 0%, #0d33b0 0%, transparent 70%),
+      linear-gradient(160deg, #06208a, #020b2e 75%); }
+  .ambient::after { display: none; }
+  .ambient .blob { border-radius: 0; filter: none; opacity: 1; animation: none; left: -20%; right: auto; width: 140%; transform: rotate(-14deg); }
+  .ambient .blob.b1 { top: 47%; height: 24px; background: var(--p3-cyan); opacity: .55; }
+  .ambient .blob.b2 { top: calc(47% + 44px); bottom: auto; height: 4px; background: var(--p3-white); opacity: .4; }
+  /* Title bar */
+  .word { font-family: var(--p3-big); font-weight: 400; font-size: 22px; letter-spacing: .2em; color: var(--p3-white);
+    background: none; -webkit-background-clip: border-box; transform: skewX(-10deg); }
+  .ver-pill { border-radius: 0; border: 0; background: var(--p3-cyan); color: var(--p3-ink); font-family: var(--p3-cond); font-weight: 700;
+    font-size: 13px; transform: skewX(-14deg); }
+  .ver-pill:hover, .ver-pill.open { background: var(--p3-white); color: var(--p3-ink); }
+  .lg { border-radius: 0; transform: skewX(-12deg); font-family: var(--p3-cond); font-weight: 700; font-size: 14px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--p3-ice); background: rgba(2, 11, 46, .6); border-color: rgba(189, 243, 255, .2); }
+  .lg .dot { border-radius: 0; transform: rotate(45deg); }
+  .top h1 { font-family: var(--p3-big); font-weight: 400; font-size: 24px; letter-spacing: .03em; text-transform: uppercase;
+    text-shadow: 3px 3px 0 var(--p3-blue); }
+  .back { border-radius: 0; transform: skewX(-10deg); }
+
+  /* Home header: name, the Online/Offline/Mobile switch, today's date, League */
+  .home-head { align-items: center; gap: 20px; margin: 2px 2px 20px; }
+  .hm-av { width: 84px; height: 84px; }
+  .hm-av i { border-radius: 0; box-shadow: none; clip-path: polygon(14% 0, 100% 0, 86% 100%, 0 100%); }
+  .hm-av::before { content: ""; position: absolute; inset: -4px; background: var(--p3-cyan); clip-path: polygon(14% 0, 100% 0, 86% 100%, 0 100%); }
+  .hm-av b { box-shadow: 0 0 0 3px var(--p3-ink); }
+  .home-head small { font-family: var(--p3-cond); font-weight: 800; font-style: italic; font-size: 16px; letter-spacing: .18em; color: var(--p3-cyan); }
+  .hm-name { font-family: var(--p3-big); font-weight: 400; font-size: 54px; line-height: 1; letter-spacing: .02em; margin-top: 2px;
+    text-transform: uppercase; text-shadow: 4px 4px 0 var(--p3-blue); }
+  .hm-name b { background: none; -webkit-background-clip: border-box; color: var(--p3-white); }
+  .hm-name i { color: var(--p3-ice); }
+  .hm-sub { font-family: var(--p3-cond); font-weight: 600; font-size: 16px; color: var(--p3-ice); }
+  .dc-login { border-radius: 0; transform: skewX(-10deg); font-family: var(--p3-cond); font-size: 16px; }
+  .hm-seg { margin: 0 0 0 26px; padding: 0; gap: 8px; background: none; border: 0; border-radius: 0; }
+  .hm-seg button { padding: 6px 18px; border-radius: 0; transform: skewX(-14deg); font-family: var(--p3-big); font-weight: 400;
+    font-size: 19px; letter-spacing: .05em; text-transform: uppercase; color: var(--p3-ice);
+    background: rgba(2, 11, 46, .85); border: 2px solid rgba(189, 243, 255, .35); transition: background .15s, color .15s, box-shadow .15s, transform .15s; }
+  .hm-seg button:hover:not(:disabled) { color: var(--p3-white); border-color: var(--p3-cyan); }
+  .hm-seg button.on { background: var(--p3-white); color: var(--p3-ink); border-color: var(--p3-white); box-shadow: 5px 5px 0 var(--p3-cyan);
+    transform: skewX(-14deg) translate(-2px, -2px); }
+  .p3-date { margin-left: auto; flex: none; text-align: right; transform: rotate(-4deg); line-height: 1; }
+  .p3-date .d { font-family: var(--p3-big); font-size: 58px; color: var(--p3-white);
+    text-shadow: 4px 4px 0 var(--p3-blue), 7px 7px 0 rgba(62, 230, 255, .45); }
+  .p3-date .d small { font-size: 36px; color: var(--p3-cyan); }
+  .p3-date .r { display: flex; gap: 8px; justify-content: flex-end; align-items: center; margin-top: 4px; }
+  .p3-date .t { display: flex; align-items: center; gap: 6px; font-family: var(--p3-cond); font-weight: 800; font-style: italic;
+    font-size: 17px; letter-spacing: .14em; color: var(--p3-ice); }
+  .p3-date .t svg { width: 18px; height: 18px; fill: var(--p3-ice); stroke: none; }
+  .p3-date .w { font-family: var(--p3-big); font-size: 20px; padding: 0 10px; background: var(--p3-white); color: var(--p3-ink); transform: skewX(-14deg); }
+  .hm-play { margin-left: 18px; height: 56px; border-radius: 0; transform: skewX(-10deg); padding: 0 24px 0 10px;
+    font-family: var(--p3-big); font-weight: 400; font-size: 21px; letter-spacing: .04em; text-transform: uppercase;
+    background: var(--p3-white); color: var(--p3-ink); box-shadow: 6px 6px 0 var(--p3-cyan); }
+  .hm-play:hover { transform: skewX(-10deg) translate(-2px, -3px); filter: none; box-shadow: 9px 9px 0 var(--p3-hot); }
+  .hm-orb { border-radius: 0; background: var(--p3-ink); }
+  .hm-play.live { background: rgba(2, 11, 46, .85); color: #6ee7b7; border: 2px solid rgba(52, 211, 153, .6); box-shadow: 6px 6px 0 rgba(52, 211, 153, .35); }
+  #page-home > .bar > i { background: linear-gradient(90deg, var(--p3-cyan), var(--p3-white)); }
+
+  /* Tiles: slanted panels on a blue shadow, a number, a title in big capitals */
+  .hgrid { counter-reset: p3; gap: 22px 26px; padding: 0 14px; }
+  .ht { --sx: 0px; counter-increment: p3; border-radius: 0; background: #0a237f; border: 0; overflow: hidden;
+    transform: translateX(var(--sx)) skewX(-6deg); box-shadow: 8px 8px 0 var(--p3-blue);
+    animation-name: p3in; transition: transform .2s cubic-bezier(.3, 1.5, .5, 1), box-shadow .2s; }
+  .ht:nth-child(-n+3) { --sx: 14px; } .ht:nth-child(n+7) { --sx: -14px; }
+  @keyframes p3in { from { opacity: 0; transform: translateX(calc(var(--sx) + 60px)) skewX(-6deg); } }
+  .ht::after { border-radius: 0; padding: 0; background: none; -webkit-mask: none; border: 2px solid rgba(189, 243, 255, .28);
+    opacity: 1; transition: border-color .15s, border-width .15s; z-index: 3; }
+  .ht::before { content: ""; position: absolute; z-index: 4; left: 0; top: 0; width: 14px; height: 64px; background: var(--p3-hot);
+    transform: scaleY(0); transform-origin: top; transition: transform .2s cubic-bezier(.3, 1.5, .5, 1); }
+  .ht:hover { transform: translateX(var(--sx)) skewX(-6deg) translate(-4px, -6px); box-shadow: 14px 14px 0 var(--p3-cyan); }
+  .ht:hover::after { border: 4px solid var(--p3-white); }
+  .ht:hover::before { transform: scaleY(1); }
+  .ht:active { transform: translateX(var(--sx)) skewX(-6deg) scale(.98); }
+  .ht-bg.on, #tile-lol .ht-bg, #tile-fonts .ht-bg, #tile-auto .ht-bg, #tile-settings .ht-bg, #tile-spotify .ht-bg, .ht-art.on, .ht-vid {
+    filter: grayscale(1) contrast(1.25) brightness(1.05); }
+  #tile-spotify.cover .ht-bg { filter: grayscale(1) blur(20px) brightness(.8); }
+  /* The Profile art sits above the tint layer: tint it on its own */
+  .ht-art.on { filter: grayscale(1) sepia(1) hue-rotate(190deg) saturate(3.2) brightness(.85) contrast(1.1); }
+  .ht-ov { mix-blend-mode: multiply; background: linear-gradient(160deg, #8fbaff 0%, #2a5cff 45%, #061660 100%); }
+  .ht-in { transform: skewX(6deg); padding: 16px 30px 18px; background: linear-gradient(8deg, rgba(2, 11, 46, .92) 6%, rgba(2, 11, 46, .25) 50%, transparent 72%); }
+  .ht-in::before { content: "0" counter(p3); font-family: var(--p3-big); font-size: 24px; line-height: 1; color: var(--p3-cyan); letter-spacing: .04em; }
+  .ht:hover .ht-in::before { color: var(--p3-white); }
+  .ht-orb, .ht-go, .ht-shine { display: none; }
+  .ht-ttl { align-self: flex-start; font-family: var(--p3-big); font-weight: 400; font-size: 38px; line-height: 1.05; letter-spacing: .02em;
+    text-transform: uppercase; text-shadow: 3px 3px 0 var(--p3-blue); padding: 1px 0; transition: background .15s, color .15s, padding .15s, margin .15s; }
+  .ht:hover .ht-ttl { background: var(--p3-white); color: var(--p3-ink); text-shadow: none; padding: 1px 14px; margin-left: -14px; box-shadow: 6px 6px 0 var(--p3-cyan); }
+  .ht-st { font-family: var(--p3-cond); font-weight: 600; font-size: 17px; color: var(--p3-ice); padding-right: 10px; }
+  .ht-st b { font-weight: 700; color: var(--p3-white); }
+  /* The small pieces on each tile stay upright */
+  .ht-faces, .ht-rank, .ht-eq, .ht-cs, .ht-sp-big { transform: skewX(6deg); }
+  .ht-cover { transform: skewX(6deg) rotate(4deg); }
+  #tile-spotify.cover:hover .ht-cover { transform: skewX(6deg) scale(1.04); }
+  .ht-rank, .ht-faces em { border-radius: 0; font-family: var(--p3-cond); font-weight: 800; font-style: italic; font-size: 14px;
+    background: var(--p3-ink); color: var(--p3-cyan); border: 2px solid var(--p3-cyan); box-shadow: none; backdrop-filter: none; }
+  .ht-cs { border-radius: 0; background: rgba(2, 11, 46, .78); border-color: rgba(189, 243, 255, .25); }
+  .ht-glyph { font-family: var(--p3-big); font-weight: 400; letter-spacing: 0; font-size: 96px; }
+  @media (prefers-reduced-motion: reduce) { .ht { animation: none; } }
 </style>
 </head>
 <body>
@@ -1061,6 +1167,7 @@ PAGE = r"""<!doctype html>
         <div class="hm-sub" id="hm-sub"></div>
         <button class="dc-login" id="hm-dc" data-act="discord_login" hidden><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18.2 18.2 0 0 0-5.6 0L8.6 3a19.5 19.5 0 0 0-4.9 1.4C.6 9 0 13.5.3 18a19.7 19.7 0 0 0 6 3l1.3-2a12.7 12.7 0 0 1-2-1l.5-.4a14 14 0 0 0 11.8 0l.5.4c-.6.4-1.3.7-2 1l1.3 2a19.6 19.6 0 0 0 6-3c.4-5.2-.7-9.7-3.4-13.6ZM8.5 15.3c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.1 1.1 2.1 2.4-.9 2.4-2.1 2.4Zm7 0c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.1 1.1 2.1 2.4-.9 2.4-2.1 2.4Z"/></svg>Discord ile giriş yap</button></div>
       <div class="seg status-seg hm-seg" id="hm-seg" title="LoL'de nasıl görüneceğin (Lust Offline)"><button data-status="online">Çevrimiçi</button><button data-status="offline">Çevrimdışı</button><button data-status="mobile">Mobil</button></div>
+      <div class="p3-date" id="p3-date"><div class="d" id="p3-d"></div><div class="r"><span class="t"><svg viewBox="0 0 32 32"><path d="M21 4a12 12 0 1 0 7 19A10 10 0 0 1 21 4z"/></svg><span id="p3-t"></span></span><span class="w" id="p3-w"></span></div></div>
       <button class="hm-play" id="hm-league" data-act="league"><i class="hm-orb">__play__</i><span id="hm-league-t">League'i aç</span></button>
     </div>
     <div class="bar busy" id="h-bar"><i></i></div>
@@ -1781,6 +1888,18 @@ const greeting = () => {
   const h = new Date().getHours();
   return h < 6 ? "İyi geceler" : h < 12 ? "Günaydın" : h < 18 ? "İyi günler" : h < 22 ? "İyi akşamlar" : "İyi geceler";
 };
+
+// Today's date on the home page, as a game calendar would show it
+function drawDate() {
+  const now = new Date(), h = now.getHours(), p = (n) => String(n).padStart(2, "0");
+  const d = $("p3-d");
+  if (!d) return;
+  d.replaceChildren(p(now.getDate()), Object.assign(document.createElement("small"), { textContent: "/" }), p(now.getMonth() + 1));
+  $("p3-t").textContent = h < 6 ? "GECE" : h < 12 ? "SABAH" : h < 18 ? "ÖĞLEDEN SONRA" : h < 22 ? "AKŞAM" : "GECE";
+  $("p3-w").textContent = ["PAZ", "PZT", "SAL", "ÇAR", "PER", "CUM", "CMT"][now.getDay()];
+}
+drawDate();
+setInterval(drawDate, 60000);
 
 function drawHome(s) {
   const starting = s.phase !== "ready";

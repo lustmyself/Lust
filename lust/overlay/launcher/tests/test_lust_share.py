@@ -172,6 +172,22 @@ class FriendsTest(unittest.TestCase):
             lust_share.add_friend(self.code(sid))
         self.assertIn("En fazla", lust_share.add_friend(self.code(99)))
 
+    def test_code_shown_while_league_is_closed(self):
+        state = SimpleNamespace(phase="None", locked_champ_id=None, hovered_champ_id=None, party_manager=None)
+        manager = lust_share._manager_class()(FakeLcu(), state)
+        asyncio.run(ManagerTest._enable(None, manager))
+        runner = SimpleNamespace(manager=manager, error="")
+        with patch.object(lust_share, "_runner", runner):
+            code = lust_share.status()["code"]
+        self.assertTrue(code.startswith("LUST:"))
+        runner.manager, runner.error = None, "League is not running"
+        with patch.object(lust_share, "_runner", runner):
+            data = lust_share.status()
+        self.assertEqual(data["code"], code)
+        self.assertEqual(data["error"], "League is not running")
+        with patch.object(lust_share, "_runner", None):
+            self.assertEqual(lust_share.status()["code"], code)
+
     def test_own_code_refused(self):
         manager = SimpleNamespace(party_state=SimpleNamespace(my_summoner_id=7))
         with patch.object(lust_share, "_runner", SimpleNamespace(manager=manager)):

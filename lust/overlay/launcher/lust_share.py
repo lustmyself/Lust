@@ -47,6 +47,8 @@ KEEP_PHASES = ("GameStart", "InProgress", "Reconnect")
 # What our state carries next to the skin pick
 EXTRA_KEYS = ("icon_id", "puuid", "removed")
 FRIENDS_FILE = "lust-friends.json"
+# Our own code, kept so the hub shows it while League is closed too
+MY_CODE_FILE = "lust-share-code.json"
 # Party Mode stays in at most 8 rooms: ours, a lobby, a team and the friends'
 MAX_FRIENDS = 5
 
@@ -150,6 +152,30 @@ def _save_friends(data: dict) -> bool:
     except OSError as e:
         log.warning(f"[Share] Could not save friends: {e}")
         return False
+
+
+def load_my_code() -> str:
+    """The code we showed last (it stays the same: same account, same key)."""
+    from utils.core.paths import get_user_data_dir
+    try:
+        data = json.loads((get_user_data_dir() / MY_CODE_FILE).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return ""
+    code = data.get("code") if isinstance(data, dict) else None
+    return code if isinstance(code, str) else ""
+
+
+def save_my_code(code: str) -> None:
+    if not code or code == load_my_code():
+        return
+    from utils.core.paths import get_user_data_dir
+    try:
+        path = get_user_data_dir() / MY_CODE_FILE
+        temporary = path.with_name(f".{path.name}.tmp")
+        temporary.write_text(json.dumps({"code": code}), encoding="utf-8")
+        temporary.replace(path)
+    except OSError as e:
+        log.debug(f"[Share] Could not save our code: {e}")
 
 
 def friend_room(friend: dict) -> str:
@@ -265,6 +291,7 @@ def _manager_class():
             from party.network.ws_relay import compute_room_key
             self._my_key = load_party_key(my_id)
             self._home_room = compute_room_key(my_id, self._my_key)
+            save_my_code(self._fresh_token() or "")
             self._running = True
             self.party_state.enabled = True
             self.party_state.connection = "online"
@@ -379,6 +406,8 @@ class _Runner:
         self._auto: Set[str] = set()
         self._phase = None
         self._paired: Set[str] = set()
+        # Why sharing is not running while it should, for the hub ("" when it runs or League is closed)
+        self.error = ""
 
     def run(self) -> None:
         self.loop = asyncio.new_event_loop()
@@ -399,12 +428,14 @@ class _Runner:
     async def _tick(self) -> None:
         want = wanted() and bool(getattr(self.lcu, "ok", False))
         if not want:
+            self.error = ""
             await self._stop()
             return
         if self.manager is None:
             if time.monotonic() - self._failed_at < RETRY_S:
                 return
             if getattr(self.state, "party_manager", None) is not None:
+                self.error = "party"
                 return  # Rose's own Party Mode is running
             manager = _manager_class()(self.lcu, self.state, self.injection_manager)
             try:
@@ -412,8 +443,10 @@ class _Runner:
             except Exception as e:  # noqa: BLE001
                 self._failed_at = time.monotonic()
                 log.info(f"[Share] Not started: {e}")
+                self.error = str(e)[:120] or "failed"
                 await manager.disable()
                 return
+            self.error = ""
             self.manager = manager
             self.state.party_manager = manager
         keys = await asyncio.to_thread(rooms_for, self.lcu, self.state.phase)
@@ -462,7 +495,7 @@ def status() -> Dict[str, object]:
     """For the hub: whether sharing runs, our code, our friends, and how many Lust users see us now."""
     manager = _runner.manager if _runner else None
     result: Dict[str, object] = {"available": bool(relay_url()), "running": manager is not None, "peers": 0,
-                                 "code": "", "friends": []}
+                                 "code": "", "friends": [], "error": _runner.error if _runner else ""}
     if manager is not None:
         try:
             result["peers"] = len(manager.party_state.peers)
@@ -473,4 +506,7 @@ def status() -> Dict[str, object]:
     else:
         result["friends"] = [{"id": str(f["id"]), "name": f["name"] or "Arkadaş", "online": False}
                              for f in load_friends()["friends"]]
+    if not result["code"]:
+        # League closed or not connected yet: our code is still the same
+        result["code"] = load_my_code()
     return result

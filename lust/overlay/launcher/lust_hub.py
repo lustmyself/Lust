@@ -173,6 +173,15 @@ def _settings() -> dict:
     return lust_settings.all_settings()
 
 
+def _share() -> dict:
+    """Skin sharing for the home header: running, and with how many Lust users right now."""
+    try:
+        from launcher import lust_share
+        return lust_share.status()
+    except Exception:  # noqa: BLE001
+        return {"available": False, "running": False, "peers": 0}
+
+
 def _set_setting(body: dict) -> str:
     from launcher import lust_settings
     key, value = str(body.get("key") or ""), body.get("value")
@@ -486,6 +495,7 @@ def snapshot() -> dict:
         hero=_hero(),
         discord=_cached("discord", 3, _discord) or {"available": False, "user": None},
         settings=_settings(),
+        share=_share(),
         resting=_resting(),
         cache_mb=_cached("cache_mb", 60, _cache_mb),
     )

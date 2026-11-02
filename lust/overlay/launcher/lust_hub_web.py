@@ -1094,6 +1094,24 @@ PAGE = r"""<!doctype html>
   .hm-play.live { background: rgba(2, 11, 46, .85); color: #6ee7b7; border: 2px solid rgba(52, 211, 153, .6); box-shadow: 6px 6px 0 rgba(52, 211, 153, .35); }
   #page-home > .bar > i { background: linear-gradient(90deg, var(--p3-cyan), var(--p3-white)); }
 
+  /* Skin sharing under the status switch: on/off, and how many Lust users see your skins now */
+  .hm-col { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin-left: 26px; flex: none; }
+  .hm-col .hm-seg { margin: 0; }
+  .hm-share { display: flex; align-items: center; gap: 10px; padding: 6px 16px; border-radius: 0; transform: skewX(-14deg); cursor: pointer;
+    background: rgba(2, 11, 46, .85); border: 2px solid rgba(189, 243, 255, .35); color: var(--p3-ice);
+    font-family: var(--p3-cond); font-weight: 800; font-style: italic; font-size: 15px; letter-spacing: .1em; text-transform: uppercase;
+    transition: border-color .15s, box-shadow .15s, transform .15s; }
+  .hm-share:hover { border-color: var(--p3-cyan); transform: skewX(-14deg) translate(-2px, -2px); box-shadow: 5px 5px 0 var(--p3-cyan); }
+  .hm-share b { font-family: var(--p3-big); font-weight: 400; font-style: normal; font-size: 17px; letter-spacing: .05em; padding: 0 8px;
+    background: var(--p3-white); color: var(--p3-ink); }
+  .hm-share .sh-led { width: 10px; height: 10px; background: #64748b; transform: rotate(45deg); }
+  .hm-share.on .sh-led { background: #34d399; box-shadow: 0 0 10px #34d399; }
+  .hm-share.on.live .sh-led { animation: shpulse 1.6s ease-in-out infinite; }
+  @keyframes shpulse { 50% { box-shadow: 0 0 2px #34d399; } }
+  .hm-share:not(.on) b { background: transparent; color: var(--p3-ice); outline: 2px solid rgba(189, 243, 255, .35); }
+  .hm-share .sh-n { color: var(--p3-cyan); letter-spacing: .06em; }
+  .hm-share .sh-n:empty { display: none; }
+
   /* Tiles: slanted panels on a blue shadow, a number, a title in big capitals */
   .hgrid { counter-reset: p3; gap: 22px 26px; padding: 0 14px; }
   .ht { --sx: 0px; counter-increment: p3; border-radius: 0; background: #0a237f; border: 0; overflow: hidden;
@@ -1222,7 +1240,10 @@ PAGE = r"""<!doctype html>
       <div class="hm-text"><small id="hm-hi">Hoş geldin</small><h2 class="hm-name" id="hm-name">Lust başlıyor</h2>
         <div class="hm-sub" id="hm-sub"></div>
         <button class="dc-login" id="hm-dc" data-act="discord_login" hidden><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18.2 18.2 0 0 0-5.6 0L8.6 3a19.5 19.5 0 0 0-4.9 1.4C.6 9 0 13.5.3 18a19.7 19.7 0 0 0 6 3l1.3-2a12.7 12.7 0 0 1-2-1l.5-.4a14 14 0 0 0 11.8 0l.5.4c-.6.4-1.3.7-2 1l1.3 2a19.6 19.6 0 0 0 6-3c.4-5.2-.7-9.7-3.4-13.6ZM8.5 15.3c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.1 1.1 2.1 2.4-.9 2.4-2.1 2.4Zm7 0c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.1 1.1 2.1 2.4-.9 2.4-2.1 2.4Z"/></svg>Discord ile giriş yap</button></div>
+      <div class="hm-col">
       <div class="seg status-seg hm-seg" id="hm-seg" title="LoL'de nasıl görüneceğin (Lust Offline)"><button data-status="online">Çevrimiçi</button><button data-status="offline">Çevrimdışı</button><button data-status="mobile">Mobil</button></div>
+      <button class="hm-share" id="hm-share" title="Duo'n ve takımındaki Lust kullanıcıları Lust'ta seçtiğin skinleri ve simgeyi görür, sen de onlarınkini"><i class="sh-led"></i><span class="sh-k">Skin paylaşımı</span><b id="hm-share-v">Açık</b><span class="sh-n" id="hm-share-n"></span></button>
+      </div>
       <div class="p3-date" id="p3-date"><div class="d" id="p3-d"></div><div class="r"><span class="t"><svg viewBox="0 0 32 32"><path d="M21 4a12 12 0 1 0 7 19A10 10 0 0 1 21 4z"/></svg><span id="p3-t"></span></span><span class="w" id="p3-w"></span></div></div>
       <button class="hm-play" id="hm-league" data-act="league"><i class="hm-orb">__play__</i><span id="hm-league-t">League'i aç</span></button>
     </div>
@@ -1601,7 +1622,6 @@ const SETTINGS = [
   ["skins", "game", ICON.sparkle, "Skinler", "Oyunda uygulanır", "Kapalı: League normal açılır"],
   ["custom_skins", "game", ICON.plusbox, "Özel skinler", "Açık olanlar oynar", "Hepsi kapalı"],
   ["lobby_reveal", "game", ICON.users, "Lobby Reveal", "Takım arkadaşları görünür", "Kapalı"],
-  ["share_skins", "game", ICON.users, "Skin paylaşımı", "Duo ve takımdaki Lust’çılar skinlerini görür", "Skinlerin sadece sende görünür"],
   ["rose_guard", "game", ICON.shield, "Rose koruması", "Rose açılırsa kapatılır", "Kapalı"],
   ["autostart", "app", ICON.power, "Windows ile başlat", "Açık", "Kapalı"],
   ["auto_update", "app", ICON.sync, "Otomatik güncelleme", "League kapalıyken kurulur", "Yeni sürümde sorulur"],
@@ -1727,6 +1747,20 @@ $("np-next").addEventListener("click", () => mediaAct("next"));
 $("np-mute").addEventListener("click", () => mediaAct("mute"));
 pollMedia(); pollLevel(); requestAnimationFrame(tickMedia);
 
+// Skin sharing in the home header (launcher/lust_share.py): the switch, and who sees your skins now
+function drawShare(s) {
+  const on = settingValue(s, "share_skins") !== false;
+  const share = s.share || {};
+  const peers = share.peers || 0;
+  const btn = $("hm-share");
+  btn.classList.toggle("on", on);
+  btn.classList.toggle("live", on && peers > 0);
+  $("hm-share-v").textContent = on ? "Açık" : "Kapalı";
+  $("hm-share-n").textContent = !on ? "" : peers > 0 ? `${peers} Lust'çı görüyor`
+    : share.available === false ? "Sunucu yok" : "";
+  btn.dataset.on = on ? "1" : "";
+}
+
 function render(s) {
   state = s;
   const starting = s.phase !== "ready";
@@ -1830,6 +1864,7 @@ function render(s) {
     $("q-body").textContent = `Sendeki sürüm ${s.prompt.current}. Şimdi kurulsun mu?`;
   }
   $("ap-sub").textContent = off.running ? (STATUS[off.status] || "Çevrimiçi") : "Seçmek için League'i buradan aç";
+  drawShare(s);
   document.querySelectorAll(".status-seg button").forEach((b) => {
     b.disabled = !off.running || starting;
     b.classList.toggle("on", !!off.running && off.status === b.dataset.status);
@@ -2719,6 +2754,7 @@ document.querySelectorAll("[data-dismiss]").forEach((b) => b.addEventListener("c
   $(card).hidden = true;
 }));
 document.querySelectorAll(".status-seg button").forEach((b) => b.addEventListener("click", () => act("status", { value: b.dataset.status })));
+$("hm-share").addEventListener("click", () => act("setting", { key: "share_skins", value: !$("hm-share").dataset.on }));
 $("a-quit").addEventListener("click", () => {
   if (Date.now() - quitArmed < 3000) { act("quit"); return; }
   quitArmed = Date.now(); state && render(state); setTimeout(() => state && render(state), 3100);

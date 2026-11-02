@@ -1056,6 +1056,7 @@ PAGE = r"""<!doctype html>
     font-family: var(--p3-big); font-size: 16px; letter-spacing: .05em; text-transform: uppercase; }
   .sh-code button:hover { box-shadow: 4px 4px 0 var(--p3-cyan); }
   .sh-list { display: flex; flex-direction: column; gap: 6px; }
+  .sh-pop .sh-note { margin: -2px 0 8px; font: 500 12px/1.35 "Segoe UI", system-ui, sans-serif; color: var(--faint); }
   .sh-f { display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: rgba(2, 11, 46, .7); border-left: 4px solid rgba(189, 243, 255, .3); }
   .sh-f.on { border-left-color: #34d399; }
   .sh-f i { width: 8px; height: 8px; transform: rotate(45deg); background: #64748b; }
@@ -1329,12 +1330,13 @@ PAGE = r"""<!doctype html>
       <div class="seg status-seg hm-seg" id="hm-seg" title="LoL'de nasıl görüneceğin (Lust Offline)"><button data-status="online">Çevrimiçi</button><button data-status="offline">Çevrimdışı</button><button data-status="mobile">Mobil</button></div>
       <button class="hm-share" id="hm-share" title="Duo'n ve takımındaki Lust kullanıcıları Lust'ta seçtiğin skinleri ve simgeyi görür, sen de onlarınkini"><i class="sh-led"></i><span class="sh-k">Skin paylaşımı</span><b id="hm-share-v">Açık</b><span class="sh-n" id="hm-share-n"></span></button>
       <div class="sh-pop" id="sh-pop" hidden>
-        <div class="sh-row"><div><b>Skin paylaşımı</b><span>Duo'n, takımın ve eşleştiğin arkadaşların skinlerini ve simgeni görür</span></div><i class="sw" id="sh-sw"></i></div>
+        <div class="sh-row"><div><b>Skin paylaşımı</b><span>Duo'n, takımın, Lust kullanan LoL arkadaşların ve eşleştiğin arkadaşların skinlerini ve simgeni görür</span></div><i class="sw" id="sh-sw"></i></div>
         <label>Senin kodun</label>
         <div class="sh-code"><input id="sh-code" readonly value=""><button id="sh-copy">Kopyala</button></div>
         <label>Arkadaş ekle</label>
         <div class="sh-code"><input id="sh-in" placeholder="Arkadaşının kodunu yapıştır (LUST:...)"><button id="sh-add">Ekle</button></div>
-        <label>Eşleştiğin arkadaşlar</label>
+        <label>Arkadaşların</label>
+        <div class="sh-note">Lust kullanan LoL arkadaşların kendiliğinden gelir, istemcide Lust grubuna taşınır</div>
         <div class="sh-list" id="sh-list"></div>
       </div>
       </div>
@@ -1832,6 +1834,7 @@ function drawShare(s) {
       // Our own sharing runs only while League is open: until then nobody shows as connected
       row.querySelector(".st span").textContent = f.online ? "Bağlı" : share.running ? "Çevrimdışı" : "League açılınca bağlanır";
       if (!f.online && (f.riot || f.dc)) row.title = "Çevrimdışı: en son görülen hesapları";
+      if (f.lol) row.title = "LoL arkadaşın, Lust kullanıyor: kendiliğinden eklendi";
       // Two steps: the first press asks, a second one within a few seconds removes
       const rm = row.querySelector("button");
       const armed = () => shRemove.id === f.id && Date.now() - shRemove.at < SH_REMOVE_MS;
@@ -1845,7 +1848,7 @@ function drawShare(s) {
       });
       return row;
     }) : [Object.assign(document.createElement("div"), { className: "sh-empty",
-      textContent: "Henüz yok. Kodunu arkadaşına gönder ya da onunkini yapıştır; bir kere yeter." })]));
+      textContent: "Henüz yok. Lust kullanan LoL arkadaşların kendiliğinden gelir; diğerlerine kodunu gönder." })]));
   }
 }
 
@@ -2887,9 +2890,14 @@ document.querySelectorAll(".rz").forEach((edge) => edge.addEventListener("moused
 window.addEventListener("pywebviewready", () => windowMode("mode"));
 // Dragging the title bar of a maximized window brings it back to its normal size under the mouse
 // (pywebview would move the full-size window as it is, so it doesn't get this press)
+// and dropping a normal window's title bar at the top of the screen maximizes it
 $("top").addEventListener("mousedown", (e) => {
-  if (e.button !== 0 || !document.body.classList.contains("maxed") || !shell() || !shell().drag_restore) return;
+  if (e.button !== 0 || !shell() || !shell().drag_restore) return;
   if (e.target.closest("button, input, .win, .lg, .vpop, .ver-pill")) return;
+  if (!document.body.classList.contains("maxed")) {
+    if (e.target.closest(".pywebview-drag-region") && shell().drag_watch) shell().drag_watch();
+    return;
+  }
   e.stopPropagation();
   shell().drag_restore(e.clientX / Math.max(innerWidth, 1), Math.round(e.clientY * (devicePixelRatio || 1)));
   addEventListener("mouseup", () => setTimeout(() => windowMode("mode"), 80), { once: true });

@@ -1,8 +1,10 @@
-"""After a deploy: two players join one room and see each other's pick (run from the repo root)."""
+"""After a deploy: two players join one room and see each other's pick, and two League
+friends find each other in the friends directory (run from the repo root)."""
 
 import asyncio
 import json
 import sys
+import urllib.request
 
 import websockets
 
@@ -38,4 +40,23 @@ async def main():
     print("Rooms work: player 2 saw", seen)
 
 
+def directory(me, friends):
+    base = RELAY_URL.replace("wss://", "https://", 1)  # noqa: F821
+    request = urllib.request.Request(f"{base}/friends?v=1.4.9.92", data=json.dumps({"me": me, "friends": friends}).encode(),
+                                     method="POST", headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(request, timeout=20) as response:
+        return json.loads(response.read())["matches"]
+
+
+def check_directory():
+    a, b, c = (("dc0000000" + x).ljust(32, "0") for x in "abc")
+    directory(a, [b, c])
+    if directory(b, [a]) != [a]:
+        raise SystemExit("Friends directory: b did not find a")
+    if directory(c, []) != []:
+        raise SystemExit("Friends directory: c found someone who is not on its list")
+    print("Friends directory works")
+
+
 asyncio.run(main())
+check_directory()

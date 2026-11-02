@@ -1,6 +1,7 @@
 import asyncio
 import time
 import unittest
+import unittest.mock
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
@@ -271,6 +272,92 @@ class FriendsTest(unittest.TestCase):
                                                           "dca": "https://cdn.discordapp.com/embed/avatars/2.png"})
         with patch("launcher.lust_discord.user", return_value=None):
             self.assertEqual(lust_share._my_profile(SimpleNamespace(current_summoner=None)), {})
+
+
+class LolFriendsTest(unittest.TestCase):
+    """League friends who use Lust pair with no code."""
+
+    def setUp(self):
+        import tempfile
+        from pathlib import Path
+        self.dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.dir.cleanup)
+        for target in ("utils.core.paths.get_user_data_dir", "party.core.party_storage.get_user_data_dir"):
+            patcher = patch(target, return_value=Path(self.dir.name))
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
+    def lcu(self, friends, groups=None):
+        lcu = FakeLcu()
+        answers = {"/lol-chat/v1/friends": friends, "/lol-chat/v1/friend-groups": groups if groups is not None else []}
+        lcu.get = lambda path, timeout=1.0: answers.get(path)
+        return lcu
+
+    FRIENDS = [
+        {"puuid": "puuid-ayse", "summonerId": 21, "gameName": "Ayse", "gameTag": "TR1", "id": "ayse@pvp", "groupId": 0},
+        {"puuid": "puuid-mert", "summonerId": 22, "gameName": "Mert", "gameTag": "EUW", "id": "mert@pvp", "groupId": 0},
+    ]
+
+    def test_pair_room_is_the_same_from_both_sides(self):
+        self.assertEqual(lust_share.lol_pair_room("a", "b"), lust_share.lol_pair_room("b", "a"))
+        self.assertNotEqual(lust_share.lol_pair_room("a", "b"), lust_share.lol_pair_room("a", "c"))
+        self.assertRegex(lust_share.lol_pair_room("a", "b"), r"^[0-9a-f]{32}$")
+
+    def test_only_hashes_reach_the_directory(self):
+        asked = {}
+
+        def ask(me, friends):
+            asked.update(me=me, friends=friends)
+            return [lust_share.lol_id("puuid-ayse")]
+
+        with patch.object(lust_share, "_ask_directory", side_effect=ask):
+            found = lust_share.lol_friends_using_lust(self.lcu(self.FRIENDS), "me-puuid")
+        self.assertNotIn("puuid", repr(asked))
+        self.assertEqual(asked["me"], lust_share.lol_id("me-puuid"))
+        self.assertEqual(list(found), [lust_share.lol_pair_room("me-puuid", "puuid-ayse")])
+        self.assertEqual(found[lust_share.lol_pair_room("me-puuid", "puuid-ayse")]["riot"], "Ayse#TR1")
+
+    def test_directory_down_keeps_what_we_had(self):
+        with patch.object(lust_share, "_ask_directory", return_value=None):
+            self.assertIsNone(lust_share.lol_friends_using_lust(self.lcu(self.FRIENDS), "me-puuid"))
+
+    def test_friends_are_listed_and_their_rooms_opened(self):
+        state = SimpleNamespace(phase="None", locked_champ_id=None, hovered_champ_id=None, party_manager=None)
+        manager = lust_share._manager_class()(FakeLcu(), state)
+        with patch.object(lust_share, "_my_profile", return_value={}):
+            asyncio.run(ManagerTest._enable(None, manager))
+        room = lust_share.lol_pair_room("me-puuid", "puuid-ayse")
+        manager.lol_friends = {room: {"id": 21, "name": "Ayse", "riot": "Ayse#TR1", "puuid": "puuid-ayse"}}
+        self.assertIn(room, manager.pair_rooms())
+        rows = manager.friends()
+        self.assertEqual([(r["id"], r["riot"], r.get("lol")) for r in rows], [("21", "Ayse#TR1", True)])
+        lust_share.remove_friend(21)
+        self.assertNotIn(room, manager.pair_rooms())
+        self.assertEqual(manager.friends(), [])
+
+    def test_filed_in_the_lust_group_once(self):
+        lcu = self.lcu(self.FRIENDS, groups=[{"id": 0, "name": "General"}, {"id": 7, "name": "LUST"}])
+        lcu.s = SimpleNamespace(put=unittest.mock.Mock(return_value=SimpleNamespace(ok=True)), post=unittest.mock.Mock())
+        lcu.base = "https://127.0.0.1:1"
+        with patch.object(lust_share, "_ask_directory", return_value=[lust_share.lol_id("puuid-ayse")]):
+            found = lust_share.lol_friends_using_lust(lcu, "me-puuid")
+        lust_share.file_in_lust_group(lcu, list(found.values()))
+        lcu.s.put.assert_called_once()
+        self.assertTrue(lcu.s.put.call_args.args[0].endswith("/lol-chat/v1/friends/ayse%40pvp"))
+        self.assertEqual(lcu.s.put.call_args.kwargs["json"], {"groupId": 7})
+        lcu.s.post.assert_not_called()
+        # moved back by hand: left there
+        lust_share.file_in_lust_group(lcu, list(found.values()))
+        lcu.s.put.assert_called_once()
+
+    def test_group_made_when_missing(self):
+        lcu = self.lcu(self.FRIENDS, groups=[])
+        lcu.s = SimpleNamespace(put=unittest.mock.Mock(), post=unittest.mock.Mock())
+        lcu.base = "https://127.0.0.1:1"
+        lust_share.file_in_lust_group(lcu, [{"puuid": "puuid-ayse", "lcu_id": "ayse@pvp", "name": "Ayse"}])
+        lcu.s.post.assert_called_once()
+        self.assertEqual(lcu.s.post.call_args.kwargs["json"], {"name": "Lust"})
+
 
 if __name__ == "__main__":
     unittest.main()

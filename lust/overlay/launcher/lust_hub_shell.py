@@ -54,6 +54,12 @@ def dragged_out(cursor, size, grab_x: float, grab_y: int):
     return left, top, left + width, top + height
 
 
+def snaps_to_top(cursor_y: int, screen_top: int) -> bool:
+    """A title bar let go with the cursor at the very top of the screen maximizes the window,
+    as Windows does (the frameless window doesn't get Windows' own snap)."""
+    return cursor_y <= screen_top + 1
+
+
 def clean_geometry(data, screen=None):
     """A saved {x, y, width, height, maximized} that still fits: the size at least MIN_SIZE, the
     place kept only when the window's top lands on the screen. None when nothing usable is saved."""
@@ -251,6 +257,34 @@ class _Api:
             return
         self._resizing = True
         threading.Thread(target=self._drag_out, args=(grab_x, grab_y), daemon=True, name="LustHubDrag").start()
+
+    def drag_watch(self) -> None:
+        """The title bar was pressed in a normal window (pywebview moves it): when the button is
+        let go at the top of the screen, maximize, keeping the size it had before the drag."""
+        if self._mode != "normal" or self._resizing:
+            return
+        self._resizing = True
+        threading.Thread(target=self._watch_drop, daemon=True, name="LustHubSnap").start()
+
+    def _watch_drop(self) -> None:
+        win = self._w()
+        try:
+            start = win.rect()
+            while win.mouse_down():
+                time.sleep(0.02)
+            screen = win.monitor(work=False)
+            if not start or not screen or win.rect() == start or not snaps_to_top(win.cursor()[1], screen[1]):
+                return
+            area = win.monitor(work=True)
+            if area:
+                self._normal = start
+                win.place(area)
+                self._mode = "maximized"
+                self._window.evaluate_js('windowMode("mode")')
+        except Exception:  # noqa: BLE001
+            pass
+        finally:
+            self._resizing = False
 
     def _drag_out(self, grab_x, grab_y) -> None:
         win = self._w()

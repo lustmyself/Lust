@@ -152,6 +152,18 @@ class DragOutTests(unittest.TestCase):
             api.drag_restore(0.5, 10)
         thread.assert_not_called()
 
+    def test_dropped_at_the_top_maximizes(self):
+        self.assertTrue(lust_hub_shell.snaps_to_top(0, 0))
+        self.assertTrue(lust_hub_shell.snaps_to_top(-1080, -1080))  # a screen above the main one
+        self.assertFalse(lust_hub_shell.snaps_to_top(40, 0))
+
+    def test_only_a_normal_window_is_watched(self):
+        api = lust_hub_shell._Api()
+        api._mode = "maximized"
+        with mock.patch("threading.Thread") as thread:
+            api.drag_watch()
+        thread.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()

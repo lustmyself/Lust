@@ -15,6 +15,14 @@ invocation_logs = false
 name = "ROOM"
 class_name = "PartyRoom"
 
+[[durable_objects.bindings]]
+name = "DIRECTORY"
+class_name = "FriendsDirectory"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["PartyRoom"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["FriendsDirectory"]

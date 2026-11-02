@@ -1,7 +1,9 @@
 export { PartyRoom } from './room';
+export { FriendsDirectory } from './directory';
 
 interface Env {
   ROOM: DurableObjectNamespace;
+  DIRECTORY: DurableObjectNamespace;
 }
 
 // Lust's relay (lust/relay, deployed by .github/workflows/relay-deploy.yml).
@@ -28,6 +30,18 @@ export default {
       return new Response(JSON.stringify({ status: 'ok', service: 'lust-party-relay' }), {
         headers: { 'Content-Type': 'application/json' },
       });
+    }
+
+    // Which League friends use Lust: POST /friends?v=<version> {me, friends} (see directory.ts)
+    if (url.pathname === '/friends' && request.method === 'POST') {
+      if (!supported(url.searchParams.get('v'))) {
+        return new Response('Update Lust to share skins', { status: 426 });
+      }
+      if (Number(request.headers.get('Content-Length') || 0) > 64_000) {
+        return new Response('Too large', { status: 413 });
+      }
+      const stub = env.DIRECTORY.get(env.DIRECTORY.idFromName('lol-friends'));
+      return stub.fetch(request);
     }
 
     // WebSocket upgrade at /room?key=<room_id>

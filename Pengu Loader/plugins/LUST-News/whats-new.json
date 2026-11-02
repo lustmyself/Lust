@@ -1,6 +1,8 @@
 {
-  "version": "1.4.9.91",
+  "version": "1.4.9.92",
   "en": [
+    "Skin sharing: League friends who use Lust pair by themselves, no code needed, and move into the client's Lust friend group",
+    "Window: dropping the title bar at the top of the screen maximizes it",
     "Skin sharing: your code no longer changes every second; it stays the same (older codes still work)",
     "Fonts tile: two blue stripes, a thick one and a thin one; Settings tile has the same dark maroon background",
     "Home: the Skins and maps tile has its art back; Champ select is bigger and always shows 5 picks, 5 bans and which of Accept/Ban/Pick/Reveal are on",
@@ -97,6 +99,8 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "Skin paylaşımı: Lust kullanan LoL arkadaşların kod girmeden kendiliğinden eşleşir ve istemcide Lust grubuna taşınır",
+    "Pencere: başlık çubuğunu ekranın en üstüne sürükleyip bırakınca tam ekran olur",
     "Skin paylaşımı: kodun artık her saniye değişmiyor, hep aynı kalıyor (eski kodlar da çalışıyor)",
     "Fontlar kartı: biri kalın biri ince iki mavi şerit; Ayarlar kartı da aynı bordo arka planda",
     "Ana ekran: Skinler ve Haritalar kartının resmi geri geldi; Champ select büyüdü, her pencere boyutunda 5 pick, 5 ban ve Accept/Ban/Pick/Reveal'den hangilerinin açık olduğunu gösteriyor",

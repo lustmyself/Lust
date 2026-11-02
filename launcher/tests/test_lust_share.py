@@ -65,6 +65,10 @@ class ManagerTest(unittest.TestCase):
             patcher = patch(target, return_value=Path(self.dir.name))
             patcher.start()
             self.addCleanup(patcher.stop)
+        # Riot ID / Discord in the state: tested on their own below
+        quiet = patch.object(lust_share, "_my_profile", return_value={})
+        quiet.start()
+        self.addCleanup(quiet.stop)
 
     def make(self, phase="Lobby"):
         state = SimpleNamespace(phase=phase, locked_champ_id=None, hovered_champ_id=None,
@@ -217,6 +221,47 @@ class FriendsTest(unittest.TestCase):
         self.assertEqual(manager._ignored_peers, {42})
         self.assertTrue(manager._need_publish)
 
+
+    def test_who_pasted_our_code_is_a_friend_too(self):
+        state = SimpleNamespace(phase="None", locked_champ_id=None, hovered_champ_id=None, party_manager=None)
+        manager = lust_share._manager_class()(FakeLcu(), state)
+        asyncio.run(ManagerTest._enable(None, manager))
+        manager._relays[manager._home_room] = SimpleNamespace(
+            members=[{"summoner_id": 77, "summoner_name": "Mert"}], connected=True)
+        self.assertEqual(manager.friends(), [{"id": "77", "name": "Mert", "online": True}])
+        self.assertEqual(lust_share.load_friends()["joined"], [{"id": 77, "name": "Mert"}])
+        # still listed while they are away
+        manager._relays[manager._home_room].members = []
+        self.assertEqual(manager.friends(), [{"id": "77", "name": "Mert", "online": False}])
+        with patch.object(lust_share, "_runner", None):
+            self.assertEqual(lust_share.status()["friends"], [{"id": "77", "name": "Mert", "online": False}])
+        lust_share.remove_friend(77)
+        self.assertEqual(lust_share.load_friends()["joined"], [])
+        manager._relays[manager._home_room].members = [{"summoner_id": 77, "summoner_name": "Mert"}]
+        manager.pair_rooms()
+        self.assertEqual(manager.friends(), [])
+
+    def test_friends_show_riot_and_discord_seen_last(self):
+        state = SimpleNamespace(phase="None", locked_champ_id=None, hovered_champ_id=None, party_manager=None)
+        manager = lust_share._manager_class()(FakeLcu(), state)
+        asyncio.run(ManagerTest._enable(None, manager))
+        skin = {"riot": "Mert#TR1", "dc": "Mert", "dcu": "mert_", "dca": "https://cdn.discordapp.com/embed/avatars/1.png"}
+        manager._relays[manager._home_room] = SimpleNamespace(
+            members=[{"summoner_id": 77, "summoner_name": "Mert", "skin": dict(skin, dca2="x")}], connected=True)
+        self.assertEqual(manager.friends(), [dict({"id": "77", "name": "Mert", "online": True}, **skin)])
+        manager._relays[manager._home_room].members = []
+        self.assertEqual(manager.friends(), [dict({"id": "77", "name": "Mert", "online": False}, **skin)])
+        # a picture from anywhere else is not shown
+        self.assertEqual(lust_share._clean_profile({"dca": "https://evil.example/x.png", "riot": "A#B"}), {"riot": "A#B"})
+
+    def test_our_state_carries_riot_id_and_discord(self):
+        lcu = SimpleNamespace(current_summoner={"gameName": "Bugra", "tagLine": "TR1"})
+        user = {"name": "Bugra", "username": "lustmyself", "avatar_url": "https://cdn.discordapp.com/embed/avatars/2.png"}
+        with patch("launcher.lust_discord.user", return_value=user):
+            self.assertEqual(lust_share._my_profile(lcu), {"riot": "Bugra#TR1", "dc": "Bugra", "dcu": "lustmyself",
+                                                          "dca": "https://cdn.discordapp.com/embed/avatars/2.png"})
+        with patch("launcher.lust_discord.user", return_value=None):
+            self.assertEqual(lust_share._my_profile(SimpleNamespace(current_summoner=None)), {})
 
 if __name__ == "__main__":
     unittest.main()

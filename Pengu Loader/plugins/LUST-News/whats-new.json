@@ -1,7 +1,7 @@
 {
   "version": "1.4.9.82",
   "en": [
-    "Skin sharing: Lust users in your lobby (your duo) or on your champ select team see the skins and the profile icon you picked in Lust, and you see theirs. Nothing to paste; switch it off in Settings",
+    "Skin sharing: Lust users in your lobby (your duo) or on your champ select team see the skins and the profile icon you picked in Lust, and you see theirs. Pair with a friend's code once to stay linked for good. It's all under Skin sharing on the home page, below Online / Offline / Mobile",
     "New look for three home tiles: Fonts shows letters cut out in different fonts, Skins and Maps fans out the champions whose custom skin is on, Settings has a turning gear and switches (with warning tape when something needs a look)",
     "The Profile icon tile's frame lost its extra light-blue edge",
     "The Profile icon tile shows your chosen icon whole, in a frame on the right, instead of a zoomed-in crop",
@@ -80,7 +80,7 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
-    "Skin paylaşımı: lobindeki (duo'n) veya champ select takımındaki Lust kullanıcıları Lust'ta seçtiğin skinleri ve profil simgesini görür, sen de onlarınkini. Kod yapıştırmak yok; Ayarlar'dan kapatılabilir",
+    "Skin paylaşımı: lobindeki (duo'n) veya champ select takımındaki Lust kullanıcıları Lust'ta seçtiğin skinleri ve profil simgesini görür, sen de onlarınkini. Arkadaşının kodunu bir kere ekleyince kalıcı eşleşirsiniz. Hepsi ana sayfada, Çevrimiçi / Çevrimdışı / Mobil'in altındaki Skin paylaşımı'nda",
     "Üç ana sayfa kutucuğu yenilendi: Fontlar farklı yazı tiplerinde kesilmiş harfler, Skinler ve Haritalar custom skini açık şampiyonları kart gibi açıyor, Ayarlar dönen bir dişli ve anahtarlar gösteriyor (bakman gereken bir şey varsa uyarı şeridiyle)",
     "Profil simgesi çerçevesindeki fazladan açık mavi kenar kalktı",
     "Profil simgesi kutucuğu seçtiğin simgeyi kırpmadan, sağda çerçeve içinde gösteriyor",

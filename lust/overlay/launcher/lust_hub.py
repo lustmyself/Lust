@@ -173,6 +173,20 @@ def _settings() -> dict:
     return lust_settings.all_settings()
 
 
+def _share_mod():
+    from launcher import lust_share
+    return lust_share
+
+
+def _share() -> dict:
+    """Skin sharing for the home header: running, and with how many Lust users right now."""
+    try:
+        from launcher import lust_share
+        return lust_share.status()
+    except Exception:  # noqa: BLE001
+        return {"available": False, "running": False, "peers": 0, "code": "", "friends": []}
+
+
 def _set_setting(body: dict) -> str:
     from launcher import lust_settings
     key, value = str(body.get("key") or ""), body.get("value")
@@ -486,6 +500,7 @@ def snapshot() -> dict:
         hero=_hero(),
         discord=_cached("discord", 3, _discord) or {"available": False, "user": None},
         settings=_settings(),
+        share=_share(),
         resting=_resting(),
         cache_mb=_cached("cache_mb", 60, _cache_mb),
     )
@@ -601,6 +616,8 @@ ACTIONS: dict[str, Callable[[dict], str]] = {
     "clear_tokens": lambda body: _icon().clear_tokens(),
     "auto_update": lambda body: _toggle_auto_update(),
     "setting": lambda body: _set_setting(body),
+    "share_add": lambda body: _share_mod().add_friend(str(body.get("code") or "")),
+    "share_remove": lambda body: _share_mod().remove_friend(body.get("id")),
     "clear_cache": lambda body: _clear_cache(),
     "open_data": lambda body: _open_data(),
     "client_panel": lambda body: _client_panel(),

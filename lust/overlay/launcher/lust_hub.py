@@ -292,6 +292,11 @@ def _icon():
     return lust_icon
 
 
+def _share():
+    from launcher import lust_share
+    return lust_share
+
+
 def _profile():
     from launcher import lust_profile
     return lust_profile
@@ -597,6 +602,7 @@ ACTIONS: dict[str, Callable[[dict], str]] = {
     "skin_search": lambda body: _skins().search_update(str(body.get("name") or "")),
     "profile_background": lambda body: _profile().set_background(body.get("skinId")),
     "profile_icon": lambda body: _icon().choose(body.get("iconId")),
+    "share_import": lambda body: _share().import_code(str(body.get("code") or ""), body.get("champions")),
     "clear_tokens": lambda body: _icon().clear_tokens(),
     "auto_update": lambda body: _toggle_auto_update(),
     "setting": lambda body: _set_setting(body),

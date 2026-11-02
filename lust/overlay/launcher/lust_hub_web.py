@@ -1181,6 +1181,74 @@ PAGE = r"""<!doctype html>
   @keyframes gearspin { to { transform: rotate(360deg); } }
   @media (prefers-reduced-motion: reduce) { .ht-gear { animation: none; } }
   @media (prefers-reduced-motion: reduce) { .ht { animation: none; } }
+
+  /* ==== Share: your skins as a code, a friend's code into your Lust (Persona style) ==== */
+  .sh-hero { position: relative; margin: 0 4px 22px; padding: 18px 30px 20px; background: var(--p3-white); color: var(--p3-ink);
+    transform: skewX(-6deg); box-shadow: 10px 10px 0 var(--p3-blue), 10px 10px 0 2px var(--p3-cyan); overflow: hidden; }
+  .sh-hero > * { transform: skewX(6deg); }
+  .sh-hero::after { content: ""; position: absolute; right: -40px; top: -30px; width: 300px; height: 200%; background: var(--p3-blue);
+    transform: skewX(-24deg); }
+  .sh-hero::before { content: ""; position: absolute; right: 236px; top: -30px; width: 22px; height: 200%; background: var(--p3-hot);
+    transform: skewX(-24deg); z-index: 1; }
+  .sh-hero small { display: block; font-family: var(--p3-cond); font-weight: 800; font-style: italic; font-size: 15px; letter-spacing: .2em; color: var(--p3-blue); }
+  .sh-hero h2 { margin: 0; font-family: var(--p3-big); font-weight: 400; font-size: 46px; line-height: 1.02; text-transform: uppercase; letter-spacing: .02em; }
+  .sh-hero span { display: block; max-width: 560px; font-family: var(--p3-cond); font-weight: 600; font-size: 16px; color: #233067; }
+  .sh-hero .sh-steps { position: absolute; right: 26px; top: 50%; z-index: 2; display: grid; gap: 6px; transform: translateY(-50%) skewX(6deg); }
+  .sh-steps em { font-style: normal; font-family: var(--p3-cond); font-weight: 700; font-size: 15px; color: var(--p3-white); letter-spacing: .04em; }
+  .sh-steps em b { font-family: var(--p3-big); font-weight: 400; color: var(--p3-cyan); margin-right: 8px; }
+  .sh-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px; padding: 0 6px; }
+  .sh-card { position: relative; padding: 18px 20px 20px; background: rgba(2, 11, 46, .82); border: 2px solid rgba(189, 243, 255, .22);
+    box-shadow: 8px 8px 0 var(--p3-blue); min-width: 0; }
+  .sh-h { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px; }
+  .sh-h i { font-style: normal; font-family: var(--p3-big); font-size: 26px; color: var(--p3-cyan); line-height: 1; }
+  .sh-h b { font-family: var(--p3-big); font-weight: 400; font-size: 32px; line-height: 1; text-transform: uppercase; color: var(--p3-white);
+    text-shadow: 3px 3px 0 var(--p3-blue); }
+  .sh-h span { margin-left: auto; font-family: var(--p3-cond); font-weight: 700; font-size: 15px; color: var(--p3-ice); }
+  .sh-code { display: flex; gap: 10px; align-items: stretch; margin-bottom: 14px; }
+  .sh-code code, .sh-paste input { flex: 1; min-width: 0; padding: 10px 14px; background: #010722; border: 2px dashed rgba(62, 230, 255, .55);
+    font: 600 14px/1.35 "Cascadia Mono", Consolas, monospace; color: var(--p3-cyan); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sh-paste input { border-style: solid; border-color: rgba(189, 243, 255, .3); color: var(--p3-white); outline: none; }
+  .sh-paste input:focus { border-color: var(--p3-cyan); }
+  .sh-paste input::placeholder { color: rgba(189, 243, 255, .45); }
+  .sh-paste { display: flex; gap: 10px; margin-bottom: 14px; }
+  .sh-btn { flex: none; border: 0; cursor: pointer; padding: 0 18px; min-height: 44px; transform: skewX(-12deg); background: var(--p3-white); color: var(--p3-ink);
+    font-family: var(--p3-big); font-size: 18px; letter-spacing: .04em; text-transform: uppercase; box-shadow: 5px 5px 0 var(--p3-cyan);
+    transition: transform .15s, box-shadow .15s, background .15s; }
+  .sh-btn:hover { transform: skewX(-12deg) translate(-2px, -2px); box-shadow: 8px 8px 0 var(--p3-hot); }
+  .sh-btn:disabled { opacity: .4; cursor: default; transform: skewX(-12deg); box-shadow: 5px 5px 0 var(--p3-cyan); }
+  .sh-btn.done { background: var(--p3-cyan); }
+  .sh-btn.big { display: block; width: calc(100% - 10px); margin-top: 16px; min-height: 52px; font-size: 22px; }
+  .sh-list { display: grid; gap: 8px; max-height: 380px; overflow-y: auto; padding-right: 6px; }
+  .sh-row { display: flex; align-items: center; gap: 12px; padding: 0 12px 0 0; min-height: 58px; background: rgba(19, 54, 201, .22);
+    border-left: 4px solid transparent; transition: background .15s, border-color .15s; }
+  .sh-row .art { width: 92px; align-self: stretch; flex: none; background: #0a237f center 22% / cover; clip-path: polygon(0 0, 100% 0, 84% 100%, 0 100%); }
+  .sh-row .tx { min-width: 0; flex: 1; }
+  .sh-row .tx b { display: block; font-family: var(--p3-big); font-weight: 400; font-size: 19px; line-height: 1.1; text-transform: uppercase; color: var(--p3-white); letter-spacing: .02em; }
+  .sh-row .tx span { display: flex; align-items: center; gap: 6px; font-family: var(--p3-cond); font-weight: 600; font-size: 15px; color: var(--p3-ice);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sh-row .tx span u { text-decoration: none; overflow: hidden; text-overflow: ellipsis; }
+  .sh-row .chr { display: inline-flex; align-items: center; gap: 5px; flex: none; padding: 0 7px 0 3px; background: rgba(2, 11, 46, .7); color: var(--p3-white); font-size: 13px; }
+  .sh-row .chr i { width: 12px; height: 12px; transform: rotate(45deg); box-shadow: 0 0 0 2px rgba(255, 255, 255, .7); }
+  .sh-row .bd { flex: none; padding: 2px 8px; transform: skewX(-12deg); font-family: var(--p3-cond); font-weight: 800; font-style: italic; font-size: 12.5px;
+    letter-spacing: .06em; text-transform: uppercase; }
+  .sh-row .bd.same { background: rgba(189, 243, 255, .15); color: var(--p3-ice); }
+  .sh-row .bd.new { background: var(--p3-cyan); color: var(--p3-ink); }
+  .sh-row .bd.rep { background: var(--p3-hot); color: #fff; }
+  .sh-row.pick { cursor: pointer; }
+  .sh-row.pick:hover { background: rgba(19, 54, 201, .4); }
+  .sh-row.pick.on { border-left-color: var(--p3-cyan); background: rgba(19, 54, 201, .5); }
+  .sh-row .ck { width: 22px; height: 22px; flex: none; display: grid; place-items: center; border: 2px solid rgba(189, 243, 255, .5); transform: skewX(-12deg); }
+  .sh-row .ck svg { width: 14px; height: 14px; stroke: var(--p3-ink); stroke-width: 3.2; opacity: 0; }
+  .sh-row.on .ck { background: var(--p3-cyan); border-color: var(--p3-cyan); }
+  .sh-row.on .ck svg { opacity: 1; }
+  .sh-from { display: none; align-items: center; gap: 10px; margin: -2px 0 10px; font-family: var(--p3-cond); font-weight: 700; font-size: 16px; color: var(--p3-ice); }
+  .sh-from.show { display: flex; }
+  .sh-from b { font-family: var(--p3-big); font-weight: 400; font-size: 20px; color: var(--p3-white); text-transform: uppercase; }
+  .sh-from a { margin-left: auto; cursor: pointer; color: var(--p3-cyan); font-size: 14px; }
+  .sh-empty { padding: 26px 14px; text-align: center; font-family: var(--p3-cond); font-weight: 600; font-size: 16px; color: rgba(189, 243, 255, .65);
+    border: 2px dashed rgba(189, 243, 255, .18); }
+  .sh-empty.bad { color: #ffb3c9; border-color: rgba(255, 61, 127, .5); }
+  #page-share .note { font-family: var(--p3-cond); font-size: 14px; color: rgba(189, 243, 255, .6); margin: 18px 6px 0; }
 </style>
 </head>
 <body>
@@ -1373,7 +1441,7 @@ PAGE = r"""<!doctype html>
     <div class="note" id="wall-note">Seçtiğin duvar kağıdı League açıksa hemen, kapalıysa açılınca uygulanır.</div>
   </section>
   <section class="page" id="page-maps">
-    <div class="seg mods-seg"><button data-goto="skins" data-tab="skins">Custom skinler</button><button data-goto="maps" data-tab="maps">Haritalar</button></div>
+    <div class="seg mods-seg"><button data-goto="skins" data-tab="skins">Custom skinler</button><button data-goto="maps" data-tab="maps">Haritalar</button><button data-goto="share" data-tab="share">Paylaş</button></div>
     <div class="section">Sonraki maçın haritası · bir tane seçilir</div>
     <div class="maps" id="maps"></div>
     <div class="drop" id="drop">__download__<div><b>Harita modu ekle</b><br>.zip, .fantome veya .modpkg dosyasını buraya sürükle</div>
@@ -1394,7 +1462,7 @@ PAGE = r"""<!doctype html>
   </section>
 
   <section class="page" id="page-skins">
-    <div class="seg mods-seg"><button data-goto="skins" data-tab="skins">Custom skinler</button><button data-goto="maps" data-tab="maps">Haritalar</button></div>
+    <div class="seg mods-seg"><button data-goto="skins" data-tab="skins">Custom skinler</button><button data-goto="maps" data-tab="maps">Haritalar</button><button data-goto="share" data-tab="share">Paylaş</button></div>
     <div class="sk-off" id="sk-off">Custom skinler Ayarlar'da kapalı: açık olanlar da oyunda yüklenmez.</div>
     <div class="sk-head"><div class="section" id="sk-count">Custom skinler</div>
       <input id="sk-find" type="search" placeholder="Skin veya şampiyon ara" autocomplete="off"></div>
@@ -1404,6 +1472,30 @@ PAGE = r"""<!doctype html>
       <button class="btn" data-act="skin_folder">Klasörü aç</button>
     </div>
     <div class="note">Açık bir skin, o şampiyonla oyuna girince seçtiğin skinin üstüne yüklenir (bir skin için yapılmış modlarda o skini seç); her şampiyonda bir skin açık olabilir. LoL istemcisindeki LUST panelinin Custom skins sekmesi de aynı listeyi kullanır.</div>
+  </section>
+
+  <section class="page" id="page-share">
+    <div class="seg mods-seg"><button data-goto="skins" data-tab="skins">Custom skinler</button><button data-goto="maps" data-tab="maps">Haritalar</button><button data-goto="share" data-tab="share">Paylaş</button></div>
+    <div class="sh-hero"><small>Arkadaşlarınla</small><h2>Skinlerini paylaş</h2>
+      <span>Her şampiyonda en son kullandığın skin bir koda dönüşür. Arkadaşın kodu kendi Lust'una yapıştırır, aynı skinler onda da gelir.</span>
+      <div class="sh-steps"><em><b>1</b>Kodu kopyala</em><em><b>2</b>Discord'dan at</em><em><b>3</b>Arkadaşın yapıştırsın</em></div></div>
+    <div class="sh-cols">
+      <div class="sh-card">
+        <div class="sh-h"><i>01</i><b>Gönder</b><span id="sh-count"></span></div>
+        <div class="sh-code"><code id="sh-code">…</code><button class="sh-btn" id="sh-copy" disabled>Kodu kopyala</button></div>
+        <div class="sh-list" id="sh-mine"></div>
+      </div>
+      <div class="sh-card">
+        <div class="sh-h"><i>02</i><b>Al</b><span id="sh-pick"></span></div>
+        <div class="sh-paste"><input id="sh-in" placeholder="Arkadaşının kodunu yapıştır: LUST-…" autocomplete="off" spellcheck="false">
+          <button class="sh-btn" id="sh-peek">Göster</button></div>
+        <div class="sh-from" id="sh-from"><span>Gönderen</span><b id="sh-who"></b><a id="sh-all">Hepsini seç</a></div>
+        <div class="sh-list" id="sh-friend"><div class="sh-empty">Kodu yapıştırınca arkadaşının skinleri burada görünür; istediğin şampiyonları seçersin.</div></div>
+        <button class="sh-btn big" id="sh-import" hidden>İçe aktar</button>
+      </div>
+    </div>
+    <div class="note">Koda yalnızca oyunun kendi skinleri ve chromaları girer; custom skinler girmez, arkadaşında aynı dosya olmayabilir.
+      Aldığın skin, o şampiyonu seçip varsayılan skinde bıraktığında champ select'te kendiliğinden gelir; başka skin seçersen o geçerli olur.</div>
   </section>
 
   <section class="page" id="page-profile">
@@ -1885,7 +1977,7 @@ async function poll() {
 }
 // ---- pages: the home tiles lead to each one, Esc or the back button comes home ----
 const PAGES = { home: "", lol: "Profil", spotify: "Spotify", maps: "Skinler ve Haritalar", fonts: "Fontlar", skins: "Skinler ve Haritalar",
-  profile: "Profil arka planı", icon: "Profil simgesi", settings: "Ayarlar", patch: "Patch notes", wallpaper: "Duvar kağıdı", auto: "Champ select" };
+  profile: "Profil arka planı", icon: "Profil simgesi", settings: "Ayarlar", patch: "Patch notes", wallpaper: "Duvar kağıdı", auto: "Champ select", share: "Skin paylaş" };
 let page = "home";
 function showPage(name) {
   if (!(name in PAGES)) name = "home";
@@ -1906,6 +1998,7 @@ function showPage(name) {
   if (name === "patch") loadPatch();
   if (name === "wallpaper") loadWalls();
   if (name === "auto") loadAuto();
+  if (name === "share") loadShare();
 }
 const awake = () => !document.hidden && !(state && state.resting);
 
@@ -2651,6 +2744,100 @@ async function loadProfile() {
   } else drawProfileSkins();
 }
 $("pf-find").addEventListener("input", () => profile && drawChampions());
+// ---- share skins with friends ----
+let shareCode = "", friendCode = "", friendSkins = [], friendPick = new Set();
+function shareRow(s, pick) {
+  const row = document.createElement("div");
+  row.className = "sh-row" + (pick ? " pick" : "") + (pick && friendPick.has(s.champion) ? " on" : "");
+  const art = document.createElement("i"); art.className = "art";
+  if (s.tile) art.style.backgroundImage = `url("${s.tile}")`;
+  const tx = document.createElement("div"); tx.className = "tx";
+  const b = document.createElement("b"); b.textContent = s.championName;
+  const sp = document.createElement("span");
+  const u = document.createElement("u"); u.textContent = s.skin; u.title = s.skin; sp.appendChild(u);
+  if (s.chroma) {
+    const c = document.createElement("em"); c.className = "chr";
+    const dot = document.createElement("i"); dot.style.background = s.color || "#bdf3ff";
+    c.append(dot, document.createTextNode(s.chroma.replace(s.skin, "").replace(/[()]/g, "").trim() || "Chroma"));
+    sp.appendChild(c);
+  }
+  tx.append(b, sp);
+  row.append(art, tx);
+  if (pick) {
+    const bd = document.createElement("em"); bd.className = "bd " + (s.same ? "same" : s.replaces ? "rep" : "new");
+    bd.textContent = s.same ? "Sende de bu" : s.replaces ? "Seninkinin yerine" : "Yeni";
+    const ck = document.createElement("i"); ck.className = "ck"; ck.innerHTML = ICON.check;
+    row.append(bd, ck);
+    row.addEventListener("click", () => {
+      if (friendPick.has(s.champion)) friendPick.delete(s.champion); else friendPick.add(s.champion);
+      drawFriend();
+    });
+  }
+  return row;
+}
+function shareEmpty(text, bad) {
+  const e = document.createElement("div"); e.className = "sh-empty" + (bad ? " bad" : ""); e.textContent = text; return e;
+}
+async function loadShare() {
+  let data;
+  try { data = await api("/api/share"); } catch (e) { return; }
+  shareCode = data.code || "";
+  $("sh-code").textContent = shareCode || "Henüz paylaşacak skin yok";
+  $("sh-copy").disabled = !shareCode;
+  $("sh-count").textContent = data.skins.length ? `${data.skins.length} şampiyon` : "";
+  const list = $("sh-mine"); list.innerHTML = "";
+  data.skins.forEach((s) => list.appendChild(shareRow(s, false)));
+  if (!data.skins.length) list.appendChild(shareEmpty("Champ select'te bir şampiyona skin seçip oynayınca burada görünür."));
+}
+function drawFriend() {
+  const list = $("sh-friend"); list.innerHTML = "";
+  friendSkins.forEach((s) => list.appendChild(shareRow(s, true)));
+  const n = friendPick.size;
+  $("sh-pick").textContent = friendSkins.length ? `${n} / ${friendSkins.length} seçili` : "";
+  $("sh-import").hidden = !friendSkins.length;
+  $("sh-import").disabled = !n;
+  $("sh-import").textContent = n ? `${n} skini içe aktar` : "Şampiyon seç";
+  $("sh-all").textContent = n === friendSkins.length ? "Hiçbirini seçme" : "Hepsini seç";
+}
+async function peekShare() {
+  const code = $("sh-in").value.trim();
+  friendSkins = []; friendPick = new Set(); $("sh-from").classList.remove("show");
+  if (!code) { $("sh-friend").replaceChildren(shareEmpty("Önce arkadaşının kodunu yapıştır.")); drawFriend(); return; }
+  $("sh-friend").replaceChildren(shareEmpty("Skinler okunuyor…"));
+  let data;
+  try { data = await api(`/api/share/peek?code=${encodeURIComponent(code)}`); } catch (e) { return; }
+  if (!data.ok) { $("sh-friend").replaceChildren(shareEmpty("Bu kod okunamadı: tamamını kopyaladığından emin ol.", true)); drawFriend(); return; }
+  friendCode = code; friendSkins = data.skins || [];
+  friendSkins.forEach((s) => { if (!s.same) friendPick.add(s.champion); });
+  $("sh-who").textContent = data.name || "Bir arkadaşın";
+  $("sh-from").classList.add("show");
+  drawFriend();
+  if (!friendSkins.length) $("sh-friend").replaceChildren(shareEmpty("Bu kodda skin yok."));
+}
+$("sh-copy").addEventListener("click", async () => {
+  if (!shareCode) return;
+  try { await navigator.clipboard.writeText(shareCode); }
+  catch (e) {
+    const t = document.createElement("textarea"); t.value = shareCode; document.body.appendChild(t); t.select();
+    try { document.execCommand("copy"); } catch (e2) { /* nothing else to try */ } t.remove();
+  }
+  $("sh-copy").textContent = "Kopyalandı"; $("sh-copy").classList.add("done");
+  setTimeout(() => { $("sh-copy").textContent = "Kodu kopyala"; $("sh-copy").classList.remove("done"); }, 1800);
+});
+$("sh-peek").addEventListener("click", peekShare);
+$("sh-in").addEventListener("keydown", (e) => { if (e.key === "Enter") peekShare(); });
+$("sh-in").addEventListener("paste", () => setTimeout(peekShare, 0));
+$("sh-all").addEventListener("click", () => {
+  friendPick = friendPick.size === friendSkins.length ? new Set() : new Set(friendSkins.map((s) => s.champion));
+  drawFriend();
+});
+$("sh-import").addEventListener("click", async () => {
+  if (!friendPick.size) return;
+  try { await api("/api/action/share_import", { code: friendCode, champions: [...friendPick] }); } catch (e) { return; }
+  setTimeout(poll, 250);
+  await peekShare(); loadShare();
+});
+
 
 // ---- profile icon ----
 const ICON_IMG = (id) => `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${id}.jpg`;

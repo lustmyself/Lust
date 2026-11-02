@@ -15,6 +15,7 @@ choice waits in Lust's data folder and is set the next time the client answers.
 from __future__ import annotations
 
 import json
+import re
 import threading
 import time
 from pathlib import Path
@@ -39,6 +40,19 @@ def asset_url(path) -> str:
     if not isinstance(path, str) or not path.startswith("/lol-game-data/assets/"):
         return ""
     return CDRAGON + path[len("/lol-game-data/assets/"):].lower()
+
+
+def _chromas(skin) -> list:
+    """[{id, name, color}] of a skin's chromas (color: the first of its colours, "#rrggbb")."""
+    result = []
+    for chroma in skin.get("chromas") if isinstance(skin.get("chromas"), list) else []:
+        if not isinstance(chroma, dict) or not isinstance(chroma.get("id"), int) or chroma["id"] <= 0:
+            continue
+        colors = chroma.get("colors") if isinstance(chroma.get("colors"), list) else []
+        color = colors[0] if colors and isinstance(colors[0], str) and re.fullmatch(r"#[0-9A-Fa-f]{6}", colors[0]) else ""
+        name = chroma.get("name") if isinstance(chroma.get("name"), str) else ""
+        result.append({"id": chroma["id"], "name": name[:60], "color": color})
+    return result
 
 
 def clean_skins(data) -> list:
@@ -67,6 +81,7 @@ def clean_skins(data) -> list:
                 "tile": asset_url(entry.get("tilePath") or skin.get("tilePath")),
                 "splash": asset_url(entry.get("uncenteredSplashPath") or entry.get("splashPath")
                                     or skin.get("uncenteredSplashPath") or skin.get("splashPath")),
+                "chromas": _chromas(entry if entry.get("chromas") else skin),
             })
     return result
 

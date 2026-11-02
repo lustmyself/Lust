@@ -192,6 +192,18 @@ class _Handler(BaseHTTPRequestHandler):
                 return self._send(403)
             from launcher import lust_icon
             return self._send(200, lust_icon.dumps_listing(), "application/json")
+        if path == "/api/share":
+            if not self._authorized():
+                return self._send(403)
+            from launcher import lust_share
+            return self._send(200, lust_share.dumps_listing(), "application/json")
+        if path == "/api/share/peek":
+            if not self._authorized():
+                return self._send(403)
+            from urllib.parse import parse_qs
+            from launcher import lust_share
+            code = (parse_qs(self.path.split("?", 1)[-1]).get("code") or [""])[0]
+            return self._send(200, lust_share.dumps_peek(code), "application/json")
         if path == "/api/profile/skins":
             if not self._authorized():
                 return self._send(403)

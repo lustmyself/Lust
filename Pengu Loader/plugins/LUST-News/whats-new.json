@@ -1,6 +1,7 @@
 {
-  "version": "1.4.9.81",
+  "version": "1.4.9.82",
   "en": [
+    "Share your skins with friends: Skins and Maps has a new Share page that turns the last skin (and chroma) you used on each champion into a short code; a friend pastes it into their Lust, ticks the champions they want, and those skins come up for them in champ select",
     "New look for three home tiles: Fonts shows letters cut out in different fonts, Skins and Maps fans out the champions whose custom skin is on, Settings has a turning gear and switches (with warning tape when something needs a look)",
     "The Profile icon tile's frame lost its extra light-blue edge",
     "The Profile icon tile shows your chosen icon whole, in a frame on the right, instead of a zoomed-in crop",
@@ -79,6 +80,7 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "Skinlerini arkadaşlarınla paylaş: Skinler ve Haritalar'da yeni Paylaş sayfası, her şampiyonda en son kullandığın skini (chroması dahil) kısa bir koda çeviriyor; arkadaşın kodu kendi Lust'una yapıştırıp istediği şampiyonları seçiyor, o skinler champ select'te onda da geliyor",
     "Üç ana sayfa kutucuğu yenilendi: Fontlar farklı yazı tiplerinde kesilmiş harfler, Skinler ve Haritalar custom skini açık şampiyonları kart gibi açıyor, Ayarlar dönen bir dişli ve anahtarlar gösteriyor (bakman gereken bir şey varsa uyarı şeridiyle)",
     "Profil simgesi çerçevesindeki fazladan açık mavi kenar kalktı",
     "Profil simgesi kutucuğu seçtiğin simgeyi kırpmadan, sağda çerçeve içinde gösteriyor",

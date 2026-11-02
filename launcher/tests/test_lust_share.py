@@ -1,4 +1,5 @@
 import asyncio
+import time
 import unittest
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
@@ -191,6 +192,14 @@ class FriendsTest(unittest.TestCase):
         self.assertEqual(data["error"], "League is not running")
         with patch.object(lust_share, "_runner", None):
             self.assertEqual(lust_share.status()["code"], code)
+
+    def test_code_stays_the_same(self):
+        state = SimpleNamespace(phase="None", locked_champ_id=None, hovered_champ_id=None, party_manager=None)
+        manager = lust_share._manager_class()(FakeLcu(), state)
+        asyncio.run(ManagerTest._enable(None, manager))
+        first = manager.code()
+        with patch("time.time", return_value=time.time() + 5000):
+            self.assertEqual(manager.code(), first)
 
     def test_own_code_refused(self):
         manager = SimpleNamespace(party_state=SimpleNamespace(my_summoner_id=7))

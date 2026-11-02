@@ -212,6 +212,16 @@ def save_my_code(code: str) -> None:
         log.debug(f"[Share] Could not save our code: {e}")
 
 
+def _code_matches(code: str, summoner_id, key) -> bool:
+    """Whether a code is ours: same account, same key."""
+    from party.protocol.token_codec import PartyToken
+    try:
+        token = PartyToken.decode(code)
+    except ValueError:
+        return False
+    return bool(key) and token.summoner_id == summoner_id and token.encryption_key == key
+
+
 def friend_room(friend: dict) -> str:
     from party.network.ws_relay import compute_room_key
     return compute_room_key(int(friend["id"]), bytes.fromhex(friend["key"]))
@@ -387,7 +397,7 @@ def _manager_class():
             from party.network.ws_relay import compute_room_key
             self._my_key = load_party_key(my_id)
             self._home_room = compute_room_key(my_id, self._my_key)
-            save_my_code(self._fresh_token() or "")
+            self.code()
             self._running = True
             self.party_state.enabled = True
             self.party_state.connection = "online"
@@ -442,7 +452,14 @@ def _manager_class():
             return rooms
 
         def code(self) -> str:
-            return self._fresh_token() or ""
+            """Our code, the same one every time: Rose stamps a new time into it on each call,
+            which made the code shown in the hub change every second."""
+            saved = load_my_code()
+            if saved and _code_matches(saved, self.party_state.my_summoner_id, self._my_key):
+                return saved
+            fresh = self._fresh_token() or ""
+            save_my_code(fresh)
+            return fresh
 
         def friends(self) -> List[dict]:
             members = self._merged_members()

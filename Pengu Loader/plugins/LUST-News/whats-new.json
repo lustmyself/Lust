@@ -1,6 +1,7 @@
 {
-  "version": "1.4.9.90",
+  "version": "1.4.9.91",
   "en": [
+    "Skin sharing: your code no longer changes every second; it stays the same (older codes still work)",
     "Fonts tile: two blue stripes, a thick one and a thin one; Settings tile has the same dark maroon background",
     "Home: the Skins and maps tile has its art back; Champ select is bigger and always shows 5 picks, 5 bans and which of Accept/Ban/Pick/Reveal are on",
     "Champ select tile: a light sweeps across its background; Fonts, Spotify and Settings tiles have their backgrounds back",
@@ -96,6 +97,7 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "Skin paylaşımı: kodun artık her saniye değişmiyor, hep aynı kalıyor (eski kodlar da çalışıyor)",
     "Fontlar kartı: biri kalın biri ince iki mavi şerit; Ayarlar kartı da aynı bordo arka planda",
     "Ana ekran: Skinler ve Haritalar kartının resmi geri geldi; Champ select büyüdü, her pencere boyutunda 5 pick, 5 ban ve Accept/Ban/Pick/Reveal'den hangilerinin açık olduğunu gösteriyor",
     "Champ select kartı: arka planında kayan bir ışık efekti var; Fontlar, Spotify ve Ayarlar kartlarının arka planı geri geldi",

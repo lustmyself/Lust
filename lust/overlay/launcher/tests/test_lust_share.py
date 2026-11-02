@@ -56,6 +56,16 @@ class RoomsTest(unittest.TestCase):
 
 
 class ManagerTest(unittest.TestCase):
+    def setUp(self):
+        import tempfile
+        from pathlib import Path
+        self.dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.dir.cleanup)
+        for target in ("utils.core.paths.get_user_data_dir", "party.core.party_storage.get_user_data_dir"):
+            patcher = patch(target, return_value=Path(self.dir.name))
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
     def make(self, phase="Lobby"):
         state = SimpleNamespace(phase=phase, locked_champ_id=None, hovered_champ_id=None,
                                 last_hovered_skin_id=None, selected_chroma_id=None, selected_custom_mod=None,
@@ -135,6 +145,61 @@ class SwitchTest(unittest.TestCase):
         with patch.object(lust_share, "_runner", None):
             self.assertEqual(lust_share.shared_icons(), [])
             self.assertEqual(lust_share.status()["running"], False)
+
+
+class FriendsTest(unittest.TestCase):
+    def setUp(self):
+        import tempfile
+        from pathlib import Path
+        self.dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.dir.cleanup)
+        for target in ("utils.core.paths.get_user_data_dir", "party.core.party_storage.get_user_data_dir"):
+            patcher = patch(target, return_value=Path(self.dir.name))
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
+    def code(self, sid):
+        from party.protocol.token_codec import create_token
+        return create_token(summoner_id=sid, encryption_key=bytes([sid % 256]) * 32).encode()
+
+    def test_pair_once_and_keep(self):
+        self.assertIn("Lust kodu değil", lust_share.add_friend("hello"))
+        self.assertIn("Eşleşildi", lust_share.add_friend(self.code(42)))
+        self.assertIn("zaten", lust_share.add_friend(self.code(42)))
+        friends = lust_share.load_friends()["friends"]
+        self.assertEqual([f["id"] for f in friends], [42])
+        for sid in range(43, 43 + lust_share.MAX_FRIENDS - 1):
+            lust_share.add_friend(self.code(sid))
+        self.assertIn("En fazla", lust_share.add_friend(self.code(99)))
+
+    def test_own_code_refused(self):
+        manager = SimpleNamespace(party_state=SimpleNamespace(my_summoner_id=7))
+        with patch.object(lust_share, "_runner", SimpleNamespace(manager=manager)):
+            self.assertIn("kendi kodun", lust_share.add_friend(self.code(7)))
+
+    def test_remove_tells_them(self):
+        lust_share.add_friend(self.code(42))
+        self.assertEqual(lust_share.remove_friend("42"), "Arkadaş çıkarıldı")
+        data = lust_share.load_friends()
+        self.assertEqual(data["friends"], [])
+        self.assertEqual(data["removed"], [42])
+        lust_share.add_friend(self.code(42))
+        self.assertEqual(lust_share.load_friends()["removed"], [])
+
+    def test_rooms_are_ours_and_the_friends(self):
+        state = SimpleNamespace(phase="None", locked_champ_id=None, hovered_champ_id=None, party_manager=None)
+        manager = lust_share._manager_class()(FakeLcu(), state)
+        asyncio.run(ManagerTest._enable(None, manager))
+        self.assertTrue(manager._home_room)
+        self.assertTrue(manager.code().startswith("LUST:"))
+        lust_share.add_friend(self.code(42))
+        rooms = manager.pair_rooms()
+        self.assertEqual(rooms, {manager._home_room, lust_share.friend_room({"id": 42, "key": (bytes([42]) * 32).hex()})})
+        self.assertEqual(manager.friends(), [{"id": "42", "name": "Arkadaş", "online": False}])
+        lust_share.remove_friend(42)
+        manager.pair_rooms()
+        self.assertEqual(manager._ignored_peers, {42})
+        self.assertTrue(manager._need_publish)
 
 
 if __name__ == "__main__":

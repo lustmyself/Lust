@@ -1111,6 +1111,36 @@ PAGE = r"""<!doctype html>
   .hm-share:not(.on) b { background: transparent; color: var(--p3-ice); outline: 2px solid rgba(189, 243, 255, .35); }
   .hm-share .sh-n { color: var(--p3-cyan); letter-spacing: .06em; }
   .hm-share .sh-n:empty { display: none; }
+  .hm-col { position: relative; }
+  .home-head { position: relative; z-index: 30; }
+  .sh-pop { position: absolute; z-index: 40; top: calc(100% + 12px); left: 0; width: 430px; padding: 18px 20px 16px;
+    background: #061445; border: 2px solid var(--p3-cyan); box-shadow: 10px 10px 0 var(--p3-blue); clip-path: polygon(0 0, 100% 0, 97% 100%, 0 100%); }
+  .sh-pop[hidden] { display: none; }
+  .sh-pop label { display: block; margin: 14px 0 6px; font-family: var(--p3-cond); font-weight: 800; font-style: italic;
+    font-size: 13px; letter-spacing: .16em; text-transform: uppercase; color: var(--p3-cyan); }
+  .sh-row { display: flex; align-items: center; gap: 14px; }
+  .sh-row b { display: block; font-family: var(--p3-big); font-weight: 400; font-size: 22px; letter-spacing: .03em; text-transform: uppercase; color: var(--p3-white); }
+  .sh-row span { font-family: var(--p3-cond); font-size: 14px; color: var(--p3-ice); }
+  .sh-row .sw { margin-left: auto; flex: none; }
+  .sh-row .sw { background: rgba(189, 243, 255, .2); cursor: pointer; }
+  .sh-row .sw.on { background: #34d399; box-shadow: 0 0 12px rgba(52, 211, 153, .5); }
+  .sh-code { display: flex; gap: 8px; }
+  .sh-code input { flex: 1; min-width: 0; padding: 8px 10px; background: rgba(2, 11, 46, .9); border: 2px solid rgba(189, 243, 255, .3);
+    color: var(--p3-white); font: 600 13px ui-monospace, Consolas, monospace; outline: none; }
+  .sh-code input:focus { border-color: var(--p3-cyan); }
+  .sh-code button { flex: none; padding: 0 16px; transform: skewX(-12deg); border: 0; cursor: pointer; background: var(--p3-white); color: var(--p3-ink);
+    font-family: var(--p3-big); font-size: 16px; letter-spacing: .05em; text-transform: uppercase; }
+  .sh-code button:hover { box-shadow: 4px 4px 0 var(--p3-cyan); }
+  .sh-list { display: flex; flex-direction: column; gap: 6px; }
+  .sh-f { display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: rgba(2, 11, 46, .7); border-left: 4px solid rgba(189, 243, 255, .3); }
+  .sh-f.on { border-left-color: #34d399; }
+  .sh-f i { width: 8px; height: 8px; transform: rotate(45deg); background: #64748b; }
+  .sh-f.on i { background: #34d399; box-shadow: 0 0 8px #34d399; }
+  .sh-f b { font-family: var(--p3-cond); font-weight: 700; font-size: 16px; color: var(--p3-white); }
+  .sh-f span { font-family: var(--p3-cond); font-size: 13px; color: var(--p3-ice); }
+  .sh-f button { margin-left: auto; background: none; border: 0; color: var(--p3-ice); cursor: pointer; font-size: 13px; text-decoration: underline; }
+  .sh-f button:hover { color: var(--p3-hot); }
+  .sh-empty { font-family: var(--p3-cond); font-size: 14px; color: var(--p3-ice); opacity: .8; }
 
   /* Tiles: slanted panels on a blue shadow, a number, a title in big capitals */
   .hgrid { counter-reset: p3; gap: 22px 26px; padding: 0 14px; }
@@ -1243,6 +1273,15 @@ PAGE = r"""<!doctype html>
       <div class="hm-col">
       <div class="seg status-seg hm-seg" id="hm-seg" title="LoL'de nasıl görüneceğin (Lust Offline)"><button data-status="online">Çevrimiçi</button><button data-status="offline">Çevrimdışı</button><button data-status="mobile">Mobil</button></div>
       <button class="hm-share" id="hm-share" title="Duo'n ve takımındaki Lust kullanıcıları Lust'ta seçtiğin skinleri ve simgeyi görür, sen de onlarınkini"><i class="sh-led"></i><span class="sh-k">Skin paylaşımı</span><b id="hm-share-v">Açık</b><span class="sh-n" id="hm-share-n"></span></button>
+      <div class="sh-pop" id="sh-pop" hidden>
+        <div class="sh-row"><div><b>Skin paylaşımı</b><span>Duo'n, takımın ve eşleştiğin arkadaşların skinlerini ve simgeni görür</span></div><i class="sw" id="sh-sw"></i></div>
+        <label>Senin kodun</label>
+        <div class="sh-code"><input id="sh-code" readonly value=""><button id="sh-copy">Kopyala</button></div>
+        <label>Arkadaş ekle</label>
+        <div class="sh-code"><input id="sh-in" placeholder="Arkadaşının kodunu yapıştır (LUST:...)"><button id="sh-add">Ekle</button></div>
+        <label>Eşleştiğin arkadaşlar</label>
+        <div class="sh-list" id="sh-list"></div>
+      </div>
       </div>
       <div class="p3-date" id="p3-date"><div class="d" id="p3-d"></div><div class="r"><span class="t"><svg viewBox="0 0 32 32"><path d="M21 4a12 12 0 1 0 7 19A10 10 0 0 1 21 4z"/></svg><span id="p3-t"></span></span><span class="w" id="p3-w"></span></div></div>
       <button class="hm-play" id="hm-league" data-act="league"><i class="hm-orb">__play__</i><span id="hm-league-t">League'i aç</span></button>
@@ -1759,6 +1798,24 @@ function drawShare(s) {
   $("hm-share-n").textContent = !on ? "" : peers > 0 ? `${peers} Lust'çı görüyor`
     : share.available === false ? "Sunucu yok" : "";
   btn.dataset.on = on ? "1" : "";
+  $("sh-sw").classList.toggle("on", on);
+  const code = share.code || "";
+  if ($("sh-code").value !== code) $("sh-code").value = code || (share.available === false ? "Sunucu yok" : "League açılınca hazır");
+  const friends = share.friends || [];
+  const key = JSON.stringify(friends);
+  if ($("sh-list").dataset.key !== key) {
+    $("sh-list").dataset.key = key;
+    $("sh-list").replaceChildren(...(friends.length ? friends.map((f) => {
+      const row = document.createElement("div");
+      row.className = "sh-f" + (f.online ? " on" : "");
+      row.innerHTML = "<i></i><b></b><span></span><button>Çıkar</button>";
+      row.querySelector("b").textContent = f.name;
+      row.querySelector("span").textContent = f.online ? "Bağlı" : "Lust kapalı";
+      row.querySelector("button").addEventListener("click", () => act("share_remove", { id: f.id }));
+      return row;
+    }) : [Object.assign(document.createElement("div"), { className: "sh-empty",
+      textContent: "Henüz yok. Kodunu arkadaşına gönder ya da onunkini yapıştır; bir kere yeter." })]));
+  }
 }
 
 function render(s) {
@@ -2754,7 +2811,22 @@ document.querySelectorAll("[data-dismiss]").forEach((b) => b.addEventListener("c
   $(card).hidden = true;
 }));
 document.querySelectorAll(".status-seg button").forEach((b) => b.addEventListener("click", () => act("status", { value: b.dataset.status })));
-$("hm-share").addEventListener("click", () => act("setting", { key: "share_skins", value: !$("hm-share").dataset.on }));
+$("hm-share").addEventListener("click", (e) => { e.stopPropagation(); $("sh-pop").hidden = !$("sh-pop").hidden; });
+$("sh-pop").addEventListener("click", (e) => e.stopPropagation());
+document.addEventListener("click", () => { $("sh-pop").hidden = true; });
+$("sh-sw").addEventListener("click", () => act("setting", { key: "share_skins", value: !$("hm-share").dataset.on }));
+$("sh-copy").addEventListener("click", () => {
+  const input = $("sh-code");
+  if (!input.value.startsWith("LUST:")) return;
+  const done = () => { $("sh-copy").textContent = "Kopyalandı"; setTimeout(() => { $("sh-copy").textContent = "Kopyala"; }, 1500); };
+  (navigator.clipboard ? navigator.clipboard.writeText(input.value) : Promise.reject())
+    .then(done, () => { input.select(); document.execCommand("copy"); done(); });
+});
+$("sh-add").addEventListener("click", () => {
+  const code = $("sh-in").value.trim();
+  act("share_add", { code });
+  $("sh-in").value = "";
+});
 $("a-quit").addEventListener("click", () => {
   if (Date.now() - quitArmed < 3000) { act("quit"); return; }
   quitArmed = Date.now(); state && render(state); setTimeout(() => state && render(state), 3100);

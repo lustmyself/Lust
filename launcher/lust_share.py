@@ -14,6 +14,11 @@ Only Lust users are in these rooms, so only they see each other's picks. A playe
 without Lust keeps seeing the real skins. Off with the "share_skins" setting, and
 whenever Lust was built without a relay address.
 
+Friends paired with a code stay linked for good, lobby or not: each Lust keeps its own
+room open (Party Mode's "home" room, from party_storage's key), and pasting a friend's
+code once joins theirs every time Lust starts (lust-friends.json). One side pasting is
+enough: both end up in the same room.
+
 The rooms carry, next to the skin pick, the profile icon chosen in the hub
 (launcher/lust_icon.py): LUST-ProfileIcon shows it for these players too.
 """
@@ -22,6 +27,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import json
 import threading
 import time
 from typing import Dict, List, Optional, Set
@@ -39,7 +45,10 @@ LOBBY_PHASES = ("Lobby", "Matchmaking", "ReadyCheck")
 # The rooms stay as they are while the game starts: the others' skins are put in then
 KEEP_PHASES = ("GameStart", "InProgress", "Reconnect")
 # What our state carries next to the skin pick
-EXTRA_KEYS = ("icon_id", "puuid")
+EXTRA_KEYS = ("icon_id", "puuid", "removed")
+FRIENDS_FILE = "lust-friends.json"
+# Party Mode stays in at most 8 rooms: ours, a lobby, a team and the friends'
+MAX_FRIENDS = 5
 
 _lock = threading.Lock()
 _runner: Optional["_Runner"] = None
@@ -101,6 +110,108 @@ def rooms_for(lcu, phase: Optional[str]) -> Optional[Set[str]]:
     return set()
 
 
+# ---- friends paired with a code ----
+
+_friends_lock = threading.Lock()
+
+
+def _friends_path():
+    from utils.core.paths import get_user_data_dir
+    return get_user_data_dir() / FRIENDS_FILE
+
+
+def load_friends() -> dict:
+    """{"friends": [{"id", "key", "name"}], "removed": [summoner ids]}"""
+    try:
+        data = json.loads(_friends_path().read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        data = {}
+    friends = []
+    for f in data.get("friends") or [] if isinstance(data, dict) else []:
+        if not isinstance(f, dict):
+            continue
+        try:
+            sid, key = int(f.get("id")), bytes.fromhex(str(f.get("key")))
+        except (TypeError, ValueError):
+            continue
+        if sid > 0 and len(key) == 32:
+            friends.append({"id": sid, "key": key.hex(), "name": str(f.get("name") or "")[:64]})
+    removed = [r for r in (data.get("removed") or [] if isinstance(data, dict) else []) if isinstance(r, int)]
+    return {"friends": friends[:MAX_FRIENDS], "removed": removed}
+
+
+def _save_friends(data: dict) -> bool:
+    try:
+        path = _friends_path()
+        temporary = path.with_name(f".{path.name}.tmp")
+        temporary.write_text(json.dumps(data, indent=2), encoding="utf-8")
+        temporary.replace(path)
+        return True
+    except OSError as e:
+        log.warning(f"[Share] Could not save friends: {e}")
+        return False
+
+
+def friend_room(friend: dict) -> str:
+    from party.network.ws_relay import compute_room_key
+    return compute_room_key(int(friend["id"]), bytes.fromhex(friend["key"]))
+
+
+def add_friend(code: str) -> str:
+    """Pair with a friend's code, for good. The answer is shown to the player."""
+    from party.protocol.token_codec import PartyToken
+    code = "".join(str(code or "").split())
+    if not code:
+        return "Önce arkadaşının kodunu yapıştır"
+    try:
+        token = PartyToken.decode(code)
+    except ValueError:
+        return "Bu bir Lust kodu değil: kodun tamamını kopyala (LUST: ile başlar)"
+    manager = _runner.manager if _runner else None
+    if manager is not None and token.summoner_id == manager.party_state.my_summoner_id:
+        return "Bu senin kendi kodun: onu arkadaşına gönder"
+    with _friends_lock:
+        data = load_friends()
+        if any(f["id"] == token.summoner_id for f in data["friends"]):
+            return "Bu arkadaşla zaten eşleştin"
+        if len(data["friends"]) >= MAX_FRIENDS:
+            return f"En fazla {MAX_FRIENDS} arkadaşla eşleşebilirsin: önce birini çıkar"
+        data["friends"].append({"id": token.summoner_id, "key": token.encryption_key.hex(), "name": ""})
+        data["removed"] = [r for r in data["removed"] if r != token.summoner_id]
+        if not _save_friends(data):
+            return "Arkadaş kaydedilemedi"
+    log.info(f"[Share] Paired with summoner {token.summoner_id}")
+    return "Eşleşildi: Lust açıkken skinlerinizi birbirinizde görürsünüz"
+
+
+def remove_friend(summoner_id) -> str:
+    try:
+        sid = int(summoner_id)
+    except (TypeError, ValueError):
+        return ""
+    with _friends_lock:
+        data = load_friends()
+        data["friends"] = [f for f in data["friends"] if f["id"] != sid]
+        # They stop seeing us too, even though they kept our code (see Party Mode's "removed")
+        if sid not in data["removed"]:
+            data["removed"].append(sid)
+        if not _save_friends(data):
+            return "Arkadaş çıkarılamadı"
+    return "Arkadaş çıkarıldı"
+
+
+def _remember_names(names: Dict[int, str]) -> None:
+    with _friends_lock:
+        data = load_friends()
+        changed = False
+        for f in data["friends"]:
+            name = names.get(f["id"])
+            if name and name != f["name"]:
+                f["name"], changed = name[:64], True
+        if changed:
+            _save_friends(data)
+
+
 def relay_url() -> str:
     try:
         from party.network import ws_relay
@@ -149,6 +260,11 @@ def _manager_class():
             self.my_puuid = str((summoner or {}).get("puuid") or "") if isinstance(summoner, dict) else ""
             self.party_state.my_summoner_id = my_id
             self.party_state.my_summoner_name = self._lobby_matcher.get_my_summoner_name()
+            # Our own room, where friends who have our code find us
+            from party.core.party_storage import load_party_key
+            from party.network.ws_relay import compute_room_key
+            self._my_key = load_party_key(my_id)
+            self._home_room = compute_room_key(my_id, self._my_key)
             self._running = True
             self.party_state.enabled = True
             self.party_state.connection = "online"
@@ -163,6 +279,8 @@ def _manager_class():
 
         async def _publish_state(self):
             state = dict(self._skin_state or {})
+            if self._ignored_peers:
+                state["removed"] = sorted(self._ignored_peers)
             if state:
                 state["sent_at"] = int(time.time() * 1000)
             self._published_state = state or None
@@ -184,7 +302,42 @@ def _manager_class():
                     state["puuid"] = self.my_puuid
             return state or None
 
-        async def sync_rooms(self, keys: Set[str]) -> None:
+        def pair_rooms(self) -> Set[str]:
+            """Our own room and our friends' rooms (always open)."""
+            data = load_friends()
+            removed = set(data["removed"])
+            if removed != self._ignored_peers:
+                self._ignored_peers = removed
+                self._need_publish = True  # tell the rooms
+            rooms = {self._home_room} if self._home_room else set()
+            for friend in data["friends"]:
+                try:
+                    rooms.add(friend_room(friend))
+                except (KeyError, ValueError):
+                    continue
+            return rooms
+
+        def code(self) -> str:
+            return self._fresh_token() or ""
+
+        def friends(self) -> List[dict]:
+            members = self._merged_members()
+            result, names = [], {}
+            for f in load_friends()["friends"]:
+                entry = members.get(f["id"])
+                name = str(entry[0].get("summoner_name") or "") if entry else ""
+                if name and name != "Unknown":
+                    names[f["id"]] = name
+                result.append({"id": str(f["id"]), "name": name or f["name"] or "Arkadaş",
+                               "online": bool(entry and entry[1])})
+            if names:
+                _remember_names(names)
+            return result
+
+        async def sync_rooms(self, keys: Set[str], resume: bool = False) -> None:
+            if getattr(self, "_need_publish", False):
+                self._need_publish = False
+                await self._publish_state()
             for key in [k for k in self._relays if k not in keys]:
                 relay = self._relays.pop(key, None)
                 if relay:
@@ -192,7 +345,8 @@ def _manager_class():
                     await relay.disconnect()
             for key in keys:
                 if key in self._relays:
-                    self._relays[key].resume()
+                    if resume:
+                        self._relays[key].resume()
                     continue
                 log.info(f"[Share] Joining room {key[:8]}")
                 error = await self._join_room(key)
@@ -222,6 +376,9 @@ class _Runner:
         self.manager = None
         self.loop: Optional[asyncio.AbstractEventLoop] = None
         self._failed_at = 0.0
+        self._auto: Set[str] = set()
+        self._phase = None
+        self._paired: Set[str] = set()
 
     def run(self) -> None:
         self.loop = asyncio.new_event_loop()
@@ -261,7 +418,14 @@ class _Runner:
             self.state.party_manager = manager
         keys = await asyncio.to_thread(rooms_for, self.lcu, self.state.phase)
         if keys is not None:
-            await self.manager.sync_rooms(keys)
+            self._auto = keys
+        paired = self.manager.pair_rooms()
+        # Rooms that gave up reconnecting try again when the party is needed: a new
+        # lobby or champ select, or a friend just added
+        phase = self.state.phase
+        resume = (phase != self._phase and phase in LOBBY_PHASES + ("ChampSelect",)) or paired != self._paired
+        self._phase, self._paired = phase, paired
+        await self.manager.sync_rooms(self._auto | paired, resume=resume)
 
     async def _stop(self) -> None:
         manager, self.manager = self.manager, None
@@ -295,7 +459,18 @@ def shared_icons() -> List[dict]:
 
 
 def status() -> Dict[str, object]:
-    """For the hub: whether sharing runs and with how many Lust users right now."""
+    """For the hub: whether sharing runs, our code, our friends, and how many Lust users see us now."""
     manager = _runner.manager if _runner else None
-    peers = len(manager.party_state.peers) if manager is not None else 0
-    return {"available": bool(relay_url()), "running": manager is not None, "peers": peers}
+    result: Dict[str, object] = {"available": bool(relay_url()), "running": manager is not None, "peers": 0,
+                                 "code": "", "friends": []}
+    if manager is not None:
+        try:
+            result["peers"] = len(manager.party_state.peers)
+            result["code"] = manager.code()
+            result["friends"] = manager.friends()
+        except Exception as e:  # noqa: BLE001
+            log.debug(f"[Share] status: {e}")
+    else:
+        result["friends"] = [{"id": str(f["id"]), "name": f["name"] or "Arkadaş", "online": False}
+                             for f in load_friends()["friends"]]
+    return result

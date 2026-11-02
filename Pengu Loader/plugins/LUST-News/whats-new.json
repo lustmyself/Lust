@@ -2,6 +2,7 @@
   "version": "1.4.9.86",
   "en": [
     "Skin sharing: removing a friend asks first ('Are you sure? Press again'), so a misclick doesn't unpair you",
+    "The version panel (Lust's number, top left) opens over the home header again instead of under your name",
     "Skin sharing: paired friends show their Discord picture and name and their League Riot ID; away friends show the accounts seen last. A friend who pasted your code is in your list too (before, they only counted as '1 active')",
     "Skin sharing: while your League is closed, paired friends read 'connects when League opens' instead of 'Lust closed'",
     "Skin sharing: your Lust code now shows even while League is closed (it used to appear only after League opened), and the code box says why when it can't connect",
@@ -85,6 +86,7 @@
   ],
   "tr": [
     "Skin paylaşımı: arkadaşı çıkarmak artık onay istiyor ('Emin misin? Tekrar bas'), yanlış tıklayınca eşleşme bozulmuyor",
+    "Sürüm paneli (sol üstteki Lust numarası) yine ana sayfa başlığının üstünde açılıyor, adının altında kalmıyor",
     "Skin paylaşımı: eşleştiğin arkadaşların Discord resmi, Discord adı ve LoL Riot ID'si görünüyor; çevrimdışıysa en son görülen hesapları kalıyor. Senin kodunu yapıştıran arkadaş da artık listende (önceden sadece '1 aktif' sayılıyordu)",
     "Skin paylaşımı: League kapalıyken eşleştiğin arkadaşlarda 'Lust kapalı' yerine 'League açılınca bağlanır' yazıyor",
     "Skin paylaşımı: Lust kodun artık League kapalıyken de görünüyor (önceden League açılınca çıkıyordu); bağlanamazsa kod kutusu nedenini yazıyor",

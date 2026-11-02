@@ -1113,6 +1113,8 @@ PAGE = r"""<!doctype html>
   .hm-share .sh-n:empty { display: none; }
   .hm-col { position: relative; }
   .home-head { position: relative; z-index: 30; }
+  /* The version panel opens over the home header (and its Skin sharing panel) */
+  .vpop { z-index: 60; }
   .sh-pop { position: absolute; z-index: 40; top: calc(100% + 12px); left: 0; width: 430px; padding: 18px 20px 16px;
     background: #061445; border: 2px solid var(--p3-cyan); box-shadow: 10px 10px 0 var(--p3-blue); clip-path: polygon(0 0, 100% 0, 97% 100%, 0 100%); }
   .sh-pop[hidden] { display: none; }

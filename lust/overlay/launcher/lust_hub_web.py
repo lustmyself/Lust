@@ -864,9 +864,13 @@ PAGE = r"""<!doctype html>
   #tile-spotify.cover .ht-sp-big { opacity: 0; }
   #tile-spotify.cover .ht-bg { background-size: cover; background-position: center; filter: blur(28px) saturate(1.4) brightness(.55); inset: -40px; }
   #tile-spotify.cover .ht-eq { right: 172px; }
-  /* The icon fills the tile: it is square, so the face (upper middle) stays in view */
-  #tile-icon.pic .ht-bg { background-size: 72% auto; background-position: right 38%; background-repeat: no-repeat;
-    -webkit-mask-image: linear-gradient(90deg, transparent 18%, #000 52%); mask-image: linear-gradient(90deg, transparent 18%, #000 52%); }
+  /* The chosen icon: a blurred copy fills the tile, the icon itself sits whole on the right */
+  #tile-icon.pic .ht-bg { background-size: cover; background-position: center; inset: -40px; filter: blur(26px) saturate(1.3) brightness(.6); }
+  .ht-pic { position: absolute; right: 40px; top: 50%; width: 150px; height: 150px; margin-top: -100px; z-index: 1;
+    background: #0e2a44 center / cover; box-shadow: 0 18px 40px rgba(0, 0, 0, .55), 0 0 0 3px var(--p3-white, #fff), 8px 8px 0 3px var(--p3-cyan, #3ee6ff);
+    transform: skewX(6deg) rotate(-3deg); opacity: 0; transition: opacity .5s, transform .5s; pointer-events: none; }
+  #tile-icon.pic .ht-pic { opacity: 1; }
+  #tile-icon.pic:hover .ht-pic { transform: skewX(6deg) rotate(0deg) scale(1.04); }
   #tile-icon.pic { background: linear-gradient(135deg, #0e2a44, #0f1440); }
   @keyframes sppulse { 50% { transform: scale(1.05); filter: drop-shadow(0 10px 50px rgba(30, 215, 96, .6)); } }
   @media (prefers-reduced-motion: reduce) { .ht-sp-big { animation: none; } }
@@ -1229,7 +1233,7 @@ PAGE = r"""<!doctype html>
       <div class="ht-go">__arrow__</div>
     </div>
     <div class="ht" data-go="icon" id="tile-icon" style="--i:4;--c:56, 189, 248;--g:url(#hg5)">
-      <div class="ht-bg" id="t-icon-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i>
+      <div class="ht-bg" id="t-icon-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><i class="ht-pic" id="t-icon-pic"></i>
       <div class="ht-in"><div class="ht-orb"><svg viewBox="0 0 30 30"><circle class="f" cx="15" cy="15" r="11"/><circle cx="15" cy="12.5" r="4"/><path d="M8 23.2a8 8 0 0 1 14 0"/></svg></div>
         <b class="ht-ttl">Profil simgesi</b><span class="ht-st" id="t-icon"></span></div>
       <div class="ht-go">__arrow__</div>
@@ -2021,6 +2025,7 @@ function drawTiles() {
   const pic = (art.icon || {}).picture || "";
   $("tile-icon").classList.toggle("pic", !!pic);
   setBg("t-icon-bg", pic || (art.icon || {}).splash || "");
+  $("t-icon-pic").style.backgroundImage = pic ? `url("${pic}")` : "";
   const pf = t.profile;
   fill("t-profile", pf && pf.name ? [["b", pf.name], " · profilinde"] : ["Profilinin arka planı, istediğin skin"]);
   setBg("t-profile-bg", (art.profile || {}).splash || "");

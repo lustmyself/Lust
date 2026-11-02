@@ -1256,6 +1256,49 @@ PAGE = r"""<!doctype html>
   @keyframes gearspin { to { transform: rotate(360deg); } }
   @media (prefers-reduced-motion: reduce) { .ht-gear { animation: none; } }
   @media (prefers-reduced-motion: reduce) { .ht { animation: none; } }
+  /* Smaller windows. The header keeps the name readable: the date goes first, then the League button's text */
+  .hm-text { flex: 0 1 auto; min-width: 170px; }
+  .home-head small, .hm-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  @media (max-width: 1320px) {
+    .home-head { gap: 14px; }
+    .hm-av { width: 68px; height: 68px; }
+    .hm-name { font-size: 44px; }
+    .hm-col { margin-left: 6px; gap: 10px; }
+    .hm-seg button { font-size: 16px; padding: 5px 13px; }
+    .hm-share { font-size: 13px; padding: 5px 12px; }
+    .hm-share b { font-size: 15px; }
+    .p3-date .d { font-size: 46px; }
+    .p3-date .d small { font-size: 28px; }
+    .p3-date .t { font-size: 14px; }
+    .hm-play { height: 48px; font-size: 18px; padding: 0 16px 0 8px; margin-left: 8px; }
+  }
+  @media (max-width: 1120px) {
+    .p3-date { display: none; }
+    .hm-play { margin-left: auto; }
+  }
+  @media (max-width: 900px) {
+    .hm-play { padding: 0 8px; }
+    .hm-play span { display: none; }
+  }
+  /* Narrow tiles: the art shrinks into the top right corner, clear of the title */
+  .ht { container-type: inline-size; }
+  @container (max-width: 480px) {
+    .ht-in { padding: 14px 22px 16px; }
+    .ht-ttl { font-size: 31px; }
+    .ht-st { font-size: 15px; }
+    .ht-fan { right: 6px; top: 6px; scale: .6; transform-origin: top right; }
+    .ht-ransom { right: 12px; top: 12px; scale: .52; transform-origin: top right; }
+    .ht-pic, .ht-cover { width: 82px; height: 82px; right: 16px; top: 14px; margin-top: 0; }
+    #tile-spotify.cover .ht-eq { right: 112px; }
+    .ht-sw { right: 92px; top: 14px; scale: .7; transform-origin: top right; }
+    .ht-gear { width: 150px; height: 150px; margin-top: -96px; }
+    .ht-sp-big { width: 140px; height: 140px; }
+  }
+  @container (max-width: 340px) {
+    .ht-ttl { font-size: 26px; }
+    .ht-fan { scale: .5; }
+    #tile-maps.fan .ht-faces { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -2186,19 +2229,32 @@ function drawTiles() {
   if ($("t-maps-faces").dataset.key !== facesKey) {
     $("t-maps-faces").dataset.key = facesKey;
     $("t-maps-faces").replaceChildren(...skinChamps.map((id) => {
-      const i = document.createElement("i"); i.style.backgroundImage = `url("${CHAMP_ICON(id)}")`; return i;
+      // A champion icon that can't load leaves no empty circle
+      const i = document.createElement("i"), img = new Image();
+      img.onload = () => { i.style.backgroundImage = `url("${img.src}")`; };
+      img.onerror = () => i.remove();
+      img.src = CHAMP_ICON(id);
+      return i;
     }), ...(skinChamps.length ? [Object.assign(document.createElement("em"), { textContent: "açık" })] : []));
   }
   const fan = $("t-maps-fan");
   if (fan.dataset.key !== facesKey) {
     fan.dataset.key = facesKey;
-    fan.replaceChildren(...skinChamps.slice(0, 3).map((id) => {
-      const i = document.createElement("i"); i.style.backgroundImage = `url("${CHAMP_SPLASH(id)}")`; return i;
-    }));
+    fan.replaceChildren();
+    $("tile-maps").classList.remove("fan");
+    skinChamps.slice(0, 3).forEach((id) => {
+      const img = new Image();
+      img.onload = () => {
+        if (fan.dataset.key !== facesKey) return;
+        const i = document.createElement("i"); i.style.backgroundImage = `url("${img.src}")`;
+        fan.append(i);
+        $("tile-maps").classList.add("fan");
+      };
+      img.src = CHAMP_SPLASH(id);
+    });
   }
-  $("tile-maps").classList.toggle("fan", skinChamps.length > 0);
-  if (mp && mp.preview) setBg("t-maps-bg", `/map-preview?id=${encodeURIComponent(mp.id)}`);
-  else setBg("t-maps-bg", RIFT, "rift");
+  // The tile wears the Custom skins art (the map's own art stays on its page); the Rift if it can't load
+  setBg("t-maps-bg", ["/hubart/custom-skins.jpg", ...RIFT]);
   const wl = t.wallpaper;
   fill("t-wall", wl && !wl.league && wl.name ? [["b", wl.name.replace(/\.[^.]+$/, "")], ` · ${wl.count} duvar kağıdı`]
     : [["b", "LoL'ün kendi arka planı"], wl && wl.count ? ` · ${wl.count} duvar kağıdı` : ""]);
@@ -2945,6 +3001,15 @@ document.querySelectorAll(".rz").forEach((edge) => edge.addEventListener("moused
   shell().begin_resize(edge.dataset.edge);
 }));
 window.addEventListener("pywebviewready", () => windowMode("mode"));
+// Dragging the title bar of a maximized window brings it back to its normal size under the mouse
+// (pywebview would move the full-size window as it is, so it doesn't get this press)
+$("top").addEventListener("mousedown", (e) => {
+  if (e.button !== 0 || !document.body.classList.contains("maxed") || !shell() || !shell().drag_restore) return;
+  if (e.target.closest("button, input, .win, .lg, .vpop, .ver-pill")) return;
+  e.stopPropagation();
+  shell().drag_restore(e.clientX / Math.max(innerWidth, 1), Math.round(e.clientY * (devicePixelRatio || 1)));
+  addEventListener("mouseup", () => setTimeout(() => windowMode("mode"), 80), { once: true });
+}, true);
 $("back").addEventListener("click", () => showPage("home"));
 document.querySelectorAll(".ht").forEach((t) => t.addEventListener("click", () => showPage(t.dataset.go)));
 document.querySelectorAll("[data-goto]").forEach((b) => b.addEventListener("click", () => showPage(b.dataset.goto)));

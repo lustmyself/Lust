@@ -817,7 +817,6 @@ PAGE = r"""<!doctype html>
   @keyframes sppulse { 50% { transform: scale(1.05); filter: drop-shadow(0 10px 50px rgba(30, 215, 96, .6)); } }
   @media (prefers-reduced-motion: reduce) { .ht-sp-big { animation: none; } }
   #tile-fonts .ht-bg, #tile-auto .ht-bg, #tile-settings .ht-bg, #tile-spotify .ht-bg { opacity: 1; animation: none; inset: 0; }
-  #tile-fonts .ht-bg { background: radial-gradient(380px 220px at 90% 10%, rgba(251, 146, 60, .25), transparent 70%), linear-gradient(135deg, #2a1530, #0f1440); }
   #tile-settings .ht-bg { background: conic-gradient(from 200deg at 80% 30%, rgba(109, 93, 252, .45), rgba(56, 189, 248, .2), rgba(244, 114, 182, .3), rgba(109, 93, 252, .45)); filter: blur(30px); }
   .ht-eq { position: absolute; right: 26px; top: 26px; display: flex; gap: 3px; align-items: flex-end; height: 22px; }
   .ht-eq i { width: 4px; border-radius: 2px; background: #1ed760; animation: hteq 1s ease-in-out infinite; }
@@ -1191,6 +1190,12 @@ PAGE = r"""<!doctype html>
       linear-gradient(115deg, transparent 0 55%, rgba(62, 230, 255, .5) 55% 55.5%, transparent 55.5%),
       repeating-linear-gradient(115deg, rgba(255, 255, 255, .03) 0 2px, transparent 2px 16px),
       linear-gradient(150deg, #0a2aa8 0%, #05146a 50%, #020b2e 100%); }
+  /* Fonts tile: a magazine page in Lust blue: halftone dots, a pink tape strip behind the letters, a cyan slash */
+  #tile-fonts .ht-bg { background:
+      radial-gradient(circle at 1.5px 1.5px, rgba(189, 243, 255, .16) 1.2px, transparent 1.6px) 0 0 / 11px 11px,
+      linear-gradient(170deg, transparent 0 18%, rgba(255, 62, 128, .38) 18% 31%, transparent 31%),
+      linear-gradient(115deg, transparent 0 64%, rgba(62, 230, 255, .22) 64% 74%, transparent 74%),
+      linear-gradient(150deg, #1239d6 0%, #0a1f9c 45%, #031046 100%); }
   #tile-auto .ht-in { background: linear-gradient(8deg, rgba(2, 11, 46, .92) 6%, rgba(2, 11, 46, .3) 45%, transparent 65%); }
   /* A light sweeping across now and then, over stripes drifting slowly to the right */
   #tile-auto .ht-bg::before, #tile-auto .ht-bg::after { content: ""; position: absolute; inset: 0; pointer-events: none; }

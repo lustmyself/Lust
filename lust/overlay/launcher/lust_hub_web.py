@@ -817,12 +817,12 @@ PAGE = r"""<!doctype html>
   @keyframes sppulse { 50% { transform: scale(1.05); filter: drop-shadow(0 10px 50px rgba(30, 215, 96, .6)); } }
   @media (prefers-reduced-motion: reduce) { .ht-sp-big { animation: none; } }
   #tile-fonts .ht-bg, #tile-auto .ht-bg, #tile-settings .ht-bg, #tile-spotify .ht-bg { opacity: 1; animation: none; inset: 0; }
-  /* Fonts tile: its dark background with two blue stripes, a thick one and a thin one */
+  /* Fonts and Settings tiles: a dark maroon background; Fonts adds two blue stripes, a thick one and a thin one */
+  #tile-settings .ht-bg { background: radial-gradient(380px 220px at 90% 10%, rgba(251, 146, 60, .25), transparent 70%), linear-gradient(135deg, #2a1530, #0f1440); }
   #tile-fonts .ht-bg { background:
       linear-gradient(160deg, transparent 0 30%, rgba(30, 90, 255, .55) 30% 44%, transparent 44%),
       linear-gradient(160deg, transparent 0 50%, rgba(62, 160, 255, .6) 50% 52.5%, transparent 52.5%),
       radial-gradient(380px 220px at 90% 10%, rgba(251, 146, 60, .25), transparent 70%), linear-gradient(135deg, #2a1530, #0f1440); }
-  #tile-settings .ht-bg { background: conic-gradient(from 200deg at 80% 30%, rgba(109, 93, 252, .45), rgba(56, 189, 248, .2), rgba(244, 114, 182, .3), rgba(109, 93, 252, .45)); filter: blur(30px); }
   .ht-eq { position: absolute; right: 26px; top: 26px; display: flex; gap: 3px; align-items: flex-end; height: 22px; }
   .ht-eq i { width: 4px; border-radius: 2px; background: #1ed760; animation: hteq 1s ease-in-out infinite; }
   .ht-eq i:nth-child(2) { animation-delay: -.3s; } .ht-eq i:nth-child(3) { animation-delay: -.6s; } .ht-eq i:nth-child(4) { animation-delay: -.15s; }

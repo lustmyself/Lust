@@ -1190,12 +1190,14 @@ PAGE = r"""<!doctype html>
       linear-gradient(115deg, transparent 0 55%, rgba(62, 230, 255, .5) 55% 55.5%, transparent 55.5%),
       repeating-linear-gradient(115deg, rgba(255, 255, 255, .03) 0 2px, transparent 2px 16px),
       linear-gradient(150deg, #0a2aa8 0%, #05146a 50%, #020b2e 100%); }
-  /* Fonts tile: a magazine page in Lust blue: halftone dots, a pink tape strip behind the letters, a cyan slash */
+  /* Fonts tile: Lust blue, a pink strip behind the letters, a cyan slash and a big faint "Aa" */
   #tile-fonts .ht-bg { background:
-      repeating-linear-gradient(180deg, transparent 0 17px, rgba(62, 230, 255, .14) 17px 18px),
       linear-gradient(170deg, transparent 0 18%, rgba(255, 62, 128, .38) 18% 31%, transparent 31%),
       linear-gradient(115deg, transparent 0 64%, rgba(62, 230, 255, .22) 64% 74%, transparent 74%),
       linear-gradient(150deg, #1239d6 0%, #0a1f9c 45%, #031046 100%); }
+  #tile-fonts .ht-bg::after { content: "Aa"; position: absolute; right: 4%; bottom: -14%; pointer-events: none;
+    font: 900 italic clamp(90px, 15vw, 210px)/1 "Anton", sans-serif; letter-spacing: -.02em;
+    color: transparent; -webkit-text-stroke: 2px rgba(189, 243, 255, .2); }
   #tile-auto .ht-in { background: linear-gradient(8deg, rgba(2, 11, 46, .92) 6%, rgba(2, 11, 46, .3) 45%, transparent 65%); }
   /* A light sweeping across now and then, over stripes drifting slowly to the right */
   #tile-auto .ht-bg::before, #tile-auto .ht-bg::after { content: ""; position: absolute; inset: 0; pointer-events: none; }

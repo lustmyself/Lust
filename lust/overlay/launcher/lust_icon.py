@@ -158,4 +158,10 @@ def dumps_listing() -> bytes:
 
 def bridge_reply() -> dict:
     """What LUST-ProfileIcon asks for over the bridge."""
-    return {"type": "lust-profile-icon", "iconId": chosen()}
+    try:
+        from launcher.lust_share import shared_icons
+        others = shared_icons()
+    except Exception:  # noqa: BLE001
+        others = []
+    # Other Lust users in our lobby or team, with the icon they picked (launcher/lust_share.py)
+    return {"type": "lust-profile-icon", "iconId": chosen(), "others": others}

@@ -1,13 +1,15 @@
 /**
  * @name Lust-ProfileIcon
  * @author Lust Team
- * @description Shows the profile icon picked in the Lust hub as your own, on your screen only
+ * @description Shows the profile icon picked in the Lust hub as your own, and the ones other Lust users in your lobby picked
  */
 
 // Riot only takes an icon the account owns, so nothing is sent anywhere: the client's data
 // binding (what its pages read from the local API, first answers and live updates alike) is
 // hooked, and wherever it describes this player the icon id becomes the chosen one. The
 // client then draws that icon from its own files. Everyone else sees the real icon.
+// Other Lust users in our lobby or champ select team send the icon they picked (Lust's skin
+// sharing, launcher/lust_share.py): theirs is swapped the same way on this screen.
 // The profile page and the lobby draw their crest (regalia) from their own requests, so
 // there the crest's icon gets a stylesheet with the chosen icon instead.
 
@@ -15,7 +17,7 @@ const LOG_PREFIX = "[Lust-ProfileIcon]";
 const STORE_KEY = "lust-profile-icon";
 const POLL_MS = 4000;
 // Where the client reads the player's own icon from
-const WATCHED = ["/lol-summoner/", "/lol-chat/v1/me", "/lol-lobby/", "/lol-hovercard/", "/lol-regalia/"];
+const WATCHED = ["/lol-summoner/", "/lol-chat/v1/me", "/lol-chat/v1/friends", "/lol-lobby/", "/lol-hovercard/", "/lol-regalia/"];
 const ICON_KEYS = ["profileIconId", "summonerIconId", "icon"];
 const MAX_DEPTH = 6;
 // Crests that show a player: the profile page, lobby slots, hover cards, the identity editor
@@ -30,6 +32,8 @@ const STYLE_ID = "lust-profile-icon";
 const RETRY_MS = [0, 150, 500, 1500, 4000];
 
 let iconId = 0;
+// Other Lust users' picks: puuid -> icon, summoner id -> icon
+let others = { puuid: new Map(), summonerId: new Map(), key: "" };
 const me = { puuid: "", summonerId: "" };
 // Each hooked cache, with the last real content of the endpoints about this player, so a new
 // choice can be shown at once by passing that content through again
@@ -73,6 +77,16 @@ function learn(endpoint, content) {
   if (before !== me.puuid + "/" + me.summonerId) setTimeout(restyleHosts, 0);
 }
 
+// The icon to show for a player object, 0 to leave it; null when it isn't about a Lust user
+function iconFor(obj) {
+  if (isMine(obj)) return iconId;
+  if (typeof obj.puuid === "string" && others.puuid.has(obj.puuid)) return others.puuid.get(obj.puuid);
+  if (obj.summonerId != null && others.summonerId.has(String(obj.summonerId))) {
+    return others.summonerId.get(String(obj.summonerId));
+  }
+  return null;
+}
+
 // The content with this player's icon swapped; the same object when nothing is about them.
 // result.mine tells whether anything in it was about them (worth keeping for a later change).
 function rewrite(value, result, depth = 0) {
@@ -89,13 +103,14 @@ function rewrite(value, result, depth = 0) {
     return copy || value;
   }
   let copy = null;
-  if (isMine(value)) {
+  const shown = iconFor(value);
+  if (shown !== null) {
     result.mine = true;
-    if (iconId > 0) {
+    if (shown > 0) {
       for (const key of ICON_KEYS) {
-        if (typeof value[key] === "number" && value[key] !== iconId) {
+        if (typeof value[key] === "number" && value[key] !== shown) {
           copy = copy || { ...value };
-          copy[key] = iconId;
+          copy[key] = shown;
         }
       }
     }
@@ -151,13 +166,11 @@ function refresh() {
 
 const hosts = new Set();
 
-function hostIsMine(host) {
-  for (const name of ["puuid", "voice-puuid"]) {
-    const value = host.getAttribute(name);
-    if (value && me.puuid && value === me.puuid) return true;
-  }
-  const summonerId = host.getAttribute("summoner-id");
-  return !!(summonerId && me.summonerId && summonerId === me.summonerId);
+function hostIcon(host) {
+  const puuid = host.getAttribute("puuid") || host.getAttribute("voice-puuid") || "";
+  const summonerId = host.getAttribute("summoner-id") || "";
+  const shown = iconFor({ puuid, summonerId: summonerId || null });
+  return shown || 0;
 }
 
 function crestRoots(host) {
@@ -178,7 +191,8 @@ function hasIds(host) {
 function styleHost(host) {
   // A crest inside a profile or lobby element belongs to that element, which styles it
   if (!hasIds(host)) return;
-  const show = iconId > 0 && hostIsMine(host);
+  const shown = hostIcon(host);
+  const show = shown > 0;
   for (const root of crestRoots(host)) {
     let style = root.getElementById ? root.getElementById(STYLE_ID) : root.querySelector(`#${STYLE_ID}`);
     if (!show) {
@@ -190,7 +204,7 @@ function styleHost(host) {
       style.id = STYLE_ID;
       root.appendChild(style);
     }
-    const url = `/lol-game-data/assets/v1/profile-icons/${iconId}.jpg`;
+    const url = `/lol-game-data/assets/v1/profile-icons/${shown}.jpg`;
     const css = `.lol-regalia-summoner-icon{background-image:url("${url}")!important}`;
     if (style.textContent !== css) style.textContent = css;
   }
@@ -244,6 +258,24 @@ function setIcon(value) {
   restyleHosts();
 }
 
+function setOthers(list) {
+  const puuid = new Map();
+  const summonerId = new Map();
+  (Array.isArray(list) ? list : []).forEach((item) => {
+    const icon = item && item.iconId;
+    if (!Number.isInteger(icon) || icon <= 0) return;
+    if (typeof item.puuid === "string" && item.puuid && item.puuid !== me.puuid) puuid.set(item.puuid, icon);
+    if (item.summonerId != null && String(item.summonerId) !== me.summonerId) summonerId.set(String(item.summonerId), icon);
+  });
+  const key = JSON.stringify([...puuid, ...summonerId]);
+  if (key === others.key) return;
+  // Players who left keep the icon shown until the client sends their data again
+  others = { puuid, summonerId, key };
+  log(`${puuid.size || summonerId.size} Lust user icon(s) around`);
+  refresh();
+  restyleHosts();
+}
+
 async function findMe() {
   for (let tries = 0; tries < 120 && !me.puuid; tries++) {
     try {
@@ -273,7 +305,10 @@ async function followHub() {
     log("Lust's bridge is not there; keeping the last choice");
     return;
   }
-  bridge.subscribe("lust-profile-icon", (message) => setIcon(message && message.iconId));
+  bridge.subscribe("lust-profile-icon", (message) => {
+    setIcon(message && message.iconId);
+    setOthers(message && message.others);
+  });
   const ask = () => {
     if (bridge.ready) bridge.send({ type: "lust-profile-icon" });
   };

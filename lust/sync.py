@@ -566,7 +566,7 @@ EDITS += [
      '[issue forms](https://github.com/lustmyself/Lust/issues/new/choose); installation\nquestions are welcome there too.\n'),
     ('README.md',
      '- **Party Mode**: Enables skin sharing between friends in the same lobby via a Cloudflare WebSocket relay\n',
-     '- **Party Mode**: Skin sharing between friends through a WebSocket relay (off in Lust: no relay server)\n'),
+     '- **Skin sharing**: Lust users in the same lobby or team see each other\'s skins and icons\n'),
     ('README.md',
      '# 🌹 Lust - Effortless Skin Changer for LoL\n',
      '# 💜 Lust - Effortless Skin Changer for LoL\n'),
@@ -581,7 +581,7 @@ EDITS += [
      '<!-- Rose\'s party relay server is not part of Lust -->\n\n'),
     ('README.md',
      "- **Party Mode**: Friends running Lust 1.4.4 or newer see each other's skins and custom mods in game\n",
-     "- **Desktop hub**: Startup progress, updates, your Riot ID, rank, last match and your server's\n  Grandmaster and Challenger LP cutoffs, quick actions and Lust Offline's status\n- **Lust Offline**: Appear offline or on mobile to your friends while you play\n- **Custom skins tab**: Drop your own `.fantome`, `.zip` or `.modpkg` skins in and switch them\n  on per champion; they play on the champion's default skin\n- **Spotify themes**: 22 Spicetify themes for the Spotify desktop app, re-applied after\n  Spotify updates\n- **Silent updates**: New versions download in the background and install while League is closed\n- **Lobby Reveal**: Your teammates' names and op.gg links in champion select\n- **Party Mode**: Needs a party relay server; Lust doesn't run one, so it is off\n"),
+     "- **Desktop hub**: Startup progress, updates, your Riot ID, rank, last match and your server's\n  Grandmaster and Challenger LP cutoffs, quick actions and Lust Offline's status\n- **Lust Offline**: Appear offline or on mobile to your friends while you play\n- **Custom skins tab**: Drop your own `.fantome`, `.zip` or `.modpkg` skins in and switch them\n  on per champion; they play on the champion's default skin\n- **Spotify themes**: 22 Spicetify themes for the Spotify desktop app, re-applied after\n  Spotify updates\n- **Silent updates**: New versions download in the background and install while League is closed\n- **Lobby Reveal**: Your teammates' names and op.gg links in champion select\n- **Skin sharing**: Lust users in your lobby or champ select team see each other's skins and\n  profile icons, through Lust's own relay (`lust/relay`)\n"),
     ('README.md',
      '## Support\n\nIf you enjoy Lust and want to support its development:\n\n[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/roseapp)\n\nYour support helps keep the project alive and motivates continued development!\n\n',
      '## Support\n\nFound a bug or have an idea? Open an [issue](https://github.com/lustmyself/Lust/issues/new/choose).\n\n'),
@@ -1229,6 +1229,23 @@ EDITS += [
     ("Lust.spec", "    'launcher.lust_wallpaper',\n", "    'launcher.lust_wallpaper',\n    'launcher.lust_discord',\n"),
 ]
 
+
+
+# Skin sharing (launcher/lust_share.py): Rose's Party Mode, joined by itself in the rooms of our
+# lobby and champ select team, through Lust's own relay (lust/relay)
+EDITS += [
+    ("main/core/initialization.py",
+     "        sys.exit(1)\n    \n    return lcu, skin_scraper, state, injection_manager\n",
+     "        sys.exit(1)\n    \n"
+     "    try:\n"
+     "        from launcher import lust_share\n"
+     "        lust_share.attach(lcu, state, injection_manager)\n"
+     "    except Exception as e:  # noqa: BLE001\n"
+     "        log.debug(f\"[Share] Skin sharing not started: {e}\")\n"
+     "    return lcu, skin_scraper, state, injection_manager\n"),
+    ("Lust.spec", "    'party.integration.injection_hook',\n",
+     "    'party.integration.injection_hook',\n    'party.network.relay_config',\n    'launcher.lust_share',\n"),
+]
 
 LUST_PATCH = ROOT / "lust" / "lust_patch.txt"
 

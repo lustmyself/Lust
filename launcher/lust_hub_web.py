@@ -1192,7 +1192,7 @@ PAGE = r"""<!doctype html>
       linear-gradient(150deg, #0a2aa8 0%, #05146a 50%, #020b2e 100%); }
   /* Fonts tile: a magazine page in Lust blue: halftone dots, a pink tape strip behind the letters, a cyan slash */
   #tile-fonts .ht-bg { background:
-      radial-gradient(circle at 1.5px 1.5px, rgba(189, 243, 255, .16) 1.2px, transparent 1.6px) 0 0 / 11px 11px,
+      repeating-linear-gradient(180deg, transparent 0 17px, rgba(62, 230, 255, .14) 17px 18px),
       linear-gradient(170deg, transparent 0 18%, rgba(255, 62, 128, .38) 18% 31%, transparent 31%),
       linear-gradient(115deg, transparent 0 64%, rgba(62, 230, 255, .22) 64% 74%, transparent 74%),
       linear-gradient(150deg, #1239d6 0%, #0a1f9c 45%, #031046 100%); }

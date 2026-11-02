@@ -3050,6 +3050,7 @@
     flyoutContent.appendChild(modal);
     flyoutFrame.appendChild(flyoutContent);
     panel.appendChild(flyoutFrame);
+    panel.__lustChromas = chromas; // Lust: read by LUST-ChromaPreview
 
     // Position the panel relative to the button
     positionPanel(panel, buttonElement);

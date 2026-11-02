@@ -1795,7 +1795,7 @@ function drawShare(s) {
   btn.classList.toggle("on", on);
   btn.classList.toggle("live", on && peers > 0);
   $("hm-share-v").textContent = on ? "Açık" : "Kapalı";
-  $("hm-share-n").textContent = !on ? "" : peers > 0 ? `${peers} Lust'çı görüyor`
+  $("hm-share-n").textContent = !on ? "" : peers > 0 ? `${peers} aktif`
     : share.available === false ? "Sunucu yok" : "";
   btn.dataset.on = on ? "1" : "";
   $("sh-sw").classList.toggle("on", on);

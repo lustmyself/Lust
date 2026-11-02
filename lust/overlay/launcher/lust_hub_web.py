@@ -1800,7 +1800,9 @@ function drawShare(s) {
   btn.dataset.on = on ? "1" : "";
   $("sh-sw").classList.toggle("on", on);
   const code = share.code || "";
-  if ($("sh-code").value !== code) $("sh-code").value = code || (share.available === false ? "Sunucu yok" : "League açılınca hazır");
+  const wait = share.available === false ? "Sunucu yok" : !on ? "Paylaşım kapalı"
+    : share.error ? "Bağlanamadı, tekrar deneniyor" : "League açılınca hazır";
+  if ($("sh-code").value !== (code || wait)) $("sh-code").value = code || wait;
   const friends = share.friends || [];
   const key = JSON.stringify(friends);
   if ($("sh-list").dataset.key !== key) {

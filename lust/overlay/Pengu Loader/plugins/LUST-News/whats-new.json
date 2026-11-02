@@ -1,6 +1,11 @@
 {
-  "version": "1.4.9.87",
+  "version": "1.4.9.88",
   "en": [
+    "Home: Skins and maps and Champ select tiles redrawn in the blue theme (tarot cards for your custom skins, slanted pick slots); the anime art is gone",
+    "Small windows: the header and the tiles fit, tile titles get smaller (full screen stays the same)",
+    "Dragging the title bar of a maximized window brings it back to its normal size, like Windows",
+    "Settings: one blue list with switches; the unused Background choice and the tabs are gone; the Settings tile says what needs a look",
+    "Cleanup: the unreachable Patch notes page and old unused styles removed",
     "Custom skins page: new see-through art behind the list, recoloured from gold to Lust's blue",
     "Skin sharing: paired friends show their Discord name first and their League account under it",
     "Discord: you're signed out once so your profile picture can show in friends' lists; sign in again in the hub",
@@ -88,6 +93,11 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "Ana ekran: Skinler ve Haritalar ile Champ select kartları mavi temaya göre yeniden çizildi (custom skinler için tarot kartları, eğik pick yerleri); anime resmi kaldırıldı",
+    "Küçük pencere: üst kısım ve kartlar sığıyor, kart başlıkları küçülüyor (tam ekran aynı)",
+    "Tam ekrandayken üst çubuktan tutup sürükleyince pencere Windows'taki gibi eski boyutuna dönüyor",
+    "Ayarlar: tek mavi liste ve anahtarlar; kullanılmayan Arka plan seçeneği ve sekmeler kaldırıldı; Ayarlar kartı neye bakman gerektiğini yazıyor",
+    "Temizlik: açılamayan Patch notes sayfası ve kullanılmayan eski stiller silindi",
     "Custom skinler sayfası: listenin arkasında yeni, yarı saydam bir resim var; altın rengi yerine Lust'un mavisine boyandı",
     "Skin paylaşımı: eşleştiğin arkadaşlarda önce Discord adı, altında LoL hesabı yazıyor",
     "Discord: profil fotoğrafının arkadaşlarında görünmesi için bir kez çıkış yapıldı; hub'dan tekrar giriş yap",

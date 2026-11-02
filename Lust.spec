@@ -305,7 +305,6 @@ hiddenimports = [
     'launcher.lust_maps',
     'launcher.lust_fonts',
     'launcher.lust_client',
-    'launcher.lust_patch',
     'launcher.lust_auto',
     'launcher.lust_wallpaper',
     'launcher.lust_discord',

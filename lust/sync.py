@@ -1210,7 +1210,7 @@ EDITS += [
      '        except Exception as e:  # noqa: BLE001\n'
      '            log.debug(f"[Client] The app cannot reach the client panel: {e}")\n'),
     ("Lust.spec", "    'launcher.lust_fonts',\n",
-     "    'launcher.lust_fonts',\n    'launcher.lust_client',\n    'launcher.lust_patch',\n    'launcher.lust_auto',\n"),
+     "    'launcher.lust_fonts',\n    'launcher.lust_client',\n    'launcher.lust_auto',\n"),
 ]
 
 

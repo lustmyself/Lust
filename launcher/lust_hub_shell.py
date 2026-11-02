@@ -42,6 +42,18 @@ def resized(edge: str, rect, dx: int, dy: int, min_size=MIN_SIZE):
     return left, top, right, bottom
 
 
+def dragged_out(cursor, size, grab_x: float, grab_y: int):
+    """Where the window goes when its title bar is dragged off a maximized screen: back to its
+    normal `size` (w, h), under the cursor at the same spot across the bar (grab_x, 0..1) and
+    the same height (grab_y px from the top), as Windows does."""
+    width, height = size
+    grab_x = min(max(float(grab_x), 0.0), 1.0)
+    grab_y = min(max(int(grab_y), 0), max(height - 1, 0))
+    left = int(cursor[0] - width * grab_x)
+    top = int(cursor[1] - grab_y)
+    return left, top, left + width, top + height
+
+
 def clean_geometry(data, screen=None):
     """A saved {x, y, width, height, maximized} that still fits: the size at least MIN_SIZE, the
     place kept only when the window's top lands on the screen. None when nothing usable is saved."""
@@ -231,6 +243,44 @@ class _Api:
             return
         self._resizing = True
         threading.Thread(target=self._follow, args=(edge,), daemon=True, name="LustHubResize").start()
+
+    def drag_restore(self, grab_x: float, grab_y: int) -> None:
+        """The title bar was pressed while maximized: once the mouse moves, come back to the normal
+        size under the cursor and follow it until the button is let go (a click alone does nothing)."""
+        if self._mode != "maximized" or self._resizing:
+            return
+        self._resizing = True
+        threading.Thread(target=self._drag_out, args=(grab_x, grab_y), daemon=True, name="LustHubDrag").start()
+
+    def _drag_out(self, grab_x, grab_y) -> None:
+        win = self._w()
+        try:
+            origin = win.cursor()
+            while True:
+                if not win.mouse_down():
+                    return
+                x, y = win.cursor()
+                if abs(x - origin[0]) > 6 or abs(y - origin[1]) > 6:
+                    break
+                time.sleep(0.012)
+            normal = self._normal or win.rect()
+            if not normal:
+                return
+            size = (normal[2] - normal[0], normal[3] - normal[1])
+            self._mode = "normal"
+            last = None
+            while True:
+                rect = dragged_out(win.cursor(), size, grab_x, grab_y)
+                if rect != last:
+                    win.place(rect)
+                    last = rect
+                if not win.mouse_down():
+                    break
+                time.sleep(0.012)
+        except Exception:  # noqa: BLE001
+            pass
+        finally:
+            self._resizing = False
 
     def _follow(self, edge: str) -> None:
         win = self._w()

@@ -139,5 +139,10 @@ def initialize_core_components(args, injection_threshold: Optional[float] = None
                 pass
         sys.exit(1)
     
+    try:
+        from launcher import lust_share
+        lust_share.attach(lcu, state, injection_manager)
+    except Exception as e:  # noqa: BLE001
+        log.debug(f"[Share] Skin sharing not started: {e}")
     return lcu, skin_scraper, state, injection_manager
 

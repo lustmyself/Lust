@@ -27,7 +27,7 @@ Lust consists of three main components:
 - **Skin Injection**: Handles skin injection compatible with Riot Vanguard
 - **WebSocket Bridge**: Operates a WebSocket server for real-time communication with frontend plugins
 - **Skin Management**: Downloads and manages skin files from the [LeagueSkins repository](https://github.com/Alban1911/LeagueSkins)
-- **Party Mode**: Skin sharing between friends through a WebSocket relay (off in Lust: no relay server)
+- **Skin sharing**: Lust users in the same lobby or team see each other's skins and icons
 - **Game Monitoring**: Tracks game state, champion select phases, and loadout countdowns
 - **Auto-Updater**: Checks GitHub for new releases and prompts users to install updates
 - **Analytics**: Sends a startup ping, a 15-minute presence heartbeat, and a best-effort close ping (configurable, runs in a background thread)
@@ -78,7 +78,8 @@ Lust includes a suite of JavaScript plugins that extend the League Client UI:
   Spotify updates
 - **Silent updates**: New versions download in the background and install while League is closed
 - **Lobby Reveal**: Your teammates' names and op.gg links in champion select
-- **Party Mode**: Needs a party relay server; Lust doesn't run one, so it is off
+- **Skin sharing**: Lust users in your lobby or champ select team see each other's skins and
+  profile icons, through Lust's own relay (`lust/relay`)
 - **Loading Screen Name**: The loading screen shows the injected skin's name; the chat and the name over your champion keep the champion's
 - **Multi-Language Support**: Works with any client language, with Lust's menus in 22 languages
 - **Open Source**: Fully open source and extensible

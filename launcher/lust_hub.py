@@ -182,6 +182,7 @@ def _set_setting(body: dict) -> str:
         "skins": "Skinler açık" if value else "Skinler kapalı: League modsuz açılır",
         "custom_skins": "" if value else "Özel skinler kapalı",
         "lobby_reveal": "" if value else "Lobby Reveal kapalı",
+        "share_skins": "Skinlerin diğer Lust kullanıcılarına gider" if value else "Skin paylaşımı kapalı",
         "rose_guard": "" if value else "Rose koruması kapalı",
         "quiet_start": "Lust bir sonraki açılışta tepside başlar" if value else "",
         "launch_league": "",

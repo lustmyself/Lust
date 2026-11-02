@@ -41,7 +41,7 @@ class IconTests(unittest.TestCase):
         self.assertEqual(lust_icon.chosen(), 0)
         self.assertEqual(lust_icon.choose(6000), "Profil simgesi: Arcane Jinx")
         self.assertEqual(lust_icon.chosen(), 6000)
-        self.assertEqual(lust_icon.bridge_reply(), {"type": "lust-profile-icon", "iconId": 6000})
+        self.assertEqual(lust_icon.bridge_reply(), {"type": "lust-profile-icon", "iconId": 6000, "others": []})
         self.assertEqual(lust_icon.listing()["icon"]["title"], "Arcane Jinx")
         self.assertEqual(lust_icon.choose(0), "Kendi simgene dönüldü")
         self.assertEqual(lust_icon.chosen(), 0)

@@ -361,6 +361,8 @@ hiddenimports = [
     'party.discovery.skin_collector',
     'party.integration',
     'party.integration.injection_hook',
+    'party.network.relay_config',
+    'launcher.lust_share',
     'certifi',
     
     # System tray

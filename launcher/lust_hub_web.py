@@ -1601,6 +1601,7 @@ const SETTINGS = [
   ["skins", "game", ICON.sparkle, "Skinler", "Oyunda uygulanır", "Kapalı: League normal açılır"],
   ["custom_skins", "game", ICON.plusbox, "Özel skinler", "Açık olanlar oynar", "Hepsi kapalı"],
   ["lobby_reveal", "game", ICON.users, "Lobby Reveal", "Takım arkadaşları görünür", "Kapalı"],
+  ["share_skins", "game", ICON.users, "Skin paylaşımı", "Duo ve takımdaki Lust’çılar skinlerini görür", "Skinlerin sadece sende görünür"],
   ["rose_guard", "game", ICON.shield, "Rose koruması", "Rose açılırsa kapatılır", "Kapalı"],
   ["autostart", "app", ICON.power, "Windows ile başlat", "Açık", "Kapalı"],
   ["auto_update", "app", ICON.sync, "Otomatik güncelleme", "League kapalıyken kurulur", "Yeni sürümde sorulur"],
@@ -1617,7 +1618,7 @@ function settingValue(s, key) {
   if (key === "auto_update") return !!s.auto_update;
   if (key === "spotify_auto") return !!(s.spotify || {}).auto;
   const values = s.settings || {};
-  const fallback = { performance_mode: true, skins: true, custom_skins: true, lobby_reveal: true, rose_guard: true, quiet_start: false,
+  const fallback = { performance_mode: true, skins: true, custom_skins: true, lobby_reveal: true, share_skins: true, rose_guard: true, quiet_start: false,
     launch_league: true, backdrop: "cinematic", reduce_motion: false };
   return key in values ? values[key] : fallback[key];
 }

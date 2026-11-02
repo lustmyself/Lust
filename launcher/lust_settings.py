@@ -18,6 +18,7 @@ DEFAULTS = {
     "skins": True,           # inject skins at all
     "custom_skins": True,    # play switched-on custom skins
     "lobby_reveal": True,    # teammates' names in champ select
+    "share_skins": True,     # Lust users in our lobby/team see our skins and icon (lust_share.py)
     "rose_guard": True,      # close Rose and take the League hook back
     "quiet_start": False,    # start in the tray, no hub window
     "launch_league": True,   # open League through Lust Offline when Lust starts

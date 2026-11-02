@@ -118,9 +118,10 @@ jobs:
         shell: bash
         env:
           LUST_RELAY_URL: ${{ secrets.LUST_RELAY_URL }}
-        run: |
-          # Empty without the LUST_RELAY_URL secret: party mode stays off
-          python -c "import os; open('party/network/relay_config.py', 'w').write('RELAY_URL = ' + repr(os.environ.get('LUST_RELAY_URL', '')) + chr(10))"
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        # Lust's relay (lust/relay): empty without its Cloudflare account, and skin sharing stays off
+        run: python lust/relay/write_config.py
 
       - name: Plugins (JS syntax)
         if: steps.rose.outputs.skip == 'false'

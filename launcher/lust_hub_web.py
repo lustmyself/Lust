@@ -1804,7 +1804,7 @@ function drawShare(s) {
     : share.error ? "Bağlanamadı, tekrar deneniyor" : "League açılınca hazır";
   if ($("sh-code").value !== (code || wait)) $("sh-code").value = code || wait;
   const friends = share.friends || [];
-  const key = JSON.stringify(friends);
+  const key = JSON.stringify([friends, !!share.running]);
   if ($("sh-list").dataset.key !== key) {
     $("sh-list").dataset.key = key;
     $("sh-list").replaceChildren(...(friends.length ? friends.map((f) => {
@@ -1812,7 +1812,8 @@ function drawShare(s) {
       row.className = "sh-f" + (f.online ? " on" : "");
       row.innerHTML = "<i></i><b></b><span></span><button>Çıkar</button>";
       row.querySelector("b").textContent = f.name;
-      row.querySelector("span").textContent = f.online ? "Bağlı" : "Lust kapalı";
+      // Our own sharing runs only while League is open: until then nobody shows as connected
+      row.querySelector("span").textContent = f.online ? "Bağlı" : share.running ? "Lust kapalı" : "League açılınca bağlanır";
       row.querySelector("button").addEventListener("click", () => act("share_remove", { id: f.id }));
       return row;
     }) : [Object.assign(document.createElement("div"), { className: "sh-empty",

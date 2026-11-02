@@ -816,6 +816,7 @@ PAGE = r"""<!doctype html>
   #tile-icon.pic { background: linear-gradient(135deg, #0e2a44, #0f1440); }
   @keyframes sppulse { 50% { transform: scale(1.05); filter: drop-shadow(0 10px 50px rgba(30, 215, 96, .6)); } }
   @media (prefers-reduced-motion: reduce) { .ht-sp-big { animation: none; } }
+  #tile-fonts .ht-bg, #tile-auto .ht-bg, #tile-settings .ht-bg, #tile-spotify .ht-bg { opacity: 1; animation: none; inset: 0; }
   #tile-fonts .ht-bg { background: radial-gradient(380px 220px at 90% 10%, rgba(251, 146, 60, .25), transparent 70%), linear-gradient(135deg, #2a1530, #0f1440); }
   #tile-settings .ht-bg { background: conic-gradient(from 200deg at 80% 30%, rgba(109, 93, 252, .45), rgba(56, 189, 248, .2), rgba(244, 114, 182, .3), rgba(109, 93, 252, .45)); filter: blur(30px); }
   .ht-eq { position: absolute; right: 26px; top: 26px; display: flex; gap: 3px; align-items: flex-end; height: 22px; }
@@ -1110,8 +1111,11 @@ PAGE = r"""<!doctype html>
   .ht-st b { font-weight: 700; color: var(--p3-white); }
   /* The small pieces on each tile stay upright */
   .ht-rank, .ht-eq, .ht-cs, .ht-sp-big { transform: skewX(6deg); }
+  .ht-rank, .ht-eq, .ht-cs, .ht-sp-big { transform: skewX(6deg); }
   .ht-cover { transform: skewX(6deg) rotate(4deg); }
   #tile-spotify.cover:hover .ht-cover { transform: skewX(6deg) scale(1.04); }
+  .ht-rank { border-radius: 0; font-family: var(--p3-cond); font-weight: 800; font-style: italic; font-size: 14px;
+    background: var(--p3-ink); color: var(--p3-cyan); border: 2px solid var(--p3-cyan); box-shadow: none; backdrop-filter: none; }
   .ht-rank { border-radius: 0; font-family: var(--p3-cond); font-weight: 800; font-style: italic; font-size: 14px;
     background: var(--p3-ink); color: var(--p3-cyan); border: 2px solid var(--p3-cyan); box-shadow: none; backdrop-filter: none; }
   /* Champ select: the draft panel fills the whole tile, see-through; the title sits over the picks */
@@ -1188,6 +1192,19 @@ PAGE = r"""<!doctype html>
       repeating-linear-gradient(115deg, rgba(255, 255, 255, .03) 0 2px, transparent 2px 16px),
       linear-gradient(150deg, #0a2aa8 0%, #05146a 50%, #020b2e 100%); }
   #tile-auto .ht-in { background: linear-gradient(8deg, rgba(2, 11, 46, .92) 6%, rgba(2, 11, 46, .3) 45%, transparent 65%); }
+  /* A light sweeping across now and then, over stripes drifting slowly to the right */
+  #tile-auto .ht-bg::before, #tile-auto .ht-bg::after { content: ""; position: absolute; inset: 0; pointer-events: none; }
+  #tile-auto .ht-bg::before { background: repeating-linear-gradient(115deg, rgba(62, 230, 255, .06) 0 2px, transparent 2px 22px);
+    background-size: 200% 100%; animation: csdrift 9s linear infinite; }
+  #tile-auto .ht-bg::after { left: -60%; right: auto; width: 45%;
+    background: linear-gradient(105deg, transparent 0%, rgba(62, 230, 255, .0) 20%, rgba(62, 230, 255, .22) 48%, rgba(255, 255, 255, .35) 50%,
+      rgba(255, 62, 128, .18) 53%, transparent 80%);
+    animation: cssweep 5.5s cubic-bezier(.45, .05, .25, 1) infinite; }
+  #tile-auto:hover .ht-bg::after { animation-duration: 2.2s; }
+  @keyframes csdrift { to { background-position: -48px 0; } }
+  @keyframes cssweep { 0%, 35% { transform: translateX(0) skewX(-14deg); opacity: 0; } 40% { opacity: 1; } 80% { opacity: 1; }
+    100% { transform: translateX(380%) skewX(-14deg); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { #tile-auto .ht-bg::before, #tile-auto .ht-bg::after { animation: none; } #tile-auto .ht-bg::after { display: none; } }
   .ht-cs { inset: 16px 26px 18px 44%; display: flex; flex-direction: column; justify-content: flex-start; gap: 8px; }
   .ht-cs .dr-leds { order: 0; position: static; justify-content: flex-end; gap: 6px; margin: 0; }
   .ht-cs .dr-leds span { height: 20px; padding: 0 9px; border-radius: 0; border: 0; transform: skewX(-14deg); gap: 5px;

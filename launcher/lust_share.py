@@ -158,7 +158,8 @@ def _ask_directory(me: str, friends: List[str]) -> Optional[List[str]]:
     body = json.dumps({"me": me, "friends": friends}).encode("utf-8")
     for context in _ssl_contexts():
         request = urllib.request.Request(f"{base}/friends?v={quote(str(APP_VERSION))}", data=body, method="POST",
-                                         headers={"Content-Type": "application/json"})
+                                         # Cloudflare turns away Python's own User-Agent (403)
+                                         headers={"Content-Type": "application/json", "User-Agent": f"Lust/{APP_VERSION}"})
         try:
             with urllib.request.urlopen(request, timeout=8, context=context) as response:
                 data = json.loads(response.read(64_000).decode("utf-8"))

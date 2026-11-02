@@ -1,6 +1,8 @@
 {
-  "version": "1.4.9.80",
+  "version": "1.4.9.81",
   "en": [
+    "New look for three home tiles: Fonts shows letters cut out in different fonts, Skins and Maps fans out the champions whose custom skin is on, Settings has a turning gear and switches (with warning tape when something needs a look)",
+    "The Profile icon tile's frame lost its extra light-blue edge",
     "The Profile icon tile shows your chosen icon whole, in a frame on the right, instead of a zoomed-in crop",
     "The Profile icon and Profile background tiles show the icon and background you picked",
     "New home background: sharp blue glass shards with a cyan and a pink slash, instead of the plain dotted blue",
@@ -77,6 +79,8 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "Üç ana sayfa kutucuğu yenilendi: Fontlar farklı yazı tiplerinde kesilmiş harfler, Skinler ve Haritalar custom skini açık şampiyonları kart gibi açıyor, Ayarlar dönen bir dişli ve anahtarlar gösteriyor (bakman gereken bir şey varsa uyarı şeridiyle)",
+    "Profil simgesi çerçevesindeki fazladan açık mavi kenar kalktı",
     "Profil simgesi kutucuğu seçtiğin simgeyi kırpmadan, sağda çerçeve içinde gösteriyor",
     "Profil simgesi ve Profil arka planı kutucukları senin seçtiğin simgeyi ve arka planı gösteriyor",
     "Yeni ana sayfa arka planı: düz noktalı mavi yerine keskin mavi cam parçaları, camgöbeği ve pembe çizgiler",

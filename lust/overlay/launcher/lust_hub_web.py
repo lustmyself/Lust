@@ -816,6 +816,7 @@ PAGE = r"""<!doctype html>
   #tile-icon.pic { background: linear-gradient(135deg, #0e2a44, #0f1440); }
   @keyframes sppulse { 50% { transform: scale(1.05); filter: drop-shadow(0 10px 50px rgba(30, 215, 96, .6)); } }
   @media (prefers-reduced-motion: reduce) { .ht-sp-big { animation: none; } }
+  #tile-fonts .ht-bg, #tile-auto .ht-bg, #tile-settings .ht-bg, #tile-spotify .ht-bg { opacity: 1; animation: none; inset: 0; }
   #tile-fonts .ht-bg { background: radial-gradient(380px 220px at 90% 10%, rgba(251, 146, 60, .25), transparent 70%), linear-gradient(135deg, #2a1530, #0f1440); }
   #tile-settings .ht-bg { background: conic-gradient(from 200deg at 80% 30%, rgba(109, 93, 252, .45), rgba(56, 189, 248, .2), rgba(244, 114, 182, .3), rgba(109, 93, 252, .45)); filter: blur(30px); }
   .ht-eq { position: absolute; right: 26px; top: 26px; display: flex; gap: 3px; align-items: flex-end; height: 22px; }
@@ -849,7 +850,6 @@ PAGE = r"""<!doctype html>
   .ht-cs { container-type: inline-size; }
   .ht-cs .dr-leds { margin: 0; gap: 3px; flex-wrap: nowrap; }
   .ht-cs .dr-leds span { height: 18px; padding: 0 5px; font-size: 9px; gap: 4px; }
-  @container (max-width: 176px) { .ht-cs .dr-leds { display: none; } }
   .cs-row { display: flex; gap: 5px; min-height: 0; transition: opacity .3s, filter .3s; }
   .cs-row.off { opacity: .35; filter: grayscale(1); }
   .cs-row.pick { flex: 1; }
@@ -1111,8 +1111,11 @@ PAGE = r"""<!doctype html>
   .ht-st b { font-weight: 700; color: var(--p3-white); }
   /* The small pieces on each tile stay upright */
   .ht-rank, .ht-eq, .ht-cs, .ht-sp-big { transform: skewX(6deg); }
+  .ht-rank, .ht-eq, .ht-cs, .ht-sp-big { transform: skewX(6deg); }
   .ht-cover { transform: skewX(6deg) rotate(4deg); }
   #tile-spotify.cover:hover .ht-cover { transform: skewX(6deg) scale(1.04); }
+  .ht-rank { border-radius: 0; font-family: var(--p3-cond); font-weight: 800; font-style: italic; font-size: 14px;
+    background: var(--p3-ink); color: var(--p3-cyan); border: 2px solid var(--p3-cyan); box-shadow: none; backdrop-filter: none; }
   .ht-rank { border-radius: 0; font-family: var(--p3-cond); font-weight: 800; font-style: italic; font-size: 14px;
     background: var(--p3-ink); color: var(--p3-cyan); border: 2px solid var(--p3-cyan); box-shadow: none; backdrop-filter: none; }
   /* Champ select: the draft panel fills the whole tile, see-through; the title sits over the picks */
@@ -1155,12 +1158,15 @@ PAGE = r"""<!doctype html>
   @keyframes gearspin { to { transform: rotate(360deg); } }
   @media (prefers-reduced-motion: reduce) { .ht-gear { animation: none; } }
   @media (prefers-reduced-motion: reduce) { .ht { animation: none; } }
-  /* Skins and maps tile: blue with a cyan slash; three tarot cards for the champions with a custom skin on */
-  #tile-maps .ht-bg { opacity: 1; animation: none; inset: 0; background:
-      linear-gradient(115deg, transparent 0 54%, rgba(62, 230, 255, .2) 54% 66%, transparent 66%),
-      linear-gradient(115deg, transparent 0 69%, rgba(255, 62, 128, .55) 69% 69.6%, transparent 69.6%),
-      repeating-linear-gradient(115deg, rgba(255, 255, 255, .03) 0 2px, transparent 2px 16px),
-      linear-gradient(150deg, #0b33c4 0%, #06187e 50%, #020b2e 100%); }
+  /* Custom skins page: its art behind the list, see-through, fading out to the left */
+  .amb-page { position: absolute; top: 0; right: 0; bottom: 0; width: 82%; opacity: 0; transition: opacity .5s ease;
+    background: right 30% / cover no-repeat; z-index: 1;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 30%); mask-image: linear-gradient(90deg, transparent 0%, #000 30%); }
+  .amb-skins { background-image: url("/hubart/custom-skins.jpg"); }
+  body[data-page="skins"] .amb-skins { opacity: .5; }
+  body[data-page="skins"] .amb-art { opacity: 0; }
+  /* Skins and maps tile: the Custom skins art; three tarot cards for the champions with a custom skin on */
+  #tile-maps .ht-bg { opacity: 1; animation: none; inset: 0; background: #06187e url("/hubart/custom-skins.jpg") 30% 30% / cover no-repeat; }
   .ht-fan { position: absolute; right: 30px; top: 14px; width: 210px; height: 124px; pointer-events: none; }
   #tile-maps .ht-in { position: relative; z-index: 2; }
   .ht-fan i { position: absolute; bottom: 0; left: 50%; width: 80px; height: 112px; margin-left: -40px;
@@ -1186,7 +1192,20 @@ PAGE = r"""<!doctype html>
       repeating-linear-gradient(115deg, rgba(255, 255, 255, .03) 0 2px, transparent 2px 16px),
       linear-gradient(150deg, #0a2aa8 0%, #05146a 50%, #020b2e 100%); }
   #tile-auto .ht-in { background: linear-gradient(8deg, rgba(2, 11, 46, .92) 6%, rgba(2, 11, 46, .3) 45%, transparent 65%); }
-  .ht-cs { inset: 16px 26px 18px 44%; display: flex; flex-direction: column; justify-content: flex-start; gap: 10px; }
+  /* A light sweeping across now and then, over stripes drifting slowly to the right */
+  #tile-auto .ht-bg::before, #tile-auto .ht-bg::after { content: ""; position: absolute; inset: 0; pointer-events: none; }
+  #tile-auto .ht-bg::before { background: repeating-linear-gradient(115deg, rgba(62, 230, 255, .06) 0 2px, transparent 2px 22px);
+    background-size: 200% 100%; animation: csdrift 9s linear infinite; }
+  #tile-auto .ht-bg::after { left: -60%; right: auto; width: 45%;
+    background: linear-gradient(105deg, transparent 0%, rgba(62, 230, 255, .0) 20%, rgba(62, 230, 255, .22) 48%, rgba(255, 255, 255, .35) 50%,
+      rgba(255, 62, 128, .18) 53%, transparent 80%);
+    animation: cssweep 5.5s cubic-bezier(.45, .05, .25, 1) infinite; }
+  #tile-auto:hover .ht-bg::after { animation-duration: 2.2s; }
+  @keyframes csdrift { to { background-position: -48px 0; } }
+  @keyframes cssweep { 0%, 35% { transform: translateX(0) skewX(-14deg); opacity: 0; } 40% { opacity: 1; } 80% { opacity: 1; }
+    100% { transform: translateX(380%) skewX(-14deg); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { #tile-auto .ht-bg::before, #tile-auto .ht-bg::after { animation: none; } #tile-auto .ht-bg::after { display: none; } }
+  .ht-cs { inset: 16px 26px 18px 44%; display: flex; flex-direction: column; justify-content: flex-start; gap: 8px; }
   .ht-cs .dr-leds { order: 0; position: static; justify-content: flex-end; gap: 6px; margin: 0; }
   .ht-cs .dr-leds span { height: 20px; padding: 0 9px; border-radius: 0; border: 0; transform: skewX(-14deg); gap: 5px;
     font-family: var(--p3-cond); font-weight: 800; font-style: italic; font-size: 12px; letter-spacing: .06em; text-transform: uppercase;
@@ -1194,18 +1213,18 @@ PAGE = r"""<!doctype html>
   .ht-cs .dr-leds span::before { width: 6px; height: 6px; border-radius: 0; transform: rotate(45deg); background: rgba(189, 243, 255, .3); box-shadow: none; }
   .ht-cs .dr-leds span.on { background: var(--p3-white); color: var(--p3-ink); }
   .ht-cs .dr-leds span.on::before { background: #10b981; box-shadow: none; }
-  .ht-cs .cs-row.pick { order: 1; flex: 1; gap: 0; max-height: 120px; }
+  .ht-cs .cs-row.pick { order: 1; flex: 1; gap: 0; min-height: 0; max-height: 120px; }
   .ht-cs .cs-row.pick i { flex: 1; margin-left: -6px; border: 0; border-radius: 0; opacity: 1; box-shadow: none;
     clip-path: polygon(22% 0, 100% 0, 78% 100%, 0 100%); background: #0d2a9e center 25% / cover no-repeat; }
   .ht-cs .cs-row.pick i:first-child { margin-left: 0; }
   .ht-cs .cs-row.pick i:first-child:not(.empty) { flex-grow: 1.4; border: 0; box-shadow: none; filter: none; }
-  .ht-cs .cs-row.pick i::after { content: attr(data-n); left: auto; right: 26%; bottom: 4px; padding: 0; background: none;
-    font-family: var(--p3-big); font-size: 18px; color: var(--p3-white); text-shadow: 2px 2px 0 var(--p3-ink); }
+  .ht-cs .cs-row.pick i::after { content: attr(data-n); left: auto; right: 24%; bottom: 3px; padding: 0; background: none;
+    font-family: var(--p3-big); font-size: 34px; line-height: 1; color: var(--p3-white); text-shadow: 3px 3px 0 var(--p3-ink); }
   .ht-cs .cs-row.pick i.empty { background: repeating-linear-gradient(115deg, rgba(189, 243, 255, .08) 0 3px, transparent 3px 9px), rgba(2, 11, 46, .55); }
   .ht-cs .cs-row.pick i.empty::after { color: rgba(189, 243, 255, .3); text-shadow: none; }
   .ht-cs .cs-row.ban { order: 2; justify-content: flex-end; gap: 10px; }
   .ht-cs .cs-row.ban > em { font-family: var(--p3-cond); font-weight: 800; font-style: italic; font-size: 12px; letter-spacing: .14em; color: var(--p3-hot); }
-  .ht-cs .cs-row.ban > i { width: 22px; height: 22px; border-radius: 0; transform: rotate(45deg); border: 2px solid var(--p3-hot);
+  .ht-cs .cs-row.ban > i { width: 24px; height: 24px; border-radius: 0; transform: rotate(45deg); border: 2px solid var(--p3-hot);
     background: #2a0d3e center / 140% no-repeat; filter: saturate(.6); }
   .ht-cs .cs-row.ban > i::after { border-radius: 0; background: linear-gradient(transparent 45%, var(--p3-hot) 45% 55%, transparent 55%); }
   .ht-cs .cs-row.ban > i.empty { border: 2px solid rgba(189, 243, 255, .2); background: rgba(2, 11, 46, .5); }
@@ -1244,8 +1263,13 @@ PAGE = r"""<!doctype html>
     .ht-in { padding: 14px 22px 16px; }
     .ht-st { font-size: 14px; }
     .ht-fan { right: 6px; top: 6px; scale: .62; transform-origin: top right; }
-    .ht-cs { inset: 12px 16px 46% 46%; gap: 6px; }
-    .ht-cs .dr-leds { display: none; }
+    .ht-cs { inset: 10px 14px 40% 40%; gap: 4px; }
+    .ht-cs .dr-leds { gap: 3px; }
+    .ht-cs .dr-leds span { height: 16px; padding: 0 5px; font-size: 9.5px; gap: 3px; }
+    .ht-cs .cs-row.ban { gap: 7px; }
+    .ht-cs .cs-row.ban > em { font-size: 10px; }
+    .ht-cs .cs-row.ban > i { width: 15px; height: 15px; }
+    .ht-cs .cs-row.pick i::after { font-size: 22px; bottom: 2px; }
     .ht-ransom { right: 12px; top: 12px; scale: .52; transform-origin: top right; }
     .ht-pic, .ht-cover { width: 82px; height: 82px; right: 16px; top: 14px; margin-top: 0; }
     #tile-spotify.cover .ht-eq { right: 112px; }
@@ -1255,7 +1279,6 @@ PAGE = r"""<!doctype html>
   }
   @container tile (max-width: 340px) {
     .ht-fan { scale: .5; }
-    .ht-cs .cs-row.ban { display: none; }
   }
 </style>
 </head>
@@ -1265,7 +1288,7 @@ PAGE = r"""<!doctype html>
     <stop offset="0" stop-color="#c4b5fd"/><stop offset=".55" stop-color="#a78bfa"/><stop offset="1" stop-color="#f472b6"/>
   </linearGradient></defs>
 </svg>
-<div class="ambient" aria-hidden="true"><div class="amb-art" id="amb-art"></div><i class="blob b1"></i><i class="blob b2"></i></div>
+<div class="ambient" aria-hidden="true"><div class="amb-art" id="amb-art"></div><i class="amb-page amb-skins"></i><i class="blob b1"></i><i class="blob b2"></i></div>
 <div class="main">
   <header class="top pywebview-drag-region" id="top">
     <button class="back" id="back" title="Ana sayfa (Esc)" hidden>__back__</button>

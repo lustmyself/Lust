@@ -22,8 +22,7 @@ enough: both end up in the same room.
 League friends who use Lust pair by themselves, no code needed: every few minutes Lust
 sends the relay's directory (lust/relay/src/directory.ts) a hash of our PUUID and of our
 League friends' PUUIDs, and gets back the friends who use Lust and have us on their list
-too. Each such pair meets in a room made from both PUUIDs, and the friend is moved once
-into the client's "Lust" friend group.
+too. Each such pair meets in a room made from both PUUIDs.
 
 The rooms carry, next to the skin pick, the profile icon chosen in the hub
 (launcher/lust_icon.py): LUST-ProfileIcon shows it for these players too.
@@ -67,8 +66,6 @@ MAX_JOINED = 20
 # League friends who use Lust: asked this often, and at most this many paired
 LOL_FRIENDS_S = 300.0
 MAX_LOL_FRIENDS = 10
-# The client's friend group they are filed in (Lust Offline's own friend shows there too)
-LOL_GROUP = "Lust"
 
 _lock = threading.Lock()
 _runner: Optional["_Runner"] = None
@@ -198,50 +195,8 @@ def lol_friends_using_lust(lcu, my_puuid: str) -> Optional[Dict[str, dict]]:
         tag = str(f.get("gameTag") or "")
         result[lol_pair_room(my_puuid, f["puuid"])] = {
             "id": sid, "name": name, "riot": f"{name}#{tag}" if name and tag else name,
-            "puuid": f["puuid"], "lcu_id": str(f.get("id") or ""), "group": f.get("groupId")}
+            "puuid": f["puuid"]}
     return result
-
-
-def file_in_lust_group(lcu, friends: List[dict]) -> None:
-    """Move League friends who use Lust into the client's Lust friend group, each one once
-    (a friend moved back by hand stays where the player put them)."""
-    with _friends_lock:
-        data = _load_raw()
-        filed = set(data.get("filed") or [])
-    todo = [f for f in friends if f.get("lcu_id") and lol_id(f["puuid"]) not in filed]
-    if not todo:
-        return
-    session, base = getattr(lcu, "s", None), getattr(lcu, "base", None)
-    if session is None or not base:
-        return
-    try:
-        groups = lcu.get("/lol-chat/v1/friend-groups")
-        group = next((g for g in groups or [] if isinstance(g, dict)
-                      and str(g.get("name") or "").lower() == LOL_GROUP.lower()), None)
-        if group is None:
-            session.post(f"{base}/lol-chat/v1/friend-groups", json={"name": LOL_GROUP}, timeout=3)
-            groups = lcu.get("/lol-chat/v1/friend-groups")
-            group = next((g for g in groups or [] if isinstance(g, dict)
-                          and str(g.get("name") or "").lower() == LOL_GROUP.lower()), None)
-        if group is None or group.get("id") is None:
-            return
-        done = []
-        for f in todo:
-            if f.get("group") != group["id"]:
-                response = session.put(f"{base}/lol-chat/v1/friends/{quote(f['lcu_id'], safe='')}",
-                                       json={"groupId": group["id"]}, timeout=3)
-                if not getattr(response, "ok", False):
-                    continue
-                log.info(f"[Share] Moved {f.get('name') or 'a friend'} into the {LOL_GROUP} friend group")
-            done.append(lol_id(f["puuid"]))
-    except Exception as e:  # noqa: BLE001
-        log.debug(f"[Share] Friend group: {e}")
-        return
-    if done:
-        with _friends_lock:
-            data = _load_raw()
-            data["filed"] = sorted(set(data.get("filed") or []) | set(done))[-500:]
-            _save_friends(data)
 
 
 # ---- friends paired with a code ----
@@ -267,14 +222,6 @@ def _clean_profile(data) -> dict:
             continue
         result[key] = value[:64] if key != "dca" else value
     return result
-
-
-def _load_raw() -> dict:
-    try:
-        data = json.loads(_friends_path().read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return {}
-    return data if isinstance(data, dict) else {}
 
 
 def load_friends() -> dict:
@@ -308,8 +255,7 @@ def load_friends() -> dict:
             continue
         if sid > 0 and sid not in removed and all(f["id"] != sid for f in friends) and all(x["id"] != sid for x in joined):
             joined.append({"id": sid, "name": str(j.get("name") or "")[:64], **_clean_profile(j)})
-    filed = [h for h in (data.get("filed") or [] if isinstance(data, dict) else []) if isinstance(h, str)]
-    return {"friends": friends[:MAX_FRIENDS], "removed": removed, "joined": joined[:MAX_JOINED], "filed": filed}
+    return {"friends": friends[:MAX_FRIENDS], "removed": removed, "joined": joined[:MAX_JOINED]}
 
 
 def _save_friends(data: dict) -> bool:
@@ -732,8 +678,6 @@ class _Runner:
             found = await asyncio.to_thread(lol_friends_using_lust, self.lcu, self.manager.my_puuid)
             if found is not None:
                 self.manager.lol_friends = found
-                if found:
-                    await asyncio.to_thread(file_in_lust_group, self.lcu, list(found.values()))
         paired = self.manager.pair_rooms()
         # Rooms that gave up reconnecting try again when the party is needed: a new
         # lobby or champ select, or a friend just added

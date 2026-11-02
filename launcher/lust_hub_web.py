@@ -1336,7 +1336,7 @@ PAGE = r"""<!doctype html>
         <label>Arkadaş ekle</label>
         <div class="sh-code"><input id="sh-in" placeholder="Arkadaşının kodunu yapıştır (LUST:...)"><button id="sh-add">Ekle</button></div>
         <label>Arkadaşların</label>
-        <div class="sh-note">Lust kullanan LoL arkadaşların kendiliğinden gelir, istemcide Lust grubuna taşınır</div>
+        <div class="sh-note">Lust kullanan LoL arkadaşların kendiliğinden gelir</div>
         <div class="sh-list" id="sh-list"></div>
       </div>
       </div>

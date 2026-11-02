@@ -1028,14 +1028,18 @@ PAGE = r"""<!doctype html>
   :root { --p3-ink: #020b2e; --p3-blue: #1336c9; --p3-cyan: #3ee6ff; --p3-ice: #bdf3ff; --p3-white: #f4fbff; --p3-hot: #ff3d7f;
     --p3-big: "Anton", "Bahnschrift", "Impact", sans-serif; --p3-cond: "Barlow Condensed", "Bahnschrift", "Segoe UI", sans-serif;
     --bg: #04103a; }
+  /* Home backdrop B: Kırık cam — keskin mavi parçalar, camgöbeği kesik */
   .ambient { background:
-      radial-gradient(circle at 1px 1px, rgba(120, 200, 255, .14) 1.4px, transparent 1.6px) 0 0 / 14px 14px,
-      radial-gradient(900px 600px at 12% 0%, #0d33b0 0%, transparent 70%),
-      linear-gradient(160deg, #06208a, #020b2e 75%); }
+    linear-gradient(118deg, transparent 0 57%, rgba(62,230,255,.20) 57% 58.2%, transparent 58.2%),
+    linear-gradient(118deg, transparent 0 60%, rgba(255,255,255,.07) 60% 74%, transparent 74%),
+    linear-gradient(62deg, transparent 0 22%, rgba(30,80,240,.55) 22% 41%, transparent 41%),
+    linear-gradient(150deg, transparent 0 66%, rgba(1,6,28,.75) 66%),
+    linear-gradient(28deg, transparent 0 70%, rgba(19,54,201,.6) 70% 84%, transparent 84%),
+    linear-gradient(160deg, #0b33c4 0%, #05187a 42%, #020b2e 100%); }
   .ambient::after { display: none; }
-  .ambient .blob { border-radius: 0; filter: none; opacity: 1; animation: none; left: -20%; right: auto; width: 140%; transform: rotate(-14deg); }
-  .ambient .blob.b1 { top: 47%; height: 24px; background: var(--p3-cyan); opacity: .55; }
-  .ambient .blob.b2 { top: calc(47% + 44px); bottom: auto; height: 4px; background: var(--p3-white); opacity: .4; }
+  .ambient .blob { display: block; left: -20%; width: 140%; transform: rotate(-24deg); }
+  .ambient .blob.b1 { top: 62%; height: 46px; background: var(--p3-cyan); opacity: .35; }
+  .ambient .blob.b2 { top: calc(62% + 70px); height: 3px; background: var(--p3-hot); opacity: .7; }
   /* Title bar */
   .word { font-family: var(--p3-big); font-weight: 400; font-size: 22px; letter-spacing: .2em; color: var(--p3-white);
     background: none; -webkit-background-clip: border-box; transform: skewX(-10deg); }
@@ -1102,11 +1106,11 @@ PAGE = r"""<!doctype html>
   .ht:hover::before { transform: scaleY(1); }
   .ht:active { transform: translateX(var(--sx)) skewX(-6deg) scale(.98); }
   .ht-bg.on, #tile-lol .ht-bg, #tile-fonts .ht-bg, #tile-auto .ht-bg, #tile-settings .ht-bg, #tile-spotify .ht-bg, .ht-art.on, .ht-vid {
-    filter: grayscale(1) contrast(1.25) brightness(1.05); }
-  #tile-spotify.cover .ht-bg { filter: grayscale(1) blur(20px) brightness(.8); }
+    filter: grayscale(.15) contrast(1.1) brightness(1.05); }
+  #tile-spotify.cover .ht-bg { filter: grayscale(.15) blur(20px) brightness(.8); }
   /* The Profile art sits above the tint layer: tint it on its own */
-  .ht-art.on { filter: grayscale(1) sepia(1) hue-rotate(190deg) saturate(3.2) brightness(.85) contrast(1.1); }
-  .ht-ov { mix-blend-mode: multiply; background: linear-gradient(160deg, #8fbaff 0%, #2a5cff 45%, #061660 100%); }
+  .ht-art.on { filter: grayscale(.1) sepia(.15) hue-rotate(185deg) saturate(1.1) brightness(.9) contrast(1.05); }
+  .ht-ov { mix-blend-mode: multiply; opacity: .5; background: linear-gradient(160deg, #dbe6ff 0%, #6f93ff 45%, #0e2280 100%); }
   .ht-in { transform: skewX(6deg); padding: 16px 30px 18px; background: linear-gradient(8deg, rgba(2, 11, 46, .92) 6%, rgba(2, 11, 46, .25) 50%, transparent 72%); }
   .ht-in::before { content: "0" counter(p3); font-family: var(--p3-big); font-size: 24px; line-height: 1; color: var(--p3-cyan); letter-spacing: .04em; }
   .ht:hover .ht-in::before { color: var(--p3-white); }

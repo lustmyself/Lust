@@ -1028,14 +1028,18 @@ PAGE = r"""<!doctype html>
   :root { --p3-ink: #020b2e; --p3-blue: #1336c9; --p3-cyan: #3ee6ff; --p3-ice: #bdf3ff; --p3-white: #f4fbff; --p3-hot: #ff3d7f;
     --p3-big: "Anton", "Bahnschrift", "Impact", sans-serif; --p3-cond: "Barlow Condensed", "Bahnschrift", "Segoe UI", sans-serif;
     --bg: #04103a; }
+  /* Home backdrop B: Kırık cam — keskin mavi parçalar, camgöbeği kesik */
   .ambient { background:
-      radial-gradient(circle at 1px 1px, rgba(120, 200, 255, .14) 1.4px, transparent 1.6px) 0 0 / 14px 14px,
-      radial-gradient(900px 600px at 12% 0%, #0d33b0 0%, transparent 70%),
-      linear-gradient(160deg, #06208a, #020b2e 75%); }
+    linear-gradient(118deg, transparent 0 57%, rgba(62,230,255,.20) 57% 58.2%, transparent 58.2%),
+    linear-gradient(118deg, transparent 0 60%, rgba(255,255,255,.07) 60% 74%, transparent 74%),
+    linear-gradient(62deg, transparent 0 22%, rgba(30,80,240,.55) 22% 41%, transparent 41%),
+    linear-gradient(150deg, transparent 0 66%, rgba(1,6,28,.75) 66%),
+    linear-gradient(28deg, transparent 0 70%, rgba(19,54,201,.6) 70% 84%, transparent 84%),
+    linear-gradient(160deg, #0b33c4 0%, #05187a 42%, #020b2e 100%); }
   .ambient::after { display: none; }
-  .ambient .blob { border-radius: 0; filter: none; opacity: 1; animation: none; left: -20%; right: auto; width: 140%; transform: rotate(-14deg); }
-  .ambient .blob.b1 { top: 47%; height: 24px; background: var(--p3-cyan); opacity: .55; }
-  .ambient .blob.b2 { top: calc(47% + 44px); bottom: auto; height: 4px; background: var(--p3-white); opacity: .4; }
+  .ambient .blob { display: block; left: -20%; width: 140%; transform: rotate(-24deg); }
+  .ambient .blob.b1 { top: 62%; height: 46px; background: var(--p3-cyan); opacity: .35; }
+  .ambient .blob.b2 { top: calc(62% + 70px); height: 3px; background: var(--p3-hot); opacity: .7; }
   /* Title bar */
   .word { font-family: var(--p3-big); font-weight: 400; font-size: 22px; letter-spacing: .2em; color: var(--p3-white);
     background: none; -webkit-background-clip: border-box; transform: skewX(-10deg); }

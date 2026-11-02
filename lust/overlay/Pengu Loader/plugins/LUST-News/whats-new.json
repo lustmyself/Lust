@@ -1,6 +1,7 @@
 {
-  "version": "1.4.9.89",
+  "version": "1.4.9.90",
   "en": [
+    "Fonts tile: two blue stripes, a thick one and a thin one; Settings tile has the same dark maroon background",
     "Home: the Skins and maps tile has its art back; Champ select is bigger and always shows 5 picks, 5 bans and which of Accept/Ban/Pick/Reveal are on",
     "Champ select tile: a light sweeps across its background; Fonts, Spotify and Settings tiles have their backgrounds back",
     "Home: Skins and maps and Champ select tiles redrawn in the blue theme (tarot cards for your custom skins, slanted pick slots); the anime art is gone",
@@ -95,6 +96,7 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "Fontlar kartı: biri kalın biri ince iki mavi şerit; Ayarlar kartı da aynı bordo arka planda",
     "Ana ekran: Skinler ve Haritalar kartının resmi geri geldi; Champ select büyüdü, her pencere boyutunda 5 pick, 5 ban ve Accept/Ban/Pick/Reveal'den hangilerinin açık olduğunu gösteriyor",
     "Champ select kartı: arka planında kayan bir ışık efekti var; Fontlar, Spotify ve Ayarlar kartlarının arka planı geri geldi",
     "Ana ekran: Skinler ve Haritalar ile Champ select kartları mavi temaya göre yeniden çizildi (custom skinler için tarot kartları, eğik pick yerleri); anime resmi kaldırıldı",

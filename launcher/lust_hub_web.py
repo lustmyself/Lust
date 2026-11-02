@@ -1153,6 +1153,9 @@ PAGE = r"""<!doctype html>
   .sh-f .st i { width: 8px; height: 8px; transform: rotate(45deg); background: #64748b; }
   .sh-f.on .st i { background: #34d399; box-shadow: 0 0 8px #34d399; }
   .sh-f .st + button { margin-left: 4px; }
+  .sh-f button.arm { color: #fff; background: var(--p3-hot); text-decoration: none; padding: 3px 8px; transform: skewX(-12deg);
+    font-family: var(--p3-cond); font-weight: 700; animation: shArm .3s ease; }
+  @keyframes shArm { 30% { transform: skewX(-12deg) translateX(-3px); } 60% { transform: skewX(-12deg) translateX(3px); } }
   .sh-empty { font-family: var(--p3-cond); font-size: 14px; color: var(--p3-ice); opacity: .8; }
 
   /* Tiles: slanted panels on a blue shadow, a number, a title in big capitals */
@@ -1801,6 +1804,8 @@ pollMedia(); pollLevel(); requestAnimationFrame(tickMedia);
 
 // Skin sharing in the home header (launcher/lust_share.py): the switch, and who sees your skins now
 const DC_SVG = '<svg viewBox="0 0 24 24"><path d="M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18.2 18.2 0 0 0-5.6 0L8.6 3a19.5 19.5 0 0 0-4.9 1.4C.6 9 0 13.5.3 18a19.7 19.7 0 0 0 6 3l1.3-2a12.7 12.7 0 0 1-2-1l.5-.4a14 14 0 0 0 11.8 0l.5.4c-.6.4-1.3.7-2 1l1.3 2a19.6 19.6 0 0 0 6-3c.4-5.2-.7-9.7-3.4-13.6ZM8.5 15.3c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.1 1.1 2.1 2.4-.9 2.4-2.1 2.4Zm7 0c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.1 1.1 2.1 2.4-.9 2.4-2.1 2.4Z"/></svg>';
+const SH_REMOVE_MS = 4000;
+let shRemove = { id: "", at: 0 };
 function drawShare(s) {
   const on = settingValue(s, "share_skins") !== false;
   const share = s.share || {};
@@ -1837,7 +1842,17 @@ function drawShare(s) {
       // Our own sharing runs only while League is open: until then nobody shows as connected
       row.querySelector(".st span").textContent = f.online ? "Bağlı" : share.running ? "Çevrimdışı" : "League açılınca bağlanır";
       if (!f.online && (f.riot || f.dc)) row.title = "Çevrimdışı: en son görülen hesapları";
-      row.querySelector("button").addEventListener("click", () => act("share_remove", { id: f.id }));
+      // Two steps: the first press asks, a second one within a few seconds removes
+      const rm = row.querySelector("button");
+      const armed = () => shRemove.id === f.id && Date.now() - shRemove.at < SH_REMOVE_MS;
+      const look = () => { rm.classList.toggle("arm", armed()); rm.textContent = armed() ? "Emin misin? Tekrar bas" : "Çıkar"; };
+      look();
+      rm.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (armed()) { shRemove = { id: "", at: 0 }; act("share_remove", { id: f.id }); return; }
+        shRemove = { id: f.id, at: Date.now() }; look();
+        setTimeout(() => rm.isConnected && look(), SH_REMOVE_MS + 50);
+      });
       return row;
     }) : [Object.assign(document.createElement("div"), { className: "sh-empty",
       textContent: "Henüz yok. Kodunu arkadaşına gönder ya da onunkini yapıştır; bir kere yeter." })]));

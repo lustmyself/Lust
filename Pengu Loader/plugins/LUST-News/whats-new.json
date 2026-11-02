@@ -1,6 +1,7 @@
 {
-  "version": "1.4.9.88",
+  "version": "1.4.9.89",
   "en": [
+    "Home: the Skins and maps tile has its art back; Champ select is bigger and always shows 5 picks, 5 bans and which of Accept/Ban/Pick/Reveal are on",
     "Home: Skins and maps and Champ select tiles redrawn in the blue theme (tarot cards for your custom skins, slanted pick slots); the anime art is gone",
     "Small windows: the header and the tiles fit, tile titles get smaller (full screen stays the same)",
     "Dragging the title bar of a maximized window brings it back to its normal size, like Windows",
@@ -93,6 +94,7 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "Ana ekran: Skinler ve Haritalar kartının resmi geri geldi; Champ select büyüdü, her pencere boyutunda 5 pick, 5 ban ve Accept/Ban/Pick/Reveal'den hangilerinin açık olduğunu gösteriyor",
     "Ana ekran: Skinler ve Haritalar ile Champ select kartları mavi temaya göre yeniden çizildi (custom skinler için tarot kartları, eğik pick yerleri); anime resmi kaldırıldı",
     "Küçük pencere: üst kısım ve kartlar sığıyor, kart başlıkları küçülüyor (tam ekran aynı)",
     "Tam ekrandayken üst çubuktan tutup sürükleyince pencere Windows'taki gibi eski boyutuna dönüyor",

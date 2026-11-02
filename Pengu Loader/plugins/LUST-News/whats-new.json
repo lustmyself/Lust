@@ -2,6 +2,7 @@
   "version": "1.4.9.80",
   "en": [
     "The Profile icon tile shows your chosen icon whole, in a frame on the right, instead of a zoomed-in crop",
+    "The Profile icon and Profile background tiles show the icon and background you picked",
     "New home background: sharp blue glass shards with a cyan and a pink slash, instead of the plain dotted blue",
     "The home tiles are much less blue: their pictures show in nearly their own colours",
     "New home look: slanted blue tiles with big titles and numbers, today's date, and the Online / Offline / Mobile switch up top",
@@ -77,6 +78,7 @@
   ],
   "tr": [
     "Profil simgesi kutucuğu seçtiğin simgeyi kırpmadan, sağda çerçeve içinde gösteriyor",
+    "Profil simgesi ve Profil arka planı kutucukları senin seçtiğin simgeyi ve arka planı gösteriyor",
     "Yeni ana sayfa arka planı: düz noktalı mavi yerine keskin mavi cam parçaları, camgöbeği ve pembe çizgiler",
     "Ana sayfa kutucukları çok daha az mavi: resimler neredeyse kendi renginde",
     "Yeni ana sayfa görünümü: büyük başlıklı ve numaralı eğik mavi kutucuklar, günün tarihi ve üstte Çevrimiçi / Çevrimdışı / Mobil seçimi",

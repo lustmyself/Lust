@@ -2022,13 +2022,14 @@ function drawTiles() {
   const art = t.art || {};
   const ic = t.icon;
   fill("t-icon", ic && ic.id ? [["b", ic.name || `#${ic.id}`], " · sadece sende görünür"] : ["İstediğin simge, sahip olmasan da"]);
-  const pic = (art.icon || {}).picture || "";
+  // The player's own icon and background when they picked one, the stock art otherwise
+  const pic = (ic && ic.image) || (art.icon || {}).picture || "";
   $("tile-icon").classList.toggle("pic", !!pic);
   setBg("t-icon-bg", pic || (art.icon || {}).splash || "");
   $("t-icon-pic").style.backgroundImage = pic ? `url("${pic}")` : "";
   const pf = t.profile;
   fill("t-profile", pf && pf.name ? [["b", pf.name], " · profilinde"] : ["Profilinin arka planı, istediğin skin"]);
-  setBg("t-profile-bg", (art.profile || {}).splash || "");
+  setBg("t-profile-bg", (pf && pf.image) || (art.profile || {}).splash || "");
   const on = !!media.available;
   fill("t-spotify", on ? [["b", media.title || "Bilinmeyen şarkı"], media.artist ? ` · ${media.artist}` : ""] : ["Spotify'da bir şey çalmıyor"]);
   $("t-eq").hidden = !(on && media.playing);

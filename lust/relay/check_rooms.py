@@ -43,7 +43,8 @@ async def main():
 def directory(me, friends):
     base = RELAY_URL.replace("wss://", "https://", 1)  # noqa: F821
     request = urllib.request.Request(f"{base}/friends?v=1.4.9.92", data=json.dumps({"me": me, "friends": friends}).encode(),
-                                     method="POST", headers={"Content-Type": "application/json"})
+                                     method="POST",
+                                     headers={"Content-Type": "application/json", "User-Agent": "Lust/1.4.9.92"})
     with urllib.request.urlopen(request, timeout=20) as response:
         return json.loads(response.read())["matches"]
 

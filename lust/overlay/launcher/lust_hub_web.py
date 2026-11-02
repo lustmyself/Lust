@@ -867,7 +867,7 @@ PAGE = r"""<!doctype html>
   /* The chosen icon: a blurred copy fills the tile, the icon itself sits whole on the right */
   #tile-icon.pic .ht-bg { background-size: cover; background-position: center; inset: -40px; filter: blur(26px) saturate(1.3) brightness(.6); }
   .ht-pic { position: absolute; right: 40px; top: 50%; width: 150px; height: 150px; margin-top: -100px; z-index: 1;
-    background: #0e2a44 center / cover; box-shadow: 0 18px 40px rgba(0, 0, 0, .55), 0 0 0 3px var(--p3-white, #fff), 8px 8px 0 3px var(--p3-cyan, #3ee6ff);
+    background: #0e2a44 center / cover; box-shadow: 0 18px 40px rgba(0, 0, 0, .55), 0 0 0 3px var(--p3-white, #fff);
     transform: skewX(6deg) rotate(-3deg); opacity: 0; transition: opacity .5s, transform .5s; pointer-events: none; }
   #tile-icon.pic .ht-pic { opacity: 1; }
   #tile-icon.pic:hover .ht-pic { transform: skewX(6deg) rotate(0deg) scale(1.04); }
@@ -1141,6 +1141,45 @@ PAGE = r"""<!doctype html>
   .ht-cover { width: 150px; height: 150px; margin-top: -100px; right: 30px; }
   #tile-spotify.cover .ht-eq { right: 200px; }
   .ht-glyph { font-family: var(--p3-big); font-weight: 400; letter-spacing: 0; font-size: 96px; }
+  /* Fonts tile: a ransom-note specimen, each letter in its own face and box */
+  #tile-fonts .ht-glyph { display: none; }
+  .ht-ransom { position: absolute; right: 34px; top: 34px; display: flex; align-items: flex-end; gap: 6px; transform: skewX(6deg); pointer-events: none; }
+  .ht-ransom b { display: grid; place-items: center; min-width: 58px; height: 74px; padding: 0 10px; font-weight: 400; font-size: 54px; line-height: 1;
+    box-shadow: 5px 5px 0 rgba(0, 0, 0, .45); transition: transform .35s; }
+  .ht-ransom b:nth-child(1) { font-family: var(--p3-big); background: var(--p3-white); color: var(--p3-ink); transform: rotate(-7deg); }
+  .ht-ransom b:nth-child(2) { font-family: Georgia, "Times New Roman", serif; font-style: italic; background: var(--p3-ink); color: var(--p3-white); height: 62px; transform: rotate(5deg) translateY(-6px); }
+  .ht-ransom b:nth-child(3) { font-family: "Malgun Gothic", "UttumDotum", sans-serif; font-weight: 700; background: var(--p3-cyan); color: var(--p3-ink); height: 80px; transform: rotate(-3deg); }
+  .ht-ransom b:nth-child(4) { font-family: Consolas, "Courier New", monospace; font-weight: 700; background: var(--p3-hot); color: var(--p3-white); height: 58px; font-size: 44px; transform: rotate(8deg) translateY(-14px); }
+  .ht-ransom b:nth-child(5) { font-family: var(--p3-cond); font-weight: 800; font-style: italic; background: var(--p3-white); color: var(--p3-blue); transform: rotate(-5deg) translateY(4px); }
+  #tile-fonts:hover .ht-ransom b { transform: rotate(0deg); }
+  /* Skins and Maps tile: the champions with a custom skin on, fanned out like cards */
+  .ht-fan { position: absolute; right: 60px; top: 16px; width: 180px; height: 116px; pointer-events: none; }
+  .ht-fan i { position: absolute; bottom: 0; left: 50%; width: 74px; height: 108px; margin-left: -37px; background: #0e2a44 center 18% / cover;
+    box-shadow: 0 0 0 3px var(--p3-white), 0 14px 30px rgba(0, 0, 0, .55); transform-origin: 50% 120%; transition: transform .4s; }
+  .ht-fan i:nth-child(1) { transform: skewX(6deg) rotate(-14deg) translateX(-34px); }
+  .ht-fan i:nth-child(2) { transform: skewX(6deg) rotate(0deg); z-index: 1; }
+  .ht-fan i:nth-child(3) { transform: skewX(6deg) rotate(14deg) translateX(34px); z-index: 2; }
+  .ht-fan i:only-child { transform: skewX(6deg) rotate(-4deg); }
+  #tile-maps:hover .ht-fan i:nth-child(1) { transform: skewX(6deg) rotate(-20deg) translateX(-44px); }
+  #tile-maps:hover .ht-fan i:nth-child(3) { transform: skewX(6deg) rotate(20deg) translateX(44px); }
+  #tile-maps.fan .ht-faces i { display: none; }
+  #tile-maps.fan .ht-faces { right: 18px; top: auto; bottom: 22px; }
+  /* Settings tile: a turning gear and three switches; hazard stripes when something needs a look */
+  .ht-gear { position: absolute; right: -36px; top: 50%; width: 230px; height: 230px; margin-top: -132px; color: rgba(189, 243, 255, .22);
+    animation: gearspin 30s linear infinite; pointer-events: none; }
+  .ht-gear svg { width: 100%; height: 100%; }
+  .ht-sw { position: absolute; right: 190px; top: 34px; display: grid; gap: 10px; transform: skewX(6deg); pointer-events: none; }
+  .ht-sw i { position: relative; display: block; width: 74px; height: 22px; background: rgba(2, 11, 46, .75); box-shadow: inset 0 0 0 2px rgba(189, 243, 255, .35); transform: skewX(-14deg); }
+  .ht-sw i::after { content: ""; position: absolute; top: 3px; bottom: 3px; left: 4px; width: 28px; background: rgba(189, 243, 255, .45); transition: left .35s, background .35s; }
+  .ht-sw i.on { box-shadow: inset 0 0 0 2px var(--p3-cyan); }
+  .ht-sw i.on::after { left: 42px; background: var(--p3-cyan); box-shadow: 0 0 12px rgba(62, 230, 255, .7); }
+  #tile-settings:hover .ht-sw i:not(.on)::after { left: 42px; }
+  .ht-haz { position: absolute; left: 44%; right: -20%; top: 48%; height: 22px; opacity: 0; transform: rotate(-8deg); pointer-events: none;
+    background: repeating-linear-gradient(45deg, #ffd23f 0 16px, #10131f 16px 32px); box-shadow: 0 6px 18px rgba(0, 0, 0, .4); transition: opacity .4s; }
+  #tile-settings.warn .ht-haz { opacity: .9; }
+  #tile-settings.warn .ht-gear { color: rgba(255, 210, 63, .35); }
+  @keyframes gearspin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .ht-gear { animation: none; } }
   @media (prefers-reduced-motion: reduce) { .ht { animation: none; } }
 </style>
 </head>
@@ -1215,7 +1254,7 @@ PAGE = r"""<!doctype html>
       <div class="ht-go">__arrow__</div>
     </div>
     <div class="ht" data-go="skins" id="tile-maps" style="--i:1;--c:52, 211, 153;--g:url(#hg2)">
-      <div class="ht-bg" id="t-maps-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><div class="ht-faces" id="t-maps-faces"></div>
+      <div class="ht-bg" id="t-maps-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><div class="ht-faces" id="t-maps-faces"></div><div class="ht-fan" id="t-maps-fan"></div>
       <div class="ht-in"><div class="ht-orb"><svg viewBox="0 0 30 30"><path class="f" d="M4 8l7-3 8 3 7-3v17l-7 3-8-3-7 3z"/><path d="M11 5v17M19 8v17"/><circle class="s" cx="15" cy="13" r="2.4"/></svg></div>
         <b class="ht-ttl">Skinler ve Haritalar</b><span class="ht-st" id="t-maps"></span></div>
       <div class="ht-go">__arrow__</div>
@@ -1227,7 +1266,7 @@ PAGE = r"""<!doctype html>
       <div class="ht-go">__arrow__</div>
     </div>
     <div class="ht" data-go="fonts" id="tile-fonts" style="--i:3;--c:251, 146, 60;--g:url(#hg4)">
-      <div class="ht-bg" id="t-fonts-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><div class="ht-glyph">Aa 가</div>
+      <div class="ht-bg" id="t-fonts-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><div class="ht-glyph">Aa 가</div><div class="ht-ransom"><b>A</b><b>a</b><b>가</b><b>1</b><b>Ş</b></div>
       <div class="ht-in"><div class="ht-orb"><svg viewBox="0 0 30 30"><path d="M4 24 11 6l7 18M6.8 17h8.4"/><circle cx="21.5" cy="18.5" r="3.5"/><path d="M25 14v10"/></svg></div>
         <b class="ht-ttl">Fontlar</b><span class="ht-st" id="t-fonts"></span></div>
       <div class="ht-go">__arrow__</div>
@@ -1257,7 +1296,7 @@ PAGE = r"""<!doctype html>
       <div class="ht-go">__arrow__</div>
     </div>
     <div class="ht" data-go="settings" id="tile-settings" style="--i:8;--c:167, 139, 250;--g:url(#hg9)">
-      <div class="ht-bg" id="t-settings-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i>
+      <div class="ht-bg" id="t-settings-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><div class="ht-gear"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="74" fill="none" stroke="currentColor" stroke-width="26" stroke-dasharray="22 16.75"/><circle cx="100" cy="100" r="58" fill="none" stroke="currentColor" stroke-width="14"/><circle cx="100" cy="100" r="22" fill="none" stroke="currentColor" stroke-width="10"/></svg></div><div class="ht-sw"><i class="on"></i><i></i><i class="on"></i></div><i class="ht-haz"></i>
       <div class="ht-in"><div class="ht-orb"><svg viewBox="0 0 30 30"><g class="spin"><circle class="f" cx="15" cy="15" r="8"/><circle cx="15" cy="15" r="3.6"/><path d="M15 3.5v3M15 23.5v3M3.5 15h3M23.5 15h3M6.9 6.9 9 9M21 21l2.1 2.1M6.9 23.1 9 21M21 9l2.1-2.1"/></g></svg></div>
         <b class="ht-ttl">Ayarlar</b><span class="ht-st" id="t-settings"></span></div>
       <div class="ht-go">__arrow__</div>
@@ -2001,8 +2040,15 @@ function drawTiles() {
       const i = document.createElement("i"); i.style.backgroundImage = `url("${CHAMP_ICON(id)}")`; return i;
     }), ...(skinChamps.length ? [Object.assign(document.createElement("em"), { textContent: "açık" })] : []));
   }
-  if (skinChamps.length) setBg("t-maps-bg", CHAMP_SPLASH(skinChamps[0]), "champ");
-  else if (mp && mp.preview) setBg("t-maps-bg", `/map-preview?id=${encodeURIComponent(mp.id)}`);
+  const fan = $("t-maps-fan");
+  if (fan.dataset.key !== facesKey) {
+    fan.dataset.key = facesKey;
+    fan.replaceChildren(...skinChamps.slice(0, 3).map((id) => {
+      const i = document.createElement("i"); i.style.backgroundImage = `url("${CHAMP_SPLASH(id)}")`; return i;
+    }));
+  }
+  $("tile-maps").classList.toggle("fan", skinChamps.length > 0);
+  if (mp && mp.preview) setBg("t-maps-bg", `/map-preview?id=${encodeURIComponent(mp.id)}`);
   else setBg("t-maps-bg", RIFT, "rift");
   const wl = t.wallpaper;
   fill("t-wall", wl && !wl.league && wl.name ? [["b", wl.name.replace(/\.[^.]+$/, "")], ` · ${wl.count} duvar kağıdı`]
@@ -2071,6 +2117,7 @@ function drawTiles() {
     $("t-auto-draft").replaceChildren(leds, row("pick", a.picks, !!a.pick), row("ban", a.bans, !!a.ban));
   }
   const warn = (s.rose && s.rose.installed) || ((s.patcher || {}).state && s.patcher.state !== "ok") || s.update_available;
+  $("tile-settings").classList.toggle("warn", !!warn);
   fill("t-settings", warn ? [["b", s.update_available ? "Güncelleme hazır" : "Bakman gereken bir şey var", "warn"]]
     : [["b", "✓ Her şey yolunda", "ok"], " · güncelleme, onarım, istemci"]);
 }

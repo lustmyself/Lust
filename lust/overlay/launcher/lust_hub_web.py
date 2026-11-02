@@ -820,8 +820,8 @@ PAGE = r"""<!doctype html>
   /* Fonts and Settings tiles: a dark maroon background; Fonts adds two blue stripes, a thick one and a thin one */
   #tile-settings .ht-bg { background: radial-gradient(380px 220px at 90% 10%, rgba(251, 146, 60, .25), transparent 70%), linear-gradient(135deg, #2a1530, #0f1440); }
   #tile-fonts .ht-bg { background:
-      linear-gradient(160deg, transparent 0 30%, rgba(30, 90, 255, .55) 30% 44%, transparent 44%),
-      linear-gradient(160deg, transparent 0 50%, rgba(62, 160, 255, .6) 50% 52.5%, transparent 52.5%),
+      linear-gradient(160deg, transparent 0 36%, rgba(30, 90, 255, .6) 36% 41%, transparent 41%),
+      linear-gradient(160deg, transparent 0 44%, rgba(62, 160, 255, .6) 44% 46%, transparent 46%),
       radial-gradient(380px 220px at 90% 10%, rgba(251, 146, 60, .25), transparent 70%), linear-gradient(135deg, #2a1530, #0f1440); }
   .ht-eq { position: absolute; right: 26px; top: 26px; display: flex; gap: 3px; align-items: flex-end; height: 22px; }
   .ht-eq i { width: 4px; border-radius: 2px; background: #1ed760; animation: hteq 1s ease-in-out infinite; }

@@ -1115,6 +1115,13 @@ PAGE = r"""<!doctype html>
   .home-head { position: relative; z-index: 30; }
   /* The version panel opens over the home header (and its Skin sharing panel) */
   .vpop { z-index: 60; }
+  /* Custom skins page: its own art behind the list, see-through, fading out to the left */
+  .amb-page { position: absolute; top: 0; right: 0; bottom: 0; width: 82%; opacity: 0; transition: opacity .5s ease;
+    background: right 30% / cover no-repeat; z-index: 1;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 30%); mask-image: linear-gradient(90deg, transparent 0%, #000 30%); }
+  .amb-skins { background-image: url("/hubart/custom-skins.jpg"); }
+  body[data-page="skins"] .amb-skins { opacity: .5; }
+  body[data-page="skins"] .amb-art { opacity: 0; }
   .sh-pop { position: absolute; z-index: 40; top: calc(100% + 12px); left: 0; width: 430px; padding: 18px 20px 16px;
     background: #061445; border: 2px solid var(--p3-cyan); box-shadow: 10px 10px 0 var(--p3-blue); clip-path: polygon(0 0, 100% 0, 97% 100%, 0 100%); }
   .sh-pop[hidden] { display: none; }
@@ -1150,7 +1157,9 @@ PAGE = r"""<!doctype html>
   .sh-f .who b, .sh-f .who em { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sh-f .who em { display: flex; align-items: center; gap: 4px; font-style: normal; font-family: var(--p3-cond); font-weight: 600;
     font-size: 13px; color: #a5b4fc; }
-  .sh-f .who em svg { width: 13px; height: 13px; flex: none; fill: #a5b4fc; stroke: none; }
+  .sh-f .who b svg { width: 14px; height: 14px; flex: none; fill: #a5b4fc; stroke: none; margin-right: 5px; vertical-align: -2px; }
+  .sh-f .who em .lol { flex: none; font-size: 10px; letter-spacing: .06em; padding: 0 4px; color: #0b1033; background: #a5b4fc;
+    transform: skewX(-12deg); }
   .sh-f .st { margin-left: auto; flex: none; display: flex; align-items: center; gap: 6px; }
   .sh-f .st i { width: 8px; height: 8px; transform: rotate(45deg); background: #64748b; }
   .sh-f.on .st i { background: #34d399; box-shadow: 0 0 8px #34d399; }
@@ -1255,7 +1264,7 @@ PAGE = r"""<!doctype html>
     <stop offset="0" stop-color="#c4b5fd"/><stop offset=".55" stop-color="#a78bfa"/><stop offset="1" stop-color="#f472b6"/>
   </linearGradient><linearGradient id="hg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f9a8d4"/><stop offset="1" stop-color="#e879f9"/></linearGradient><linearGradient id="hg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6ee7b7"/><stop offset="1" stop-color="#38bdf8"/></linearGradient><linearGradient id="hg3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fef08a"/><stop offset="1" stop-color="#f59e0b"/></linearGradient><linearGradient id="hg4" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fde68a"/><stop offset="1" stop-color="#fb923c"/></linearGradient><linearGradient id="hg5" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7dd3fc"/><stop offset="1" stop-color="#818cf8"/></linearGradient><linearGradient id="hg6" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f5d0fe"/><stop offset="1" stop-color="#c084fc"/></linearGradient><linearGradient id="hg7" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#86efac"/><stop offset="1" stop-color="#1ed760"/></linearGradient><linearGradient id="hg8" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c7d2fe"/><stop offset="1" stop-color="#6366f1"/></linearGradient><linearGradient id="hg9" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e0e7ff"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs>
 </svg>
-<div class="ambient" aria-hidden="true"><div class="amb-art" id="amb-art"></div><i class="blob b1"></i><i class="blob b2"></i></div>
+<div class="ambient" aria-hidden="true"><div class="amb-art" id="amb-art"></div><i class="amb-page amb-skins"></i><i class="blob b1"></i><i class="blob b2"></i></div>
 <div class="main">
   <header class="top pywebview-drag-region" id="top">
     <button class="back" id="back" title="Ana sayfa (Esc)" hidden>__back__</button>
@@ -1831,14 +1840,18 @@ function drawShare(s) {
     $("sh-list").replaceChildren(...(friends.length ? friends.map((f) => {
       const row = document.createElement("div");
       row.className = "sh-f" + (f.online ? " on" : "");
-      row.innerHTML = `<div class="av"></div><div class="who"><b></b><em hidden>${DC_SVG}<u></u></em></div>`
+      row.innerHTML = `<div class="av"></div><div class="who"><b></b><em hidden><span class="lol">LoL</span><u></u></em></div>`
         + "<div class=\"st\"><i></i><span></span></div><button>Çıkar</button>";
       if (f.dca) row.querySelector(".av").style.backgroundImage = `url("${f.dca}")`;
-      row.querySelector("b").textContent = f.riot || f.name;
-      row.querySelector("b").title = f.riot ? `LoL: ${f.riot}` : "";
-      if (f.dc || f.dcu) {
+      // Discord name first, the League account (Riot ID) under it
+      const dc = f.dc || (f.dcu ? `@${f.dcu}` : "");
+      const lol = f.riot || (dc ? f.name : "");
+      const b = row.querySelector("b");
+      if (dc) { b.innerHTML = DC_SVG; b.append(dc); b.title = f.dcu ? `Discord: @${f.dcu}` : ""; }
+      else b.textContent = f.riot || f.name;
+      if (dc && lol) {
         const em = row.querySelector("em"); em.hidden = false;
-        em.querySelector("u").textContent = f.dc && f.dcu && f.dc !== f.dcu ? `${f.dc} · @${f.dcu}` : (f.dc || `@${f.dcu}`);
+        em.querySelector("u").textContent = lol;
         em.querySelector("u").style.textDecoration = "none";
       }
       // Our own sharing runs only while League is open: until then nobody shows as connected

@@ -50,6 +50,12 @@ def user() -> Optional[dict]:
         return None
     if not isinstance(data, dict) or not data.get("id"):
         return None
+    if "avatar_hash" not in data:
+        # Signed in before 1.4.9.87: we never kept the picture's address, so friends
+        # can't be shown it. Sign out once; the next sign-in keeps it.
+        log.info("[Discord] Old sign-in without the picture, signing out once")
+        logout()
+        return None
     avatar = _dir() / AVATAR
     return {"id": str(data["id"]), "name": str(data.get("name") or data.get("username") or ""),
             "username": str(data.get("username") or ""),

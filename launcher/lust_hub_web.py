@@ -1106,11 +1106,11 @@ PAGE = r"""<!doctype html>
   .ht:hover::before { transform: scaleY(1); }
   .ht:active { transform: translateX(var(--sx)) skewX(-6deg) scale(.98); }
   .ht-bg.on, #tile-lol .ht-bg, #tile-fonts .ht-bg, #tile-auto .ht-bg, #tile-settings .ht-bg, #tile-spotify .ht-bg, .ht-art.on, .ht-vid {
-    filter: grayscale(.45) contrast(1.15) brightness(1.05); }
-  #tile-spotify.cover .ht-bg { filter: grayscale(.45) blur(20px) brightness(.8); }
+    filter: grayscale(.15) contrast(1.1) brightness(1.05); }
+  #tile-spotify.cover .ht-bg { filter: grayscale(.15) blur(20px) brightness(.8); }
   /* The Profile art sits above the tint layer: tint it on its own */
-  .ht-art.on { filter: grayscale(.35) sepia(.45) hue-rotate(185deg) saturate(1.5) brightness(.85) contrast(1.1); }
-  .ht-ov { mix-blend-mode: multiply; opacity: .72; background: linear-gradient(160deg, #c4d8ff 0%, #4f7bff 45%, #0a1f78 100%); }
+  .ht-art.on { filter: grayscale(.1) sepia(.15) hue-rotate(185deg) saturate(1.1) brightness(.9) contrast(1.05); }
+  .ht-ov { mix-blend-mode: multiply; opacity: .5; background: linear-gradient(160deg, #dbe6ff 0%, #6f93ff 45%, #0e2280 100%); }
   .ht-in { transform: skewX(6deg); padding: 16px 30px 18px; background: linear-gradient(8deg, rgba(2, 11, 46, .92) 6%, rgba(2, 11, 46, .25) 50%, transparent 72%); }
   .ht-in::before { content: "0" counter(p3); font-family: var(--p3-big); font-size: 24px; line-height: 1; color: var(--p3-cyan); letter-spacing: .04em; }
   .ht:hover .ht-in::before { color: var(--p3-white); }

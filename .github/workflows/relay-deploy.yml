@@ -48,3 +48,5 @@ jobs:
           url=$(python -c "exec(open('party/network/relay_config.py').read()); print(RELAY_URL.replace('wss://', 'https://'))")
           sleep 10
           curl -fsS "$url/"
+          pip install --quiet websockets
+          python lust/relay/check_rooms.py

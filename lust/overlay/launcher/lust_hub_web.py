@@ -92,14 +92,11 @@ PAGE = r"""<!doctype html>
     background: radial-gradient(circle, rgba(10, 200, 185, .8), transparent 65%); animation: float2 32s ease-in-out infinite alternate; }
   @keyframes float1 { to { transform: translate(180px, 120px) scale(1.15); } }
   @keyframes float2 { to { transform: translate(-160px, -90px) scale(1.1); } }
-  .rail, .main { position: relative; z-index: 1; }
+  .main { position: relative; z-index: 1; }
   /* The rail sits above the page so a tab's label is never hidden behind it */
-  .rail { z-index: 3; }
   svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
   /* Side rail: icon tiles that grow under the mouse */
-  .rail { width: 76px; background: rgba(13, 11, 20, .62); backdrop-filter: blur(18px); display: flex;
-    flex-direction: column; align-items: center; gap: 14px; padding: 18px 0; border-right: 1px solid rgba(255, 255, 255, .05); }
   .tab { position: relative; width: 44px; height: 44px; border-radius: 13px; display: grid; place-items: center;
     background: #1d1a29; color: var(--sub); cursor: pointer;
     transition: transform .18s cubic-bezier(.3, 1.6, .5, 1), background .15s, color .15s; }
@@ -140,8 +137,6 @@ PAGE = r"""<!doctype html>
     transform: translateX(-6px); transition: .15s; z-index: 5; box-shadow: 0 6px 18px rgba(0, 0, 0, .45);
     border: 1px solid rgba(255, 255, 255, .08); }
   .tab:hover::after { opacity: 1; transform: none; }
-  .rail .spacer { flex: 1; }
-  .rail .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 10px currentColor; }
 
   .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
   .top { height: 52px; display: flex; align-items: center; gap: 10px; padding: 0 12px 0 26px; }
@@ -226,11 +221,6 @@ PAGE = r"""<!doctype html>
   .bar > i { display: block; height: 100%; width: 0; border-radius: 9px; background: #fff; transition: width .4s; }
   .bar.busy > i { width: 30%; animation: busy 1.3s ease-in-out infinite; }
   @keyframes busy { from { margin-left: -30%; } to { margin-left: 100%; } }
-  .tip { margin-left: 6px; padding: 4px 12px 4px 10px; border-radius: 99px; font-size: 11.5px; color: #d9c79a;
-    background: linear-gradient(90deg, rgba(200, 170, 110, .14), rgba(200, 170, 110, .04));
-    border: 1px solid rgba(200, 170, 110, .22); white-space: nowrap; display: inline-flex; align-items: center; gap: 7px; }
-  .tip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #c8aa6e; box-shadow: 0 0 8px #c8aa6e; }
-  .tip b { color: #f0e6d2; font-weight: 600; letter-spacing: .4px; }
   .hero { margin-bottom: 14px; }
   /* Profile card: bigger text, it spans the whole window */
   .hero { min-height: 260px; padding: 30px 32px !important; }
@@ -247,8 +237,6 @@ PAGE = r"""<!doctype html>
   .hero-last span { font-size: 14px; }
 
   .grid { display: grid; gap: 10px; }
-  .g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .dismiss { flex: none; width: 30px; height: 30px; margin-left: 4px; border: 0; border-radius: 9px; display: grid; place-items: center;
     background: rgba(255, 255, 255, .05); color: var(--sub); cursor: pointer; transition: background .15s, color .15s; }
   .dismiss:hover { background: rgba(255, 255, 255, .12); color: #fff; }
@@ -264,7 +252,6 @@ PAGE = r"""<!doctype html>
   .tile.danger b { color: var(--red); }
   .t b { display: block; font-size: 13px; font-weight: 600; }
   .t span { color: var(--sub); font-size: 11.5px; }
-  .tile .end { margin-left: auto; width: 8px; height: 8px; border-radius: 50%; background: var(--faint); }
 
   /* Quick actions: League's play card, and coloured actions beside it */
   .acts { display: grid; grid-template-columns: 1.15fr 1fr; grid-template-rows: repeat(3, minmax(58px, 1fr)); gap: 10px; }
@@ -389,7 +376,6 @@ PAGE = r"""<!doctype html>
     background: #a3a0ad; transition: left .15s, background .15s; }
   .switch.on { background: var(--accent); }
   .switch.on::after { left: 18px; background: #fff; }
-  .ver .round { margin-left: 0; }
   .themes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
   .theme { background: var(--card); border-radius: 14px; padding: 7px 7px 10px; cursor: pointer; border: 2px solid transparent;
     transition: transform .15s, border-color .15s; }
@@ -590,13 +576,6 @@ PAGE = r"""<!doctype html>
   #toast.show { opacity: 1; transform: translate(-50%, 0); }
   #lost { position: fixed; inset: 0; display: none; place-items: center; background: rgba(16, 14, 23, .9); color: var(--sub); }
   /* Settings: big toggle tiles, gold when on */
-  .sg-head { display: flex; align-items: center; margin: 4px 0 14px; }
-  .sg-tabs { display: flex; gap: 4px; padding: 4px; border-radius: 99px; background: rgba(14, 15, 22, .6);
-    border: 1px solid rgba(255, 255, 255, .06); }
-  .sg-tabs button { border: 0; background: none; color: var(--sub); font: 600 12.5px inherit; padding: 6px 16px; border-radius: 99px;
-    cursor: pointer; transition: background .2s, color .2s; }
-  .sg-tabs button:hover { color: var(--text); }
-  .sg-tabs button.on { background: rgba(200, 170, 110, .18); color: #f0e6d2; box-shadow: inset 0 0 0 1px rgba(200, 170, 110, .35); }
   .sg-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
   .sg { position: relative; display: flex; align-items: center; gap: 12px; min-height: 62px; padding: 10px 14px; border-radius: 16px;
     cursor: pointer; background: rgba(14, 15, 22, .6); border: 1px solid rgba(255, 255, 255, .06);
@@ -604,7 +583,6 @@ PAGE = r"""<!doctype html>
     animation: rise .4s cubic-bezier(.2, .8, .2, 1) both; }
   .sg:hover { transform: translateY(-2px); border-color: rgba(200, 170, 110, .35); }
   .sg:active { transform: scale(.97); }
-  .sg.wide { grid-column: 1 / -1; }
   .sg .si { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; flex: none;
     background: rgba(255, 255, 255, .07); color: var(--sub); transition: background .25s, color .25s; }
   .sg .si svg { width: 17px; height: 17px; }
@@ -614,9 +592,6 @@ PAGE = r"""<!doctype html>
     box-shadow: 0 8px 24px rgba(200, 170, 110, .25), inset 0 1px 0 rgba(255, 255, 255, .35); }
   .sg.on .si { background: rgba(30, 35, 40, .22); color: #1e2328; }
   .sg.on b { color: #1e2328; } .sg.on span { color: rgba(30, 35, 40, .7); }
-  .sg .opt { margin-left: auto; display: flex; gap: 4px; padding: 3px; border-radius: 99px; background: rgba(0, 0, 0, .25); }
-  .sg .opt i { font-style: normal; font-size: 11.5px; font-weight: 600; padding: 4px 10px; border-radius: 99px; color: var(--sub); }
-  .sg .opt i.on { background: #c8aa6e; color: #1e2328; }
   .sg-grid .sg:nth-child(2) { animation-delay: .03s; } .sg-grid .sg:nth-child(3) { animation-delay: .06s; }
   .sg-grid .sg:nth-child(4) { animation-delay: .09s; } .sg-grid .sg:nth-child(5) { animation-delay: .12s; }
   .sg-grid .sg:nth-child(6) { animation-delay: .15s; } .sg-grid .sg:nth-child(7) { animation-delay: .18s; }
@@ -666,18 +641,7 @@ PAGE = r"""<!doctype html>
   .amb-art { inset: 0 0 30% 0; filter: blur(4px) saturate(1.15) brightness(.6); transform: scale(1.03); }
   .amb-art.on { opacity: 1; }
   .ambient::after { background: linear-gradient(180deg, rgba(7, 8, 13, .1) 0%, rgba(7, 8, 13, .65) 45%, #07080d 70%); }
-  .rail { background: transparent; backdrop-filter: none; border-right: 1px solid rgba(255, 255, 255, .05); }
   .card, .act { background: rgba(14, 15, 22, .6); }
-  /* Settings: the plain hextech backdrop */
-  .bd-hextech .amb-art { display: none; }
-  .bd-hextech .ambient { background:
-      radial-gradient(60% 50% at 0% 0%, rgba(200, 170, 110, .12), transparent 70%),
-      radial-gradient(55% 60% at 100% 100%, rgba(10, 200, 185, .11), transparent 70%),
-      linear-gradient(160deg, #0b1324 0%, #080d18 55%, #05070d 100%); }
-  .bd-hextech .ambient::after { background:
-      repeating-linear-gradient(60deg, rgba(200, 170, 110, .03) 0 1px, transparent 1px 26px),
-      repeating-linear-gradient(-60deg, rgba(200, 170, 110, .03) 0 1px, transparent 1px 26px); }
-  .bd-hextech .card, .bd-hextech .act { background: rgba(16, 24, 40, .6); }
   /* Settings: no animations */
   .calm *, .calm *::before, .calm *::after { animation: none !important; transition: none !important; }
 
@@ -798,41 +762,19 @@ PAGE = r"""<!doctype html>
   .ht-ov { position: absolute; inset: 0;
     background: linear-gradient(105deg, rgba(9, 12, 40, .95) 0%, rgba(9, 12, 40, .72) 42%, rgba(9, 12, 40, .12) 100%),
       radial-gradient(420px 220px at 0% 100%, rgba(var(--c), .32), transparent 70%); }
-  .ht-shine { position: absolute; top: 0; bottom: 0; width: 40%; left: -60%; pointer-events: none;
-    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .08), transparent);
-    animation: htshine 8s ease-in-out infinite; animation-delay: calc(var(--i) * 400ms + 1.4s); }
   @keyframes htshine { 0%, 72% { left: -60%; } 100% { left: 130%; } }
   .ht-in { position: relative; height: 100%; padding: 20px 22px; display: flex; flex-direction: column; }
-  .ht-orb { width: 56px; height: 56px; border-radius: 17px; display: grid; place-items: center; flex: none; overflow: hidden;
-    background: linear-gradient(145deg, rgba(var(--c), .28), rgba(var(--c), .08)); border: 1px solid rgba(var(--c), .45);
-    box-shadow: 0 10px 30px -8px rgba(var(--c), .7), inset 0 1px 0 rgba(255, 255, 255, .18);
-    animation: htfloat 5s ease-in-out infinite; animation-delay: calc(var(--i) * -600ms); }
   @keyframes htfloat { 50% { transform: translateY(-4px); } }
-  .ht-orb svg { width: 30px; height: 30px; overflow: visible; stroke: var(--g); stroke-width: 2.1; fill: none; }
-  .ht-orb svg .f { fill: var(--g); fill-opacity: .18; }
-  .ht-orb svg .s { fill: var(--g); stroke: none; }
-  .ht-orb svg.lol-mark { width: 34px; height: 34px; stroke: none; }
-  .ht-orb svg.sp-logo { width: 34px; height: 34px; stroke: none; filter: drop-shadow(0 0 8px rgba(30, 215, 96, .5)); }
-  .ht-orb svg.sp-logo path { stroke: #0b0b0b; }
-  .ht-orb.art { padding: 0; }
   .ht-art { width: 100%; height: 100%; background: center / cover no-repeat; display: block; }
-  .ht .spin { animation: htspin 14s linear infinite; transform-origin: 15px 15px; }
-  @keyframes htspin { to { transform: rotate(360deg); } }
   .ht-ttl { margin-top: auto; font-size: 21px; font-weight: 800; letter-spacing: -.02em; }
   .ht-st { margin-top: 4px; color: var(--sub); font-size: 13px; min-height: 19px; padding-right: 50px;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ht-st b { color: var(--text); font-weight: 700; }
   .ht-st b.ok { color: #34d399; } .ht-st b.warn { color: #fbbf24; }
-  .ht-go { position: absolute; right: 18px; bottom: 18px; width: 38px; height: 38px; border-radius: 12px; display: grid;
-    place-items: center; background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .1); color: var(--sub);
-    transition: background .2s, color .2s, transform .2s; }
-  .ht-go svg { width: 16px; height: 16px; }
-  .ht:hover .ht-go { background: rgb(var(--c)); color: #fff; border-color: transparent; transform: translateX(2px); }
   .ht-glyph { position: absolute; right: 24px; top: 50%; transform: translateY(-62%); font-weight: 800; font-size: 86px;
     letter-spacing: -.04em; line-height: 1; pointer-events: none;
     background: linear-gradient(160deg, rgba(255, 255, 255, .22), rgba(255, 255, 255, .02)); -webkit-background-clip: text; color: transparent; }
   .ht-glyph.gold { background: linear-gradient(160deg, rgba(253, 230, 138, .6), rgba(245, 158, 11, .06)); -webkit-background-clip: text; }
-  #tile-patch .ht-bg, #tile-fonts .ht-bg, #tile-auto .ht-bg, #tile-settings .ht-bg, #tile-spotify .ht-bg { opacity: 1; animation: none; inset: 0; }
   #tile-lol .ht-bg { opacity: 1; animation: none; inset: 0; background: radial-gradient(360px 240px at 82% 45%, color-mix(in srgb, var(--tc, #c8aa6e) 42%, transparent), transparent 70%), radial-gradient(260px 200px at 10% 110%, rgba(10, 200, 185, .18), transparent 70%), linear-gradient(135deg, #2a2210, #0f1440); }
   .ht-mark { position: absolute; right: 18px; top: 50%; pointer-events: none; animation: htfloat 6s ease-in-out infinite; }
   .ht-art { position: absolute; inset: 0; background-size: cover; background-position: right 22%; opacity: 0; transition: opacity .6s;
@@ -874,14 +816,8 @@ PAGE = r"""<!doctype html>
   #tile-icon.pic { background: linear-gradient(135deg, #0e2a44, #0f1440); }
   @keyframes sppulse { 50% { transform: scale(1.05); filter: drop-shadow(0 10px 50px rgba(30, 215, 96, .6)); } }
   @media (prefers-reduced-motion: reduce) { .ht-sp-big { animation: none; } }
-  #tile-patch .ht-bg { background: radial-gradient(320px 200px at 85% 20%, rgba(245, 158, 11, .45), transparent 70%), linear-gradient(135deg, #3b2a0a, #0f1440); }
   #tile-fonts .ht-bg { background: radial-gradient(380px 220px at 90% 10%, rgba(251, 146, 60, .25), transparent 70%), linear-gradient(135deg, #2a1530, #0f1440); }
   #tile-settings .ht-bg { background: conic-gradient(from 200deg at 80% 30%, rgba(109, 93, 252, .45), rgba(56, 189, 248, .2), rgba(244, 114, 182, .3), rgba(109, 93, 252, .45)); filter: blur(30px); }
-  #tile-maps .ht-bg.rift { background-size: 70%; background-position: 115% 30%; background-repeat: no-repeat; opacity: .55; }
-  .ht-faces { position: absolute; right: 22px; top: 20px; display: flex; }
-  #tile-patch .ht-glyph { transform: translateY(-38%); }
-  .ht-faces i { width: 30px; height: 30px; border-radius: 50%; margin-left: -9px; background: #1d245e center / cover;
-    border: 2px solid #0d1238; }
   .ht-eq { position: absolute; right: 26px; top: 26px; display: flex; gap: 3px; align-items: flex-end; height: 22px; }
   .ht-eq i { width: 4px; border-radius: 2px; background: #1ed760; animation: hteq 1s ease-in-out infinite; }
   .ht-eq i:nth-child(2) { animation-delay: -.3s; } .ht-eq i:nth-child(3) { animation-delay: -.6s; } .ht-eq i:nth-child(4) { animation-delay: -.15s; }
@@ -892,38 +828,14 @@ PAGE = r"""<!doctype html>
       radial-gradient(300px 200px at 78% 30%, rgba(244, 63, 94, .28), transparent 70%),
       radial-gradient(240px 180px at 95% 100%, rgba(200, 170, 110, .16), transparent 70%),
       linear-gradient(135deg, #2b0f24, #0f1440); }
-  .ht-draft { position: absolute; right: 20px; top: 20px; display: flex; flex-direction: column; gap: 9px; align-items: flex-end; }
-  .dr-row { display: flex; align-items: center; gap: 8px; transition: opacity .3s, filter .3s; }
-  .dr-row.off { opacity: .35; filter: grayscale(1); }
-  .dr-row em { font-style: normal; font-size: 9.5px; font-weight: 800; letter-spacing: .16em; width: 30px; text-align: right; }
-  .dr-row.ban em { color: #fb7185; } .dr-row.pick em { color: #e8c983; }
-  .dr-row .dr-faces { display: flex; gap: 5px; }
-  .dr-row i { position: relative; width: 32px; height: 32px; border-radius: 9px; background: #0d1238 center / 112% no-repeat;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, .45); }
-  .dr-row.ban i { border: 1.5px solid rgba(244, 63, 94, .75); filter: saturate(.55) brightness(.8); }
-  .dr-row.ban i::after { content: ""; position: absolute; inset: 0; border-radius: 8px;
-    background: linear-gradient(135deg, transparent 46%, rgba(251, 113, 133, .95) 46% 54%, transparent 54%); }
-  .dr-row.pick i { border: 1.5px solid rgba(200, 170, 110, .8); }
-  .dr-row.pick i:first-child { width: 38px; height: 38px; border-color: #f0d38a; box-shadow: 0 0 16px rgba(240, 211, 138, .45), 0 4px 10px rgba(0, 0, 0, .45); }
-  .dr-row i.empty { background: rgba(255, 255, 255, .04); border-style: dashed; filter: none; }
-  .dr-row i.empty::after { display: none; }
   .dr-leds { display: flex; gap: 6px; margin-top: 2px; }
   .dr-leds span { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px; border-radius: 99px; font-size: 10.5px;
     font-weight: 700; color: var(--faint); background: rgba(0, 0, 0, .32); border: 1px solid rgba(255, 255, 255, .08); }
   .dr-leds span::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: rgba(255, 255, 255, .25); }
   .dr-leds span.on { color: #fecdd3; border-color: rgba(244, 63, 94, .45); }
   .dr-leds span.on::before { background: #4ade80; box-shadow: 0 0 6px #4ade80; }
-  .ht:hover .dr-row.pick i:first-child { transform: translateY(-2px); }
-  .dr-row i { transition: transform .2s; }
 
   /* ==== Home: the Skins tile shows the champions with a custom skin on ==== */
-  #tile-maps .ht-bg.champ { background-position: 70% 20%; }
-  .ht-faces { right: 20px; top: 20px; gap: 0; }
-  .ht-faces i { width: 44px; height: 44px; margin-left: -12px; border: 2px solid rgba(52, 211, 153, .8);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, .5); background-size: 112%; background-position: center; }
-  .ht-faces i:first-child { margin-left: 0; }
-  .ht-faces em { align-self: center; margin-left: 8px; font-style: normal; font-size: 11px; font-weight: 800; color: #6ee7b7;
-    padding: 4px 9px; border-radius: 99px; background: rgba(6, 40, 30, .7); border: 1px solid rgba(52, 211, 153, .4); }
 
   /* Champ select: the first ban crossed out, the first pick in a gold ring, a light for each switch */
   /* A draft panel down the right of the tile: switches, five pick slots, five ban slots */
@@ -1003,24 +915,7 @@ PAGE = r"""<!doctype html>
   .au-sug div:hover { background: rgba(109, 93, 252, .25); }
 
   /* Patch notes page */
-  .pn-hero { display: flex; align-items: center; gap: 22px; padding: 22px 24px; border-radius: 20px;
-    background: radial-gradient(420px 220px at 90% 0%, rgba(245, 158, 11, .35), transparent 70%), linear-gradient(135deg, #2b210d, #141a4a);
-    border: 1px solid rgba(253, 230, 138, .25); }
-  .pn-ver { font-size: 56px; font-weight: 800; letter-spacing: -.04em; line-height: 1;
-    background: linear-gradient(160deg, #fde68a, #f59e0b); -webkit-background-clip: text; color: transparent; }
-  .pn-t { min-width: 0; }
-  .pn-t small { color: #fde68a; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; font-size: 11px; }
-  .pn-t h2 { margin: 4px 0; font-size: 19px; } .pn-t span { color: var(--sub); }
-  .pn-hero .btn { margin-left: auto; flex: none; }
-  .pn-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
-  .pn { display: flex; gap: 12px; padding: 14px; border-radius: 16px; background: rgba(22, 28, 78, .55); border: 1px solid rgba(255, 255, 255, .06); }
-  .pn i { width: 46px; height: 46px; border-radius: 50%; flex: none; background: #1d245e center / cover; box-shadow: 0 0 0 2px rgba(245, 158, 11, .45); }
-  .pn b { display: block; font-size: 14px; } .pn span { color: var(--sub); font-size: 12px; line-height: 1.45; }
 
-  .client-card { display: flex; align-items: center; gap: 14px; margin: 4px 0 16px;
-    background: linear-gradient(100deg, rgba(109, 93, 252, .28), rgba(22, 28, 78, .55) 60%); }
-  .client-card .btn { margin-left: auto; flex: none; }
-  .client-card .t span { display: block; max-width: 620px; }
   .mods-seg { margin: 0 0 16px; width: max-content; background: rgba(13, 18, 56, .7); }
   .mods-seg button.on { background: linear-gradient(135deg, #6d5dfc, #38bdf8); color: #fff; }
 
@@ -1115,13 +1010,29 @@ PAGE = r"""<!doctype html>
   .home-head { position: relative; z-index: 30; }
   /* The version panel opens over the home header (and its Skin sharing panel) */
   .vpop { z-index: 60; }
-  /* Custom skins page: its own art behind the list, see-through, fading out to the left */
-  .amb-page { position: absolute; top: 0; right: 0; bottom: 0; width: 82%; opacity: 0; transition: opacity .5s ease;
-    background: right 30% / cover no-repeat; z-index: 1;
-    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 30%); mask-image: linear-gradient(90deg, transparent 0%, #000 30%); }
-  .amb-skins { background-image: url("/hubart/custom-skins.jpg"); }
-  body[data-page="skins"] .amb-skins { opacity: .5; }
-  body[data-page="skins"] .amb-art { opacity: 0; }
+  /* Settings: blue tiles, white and cyan when on */
+  #page-settings .sg-grid { grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 10px; }
+  #page-settings .sg { border-radius: 0; min-height: 58px; padding: 10px 16px; background: rgba(2, 11, 46, .78);
+    border: 2px solid rgba(189, 243, 255, .18); box-shadow: none; clip-path: polygon(0 0, 100% 0, 98% 100%, 0 100%); }
+  #page-settings .sg:hover { border-color: var(--p3-cyan); transform: translate(-2px, -2px); }
+  #page-settings .sg .si { border-radius: 0; transform: rotate(45deg) scale(.8); background: rgba(189, 243, 255, .12); color: var(--p3-ice); }
+  #page-settings .sg .si svg { transform: rotate(-45deg); }
+  #page-settings .sg b { font-family: var(--p3-cond); font-weight: 700; font-size: 16px; letter-spacing: .02em; color: var(--p3-white); }
+  #page-settings .sg span { font-family: var(--p3-cond); font-size: 13px; color: rgba(189, 243, 255, .6); }
+  #page-settings .sg .sw { margin-left: auto; flex: none; position: relative; width: 38px; height: 18px; background: rgba(189, 243, 255, .15);
+    transform: skewX(-14deg); }
+  #page-settings .sg .sw::after { content: ""; position: absolute; top: 3px; bottom: 3px; left: 3px; width: 14px; background: rgba(189, 243, 255, .5);
+    transition: left .2s, background .2s; }
+  #page-settings .sg.on { background: rgba(6, 30, 110, .85); border-color: var(--p3-cyan); }
+  #page-settings .sg.on .si { background: var(--p3-cyan); color: var(--p3-ink); }
+  #page-settings .sg.on b { color: var(--p3-white); }
+  #page-settings .sg.on span { color: var(--p3-ice); }
+  #page-settings .sg.on .sw { background: rgba(62, 230, 255, .35); }
+  #page-settings .sg.on .sw::after { left: 21px; background: var(--p3-cyan); box-shadow: 0 0 10px var(--p3-cyan); }
+  #page-settings .sg-foot { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+  #page-settings .sg-mini { border-radius: 0; background: rgba(2, 11, 46, .6); border: 2px dashed rgba(189, 243, 255, .22); }
+  #page-settings .sg-mini:hover { border-color: var(--p3-cyan); border-style: solid; }
+  #page-settings .sg-mini b { font-family: var(--p3-cond); font-size: 15px; color: var(--p3-white); }
   .sh-pop { position: absolute; z-index: 40; top: calc(100% + 12px); left: 0; width: 430px; padding: 18px 20px 16px;
     background: #061445; border: 2px solid var(--p3-cyan); box-shadow: 10px 10px 0 var(--p3-blue); clip-path: polygon(0 0, 100% 0, 97% 100%, 0 100%); }
   .sh-pop[hidden] { display: none; }
@@ -1193,17 +1104,16 @@ PAGE = r"""<!doctype html>
   .ht-in { transform: skewX(6deg); padding: 16px 30px 18px; background: linear-gradient(8deg, rgba(2, 11, 46, .92) 6%, rgba(2, 11, 46, .25) 50%, transparent 72%); }
   .ht-in::before { content: "0" counter(p3); font-family: var(--p3-big); font-size: 24px; line-height: 1; color: var(--p3-cyan); letter-spacing: .04em; }
   .ht:hover .ht-in::before { color: var(--p3-white); }
-  .ht-orb, .ht-go, .ht-shine { display: none; }
   .ht-ttl { align-self: flex-start; font-family: var(--p3-big); font-weight: 400; font-size: 38px; line-height: 1.05; letter-spacing: .02em;
     text-transform: uppercase; text-shadow: 3px 3px 0 var(--p3-blue); padding: 1px 0; transition: background .15s, color .15s, padding .15s, margin .15s; }
   .ht:hover .ht-ttl { background: var(--p3-white); color: var(--p3-ink); text-shadow: none; padding: 1px 14px; margin-left: -14px; box-shadow: 6px 6px 0 var(--p3-cyan); }
   .ht-st { font-family: var(--p3-cond); font-weight: 600; font-size: 17px; color: var(--p3-ice); padding-right: 10px; }
   .ht-st b { font-weight: 700; color: var(--p3-white); }
   /* The small pieces on each tile stay upright */
-  .ht-faces, .ht-rank, .ht-eq, .ht-cs, .ht-sp-big { transform: skewX(6deg); }
+  .ht-rank, .ht-eq, .ht-cs, .ht-sp-big { transform: skewX(6deg); }
   .ht-cover { transform: skewX(6deg) rotate(4deg); }
   #tile-spotify.cover:hover .ht-cover { transform: skewX(6deg) scale(1.04); }
-  .ht-rank, .ht-faces em { border-radius: 0; font-family: var(--p3-cond); font-weight: 800; font-style: italic; font-size: 14px;
+  .ht-rank { border-radius: 0; font-family: var(--p3-cond); font-weight: 800; font-style: italic; font-size: 14px;
     background: var(--p3-ink); color: var(--p3-cyan); border: 2px solid var(--p3-cyan); box-shadow: none; backdrop-filter: none; }
   /* Champ select: the draft panel fills the whole tile, see-through; the title sits over the picks */
   .ht-cs { inset: 46px 22px 14px 22px; left: 22px; right: 22px; border-radius: 0; background: none; border: 0; box-shadow: none;
@@ -1228,17 +1138,6 @@ PAGE = r"""<!doctype html>
   .ht-ransom b:nth-child(5) { font-family: var(--p3-cond); font-weight: 800; font-style: italic; background: var(--p3-white); color: var(--p3-blue); transform: rotate(-5deg) translateY(4px); }
   #tile-fonts:hover .ht-ransom b { transform: rotate(0deg); }
   /* Skins and Maps tile: the champions with a custom skin on, fanned out like cards */
-  .ht-fan { position: absolute; right: 60px; top: 16px; width: 180px; height: 116px; pointer-events: none; }
-  .ht-fan i { position: absolute; bottom: 0; left: 50%; width: 74px; height: 108px; margin-left: -37px; background: #0e2a44 center 18% / cover;
-    box-shadow: 0 0 0 3px var(--p3-white), 0 14px 30px rgba(0, 0, 0, .55); transform-origin: 50% 120%; transition: transform .4s; }
-  .ht-fan i:nth-child(1) { transform: skewX(6deg) rotate(-14deg) translateX(-34px); }
-  .ht-fan i:nth-child(2) { transform: skewX(6deg) rotate(0deg); z-index: 1; }
-  .ht-fan i:nth-child(3) { transform: skewX(6deg) rotate(14deg) translateX(34px); z-index: 2; }
-  .ht-fan i:only-child { transform: skewX(6deg) rotate(-4deg); }
-  #tile-maps:hover .ht-fan i:nth-child(1) { transform: skewX(6deg) rotate(-20deg) translateX(-44px); }
-  #tile-maps:hover .ht-fan i:nth-child(3) { transform: skewX(6deg) rotate(20deg) translateX(44px); }
-  #tile-maps.fan .ht-faces i { display: none; }
-  #tile-maps.fan .ht-faces { right: 18px; top: auto; bottom: 22px; }
   /* Settings tile: a turning gear and three switches; hazard stripes when something needs a look */
   .ht-gear { position: absolute; right: -36px; top: 50%; width: 230px; height: 230px; margin-top: -132px; color: rgba(189, 243, 255, .22);
     animation: gearspin 30s linear infinite; pointer-events: none; }
@@ -1256,6 +1155,63 @@ PAGE = r"""<!doctype html>
   @keyframes gearspin { to { transform: rotate(360deg); } }
   @media (prefers-reduced-motion: reduce) { .ht-gear { animation: none; } }
   @media (prefers-reduced-motion: reduce) { .ht { animation: none; } }
+  /* Skins and maps tile: blue with a cyan slash; three tarot cards for the champions with a custom skin on */
+  #tile-maps .ht-bg { opacity: 1; animation: none; inset: 0; background:
+      linear-gradient(115deg, transparent 0 54%, rgba(62, 230, 255, .2) 54% 66%, transparent 66%),
+      linear-gradient(115deg, transparent 0 69%, rgba(255, 62, 128, .55) 69% 69.6%, transparent 69.6%),
+      repeating-linear-gradient(115deg, rgba(255, 255, 255, .03) 0 2px, transparent 2px 16px),
+      linear-gradient(150deg, #0b33c4 0%, #06187e 50%, #020b2e 100%); }
+  .ht-fan { position: absolute; right: 30px; top: 14px; width: 210px; height: 124px; pointer-events: none; }
+  #tile-maps .ht-in { position: relative; z-index: 2; }
+  .ht-fan i { position: absolute; bottom: 0; left: 50%; width: 80px; height: 112px; margin-left: -40px;
+    background: linear-gradient(160deg, #1a4dff, #071a7e) center 20% / cover; border: 3px solid var(--p3-white);
+    box-shadow: 6px 6px 0 rgba(2, 11, 46, .55); transform-origin: 50% 115%; transition: transform .35s cubic-bezier(.2, .8, .2, 1); }
+  .ht-fan i.art { background-size: cover; background-position: center 20%; }
+  .ht-fan i em { position: absolute; left: -3px; right: -3px; bottom: -3px; padding: 2px 0 1px; text-align: center; font-style: normal;
+    font-family: var(--p3-big); font-size: 15px; letter-spacing: .12em; background: var(--p3-white); color: var(--p3-ink); }
+  .ht-fan i.add { background: repeating-linear-gradient(135deg, rgba(62, 230, 255, .12) 0 6px, transparent 6px 12px), #06187e; }
+  .ht-fan i.add::before { content: "+"; position: absolute; inset: 0 0 18px; display: grid; place-items: center;
+    font-family: var(--p3-big); font-size: 48px; color: rgba(189, 243, 255, .55); }
+  .ht-fan i:nth-child(1) { transform: skewX(6deg) rotate(-12deg) translateX(-56px); }
+  .ht-fan i:nth-child(2) { transform: skewX(6deg) rotate(-2deg); z-index: 1; }
+  .ht-fan i:nth-child(3) { transform: skewX(6deg) rotate(9deg) translateX(56px); z-index: 2; }
+  .ht-fan i:only-child { transform: skewX(6deg) rotate(-4deg); }
+  #tile-maps:hover .ht-fan i:nth-child(1) { transform: skewX(6deg) rotate(-16deg) translateX(-74px) translateY(-6px); }
+  #tile-maps:hover .ht-fan i:nth-child(2) { transform: skewX(6deg) rotate(-2deg) translateY(-10px); }
+  #tile-maps:hover .ht-fan i:nth-child(3) { transform: skewX(6deg) rotate(13deg) translateX(74px) translateY(-6px); }
+  /* Champ select tile: blue, a pink slash; slanted pick slots, diamond bans and Persona chips for the switches */
+  #tile-auto .ht-bg { background:
+      linear-gradient(115deg, transparent 0 40%, rgba(255, 62, 128, .16) 40% 52%, transparent 52%),
+      linear-gradient(115deg, transparent 0 55%, rgba(62, 230, 255, .5) 55% 55.5%, transparent 55.5%),
+      repeating-linear-gradient(115deg, rgba(255, 255, 255, .03) 0 2px, transparent 2px 16px),
+      linear-gradient(150deg, #0a2aa8 0%, #05146a 50%, #020b2e 100%); }
+  #tile-auto .ht-in { background: linear-gradient(8deg, rgba(2, 11, 46, .92) 6%, rgba(2, 11, 46, .3) 45%, transparent 65%); }
+  .ht-cs { inset: 16px 26px 18px 44%; display: flex; flex-direction: column; justify-content: flex-start; gap: 10px; }
+  .ht-cs .dr-leds { order: 0; position: static; justify-content: flex-end; gap: 6px; margin: 0; }
+  .ht-cs .dr-leds span { height: 20px; padding: 0 9px; border-radius: 0; border: 0; transform: skewX(-14deg); gap: 5px;
+    font-family: var(--p3-cond); font-weight: 800; font-style: italic; font-size: 12px; letter-spacing: .06em; text-transform: uppercase;
+    background: rgba(2, 11, 46, .7); color: rgba(189, 243, 255, .45); }
+  .ht-cs .dr-leds span::before { width: 6px; height: 6px; border-radius: 0; transform: rotate(45deg); background: rgba(189, 243, 255, .3); box-shadow: none; }
+  .ht-cs .dr-leds span.on { background: var(--p3-white); color: var(--p3-ink); }
+  .ht-cs .dr-leds span.on::before { background: #10b981; box-shadow: none; }
+  .ht-cs .cs-row.pick { order: 1; flex: 1; gap: 0; max-height: 120px; }
+  .ht-cs .cs-row.pick i { flex: 1; margin-left: -6px; border: 0; border-radius: 0; opacity: 1; box-shadow: none;
+    clip-path: polygon(22% 0, 100% 0, 78% 100%, 0 100%); background: #0d2a9e center 25% / cover no-repeat; }
+  .ht-cs .cs-row.pick i:first-child { margin-left: 0; }
+  .ht-cs .cs-row.pick i:first-child:not(.empty) { flex-grow: 1.4; border: 0; box-shadow: none; filter: none; }
+  .ht-cs .cs-row.pick i::after { content: attr(data-n); left: auto; right: 26%; bottom: 4px; padding: 0; background: none;
+    font-family: var(--p3-big); font-size: 18px; color: var(--p3-white); text-shadow: 2px 2px 0 var(--p3-ink); }
+  .ht-cs .cs-row.pick i.empty { background: repeating-linear-gradient(115deg, rgba(189, 243, 255, .08) 0 3px, transparent 3px 9px), rgba(2, 11, 46, .55); }
+  .ht-cs .cs-row.pick i.empty::after { color: rgba(189, 243, 255, .3); text-shadow: none; }
+  .ht-cs .cs-row.ban { order: 2; justify-content: flex-end; gap: 10px; }
+  .ht-cs .cs-row.ban > em { font-family: var(--p3-cond); font-weight: 800; font-style: italic; font-size: 12px; letter-spacing: .14em; color: var(--p3-hot); }
+  .ht-cs .cs-row.ban > i { width: 22px; height: 22px; border-radius: 0; transform: rotate(45deg); border: 2px solid var(--p3-hot);
+    background: #2a0d3e center / 140% no-repeat; filter: saturate(.6); }
+  .ht-cs .cs-row.ban > i::after { border-radius: 0; background: linear-gradient(transparent 45%, var(--p3-hot) 45% 55%, transparent 55%); }
+  .ht-cs .cs-row.ban > i.empty { border: 2px solid rgba(189, 243, 255, .2); background: rgba(2, 11, 46, .5); }
+  .ht-cs .cs-row.ban > i.empty::after { display: none; }
+  .ht-cs .cs-row.off { opacity: .45; filter: grayscale(.7); }
+  .ht:hover .ht-cs .cs-row.pick i:not(.empty) { transform: translateY(-3px); }
   /* Smaller windows. The header keeps the name readable: the date goes first, then the League button's text */
   .hm-text { flex: 0 1 auto; min-width: 170px; }
   .home-head small, .hm-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1281,12 +1237,15 @@ PAGE = r"""<!doctype html>
     .hm-play span { display: none; }
   }
   /* Narrow tiles: the art shrinks into the top right corner, clear of the title */
-  .ht { container-type: inline-size; }
-  @container (max-width: 480px) {
+  .ht { container: tile / inline-size; }
+  .ht-ttl { font-size: clamp(20px, 6.6cqw, 38px); }
+  .ht:hover .ht-ttl { padding: 1px 10px; margin-left: -10px; }
+  @container tile (max-width: 480px) {
     .ht-in { padding: 14px 22px 16px; }
-    .ht-ttl { font-size: 31px; }
-    .ht-st { font-size: 15px; }
-    .ht-fan { right: 6px; top: 6px; scale: .6; transform-origin: top right; }
+    .ht-st { font-size: 14px; }
+    .ht-fan { right: 6px; top: 6px; scale: .62; transform-origin: top right; }
+    .ht-cs { inset: 12px 16px 46% 46%; gap: 6px; }
+    .ht-cs .dr-leds { display: none; }
     .ht-ransom { right: 12px; top: 12px; scale: .52; transform-origin: top right; }
     .ht-pic, .ht-cover { width: 82px; height: 82px; right: 16px; top: 14px; margin-top: 0; }
     #tile-spotify.cover .ht-eq { right: 112px; }
@@ -1294,10 +1253,9 @@ PAGE = r"""<!doctype html>
     .ht-gear { width: 150px; height: 150px; margin-top: -96px; }
     .ht-sp-big { width: 140px; height: 140px; }
   }
-  @container (max-width: 340px) {
-    .ht-ttl { font-size: 26px; }
+  @container tile (max-width: 340px) {
     .ht-fan { scale: .5; }
-    #tile-maps.fan .ht-faces { display: none; }
+    .ht-cs .cs-row.ban { display: none; }
   }
 </style>
 </head>
@@ -1305,9 +1263,9 @@ PAGE = r"""<!doctype html>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs><linearGradient id="lust-grad" x1="0" y1="0" x2="1" y2="1">
     <stop offset="0" stop-color="#c4b5fd"/><stop offset=".55" stop-color="#a78bfa"/><stop offset="1" stop-color="#f472b6"/>
-  </linearGradient><linearGradient id="hg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f9a8d4"/><stop offset="1" stop-color="#e879f9"/></linearGradient><linearGradient id="hg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6ee7b7"/><stop offset="1" stop-color="#38bdf8"/></linearGradient><linearGradient id="hg3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fef08a"/><stop offset="1" stop-color="#f59e0b"/></linearGradient><linearGradient id="hg4" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fde68a"/><stop offset="1" stop-color="#fb923c"/></linearGradient><linearGradient id="hg5" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7dd3fc"/><stop offset="1" stop-color="#818cf8"/></linearGradient><linearGradient id="hg6" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f5d0fe"/><stop offset="1" stop-color="#c084fc"/></linearGradient><linearGradient id="hg7" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#86efac"/><stop offset="1" stop-color="#1ed760"/></linearGradient><linearGradient id="hg8" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c7d2fe"/><stop offset="1" stop-color="#6366f1"/></linearGradient><linearGradient id="hg9" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e0e7ff"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs>
+  </linearGradient></defs>
 </svg>
-<div class="ambient" aria-hidden="true"><div class="amb-art" id="amb-art"></div><i class="amb-page amb-skins"></i><i class="blob b1"></i><i class="blob b2"></i></div>
+<div class="ambient" aria-hidden="true"><div class="amb-art" id="amb-art"></div><i class="blob b1"></i><i class="blob b2"></i></div>
 <div class="main">
   <header class="top pywebview-drag-region" id="top">
     <button class="back" id="back" title="Ana sayfa (Esc)" hidden>__back__</button>
@@ -1377,59 +1335,41 @@ PAGE = r"""<!doctype html>
     </div>
     </div>
     <div class="hgrid" id="hgrid">
-    <div class="ht" data-go="lol" id="tile-lol" style="--i:0;--c:200, 170, 110;--g:url(#hg3)">
-      <div class="ht-bg" id="t-lol-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><i class="ht-art" id="t-lol-art"></i><div class="ht-mark" id="t-lol-mark">__lolbig__</div><span class="ht-rank" id="t-lol-rank" hidden></span>
-      <div class="ht-in"><div class="ht-orb art">__lol__</div>
-        <b class="ht-ttl">Profil</b><span class="ht-st" id="t-lol"></span></div>
-      <div class="ht-go">__arrow__</div>
+    <div class="ht" data-go="lol" id="tile-lol" style="--i:0;--c:200, 170, 110">
+      <div class="ht-bg" id="t-lol-bg"></div><div class="ht-ov"></div><i class="ht-art" id="t-lol-art"></i><div class="ht-mark" id="t-lol-mark">__lolbig__</div><span class="ht-rank" id="t-lol-rank" hidden></span>
+      <div class="ht-in"><b class="ht-ttl">Profil</b><span class="ht-st" id="t-lol"></span></div>
     </div>
-    <div class="ht" data-go="skins" id="tile-maps" style="--i:1;--c:52, 211, 153;--g:url(#hg2)">
-      <div class="ht-bg" id="t-maps-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><div class="ht-faces" id="t-maps-faces"></div><div class="ht-fan" id="t-maps-fan"></div>
-      <div class="ht-in"><div class="ht-orb"><svg viewBox="0 0 30 30"><path class="f" d="M4 8l7-3 8 3 7-3v17l-7 3-8-3-7 3z"/><path d="M11 5v17M19 8v17"/><circle class="s" cx="15" cy="13" r="2.4"/></svg></div>
-        <b class="ht-ttl">Skinler ve Haritalar</b><span class="ht-st" id="t-maps"></span></div>
-      <div class="ht-go">__arrow__</div>
+    <div class="ht" data-go="skins" id="tile-maps" style="--i:1;--c:52, 211, 153">
+      <div class="ht-bg" id="t-maps-bg"></div><div class="ht-ov"></div><div class="ht-fan" id="t-maps-fan"></div>
+      <div class="ht-in"><b class="ht-ttl">Skinler ve Haritalar</b><span class="ht-st" id="t-maps"></span></div>
     </div>
-    <div class="ht" data-go="wallpaper" id="tile-wall" style="--i:2;--c:244, 114, 182;--g:url(#hg6)">
-      <div class="ht-bg" id="t-wall-bg"></div><video class="ht-vid" id="t-wall-vid" muted loop playsinline preload="metadata"></video><div class="ht-ov"></div><i class="ht-shine"></i>
-      <div class="ht-in"><div class="ht-orb"><svg viewBox="0 0 30 30"><rect class="f" x="3" y="6" width="24" height="17" rx="3"/><path d="m3.5 20 6.5-6.5 4.5 4.5 4-4 7.5 7.5"/><circle class="s" cx="20" cy="11.5" r="2"/><path d="M10 26h10"/></svg></div>
-        <b class="ht-ttl">Duvar kağıdı</b><span class="ht-st" id="t-wall"></span></div>
-      <div class="ht-go">__arrow__</div>
+    <div class="ht" data-go="wallpaper" id="tile-wall" style="--i:2;--c:244, 114, 182">
+      <div class="ht-bg" id="t-wall-bg"></div><video class="ht-vid" id="t-wall-vid" muted loop playsinline preload="metadata"></video><div class="ht-ov"></div>
+      <div class="ht-in"><b class="ht-ttl">Duvar kağıdı</b><span class="ht-st" id="t-wall"></span></div>
     </div>
-    <div class="ht" data-go="fonts" id="tile-fonts" style="--i:3;--c:251, 146, 60;--g:url(#hg4)">
-      <div class="ht-bg" id="t-fonts-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><div class="ht-glyph">Aa 가</div><div class="ht-ransom"><b>A</b><b>a</b><b>가</b><b>1</b><b>Ş</b></div>
-      <div class="ht-in"><div class="ht-orb"><svg viewBox="0 0 30 30"><path d="M4 24 11 6l7 18M6.8 17h8.4"/><circle cx="21.5" cy="18.5" r="3.5"/><path d="M25 14v10"/></svg></div>
-        <b class="ht-ttl">Fontlar</b><span class="ht-st" id="t-fonts"></span></div>
-      <div class="ht-go">__arrow__</div>
+    <div class="ht" data-go="fonts" id="tile-fonts" style="--i:3;--c:251, 146, 60">
+      <div class="ht-bg" id="t-fonts-bg"></div><div class="ht-ov"></div><div class="ht-glyph">Aa 가</div><div class="ht-ransom"><b>A</b><b>a</b><b>가</b><b>1</b><b>Ş</b></div>
+      <div class="ht-in"><b class="ht-ttl">Fontlar</b><span class="ht-st" id="t-fonts"></span></div>
     </div>
-    <div class="ht" data-go="icon" id="tile-icon" style="--i:4;--c:56, 189, 248;--g:url(#hg5)">
-      <div class="ht-bg" id="t-icon-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><i class="ht-pic" id="t-icon-pic"></i>
-      <div class="ht-in"><div class="ht-orb"><svg viewBox="0 0 30 30"><circle class="f" cx="15" cy="15" r="11"/><circle cx="15" cy="12.5" r="4"/><path d="M8 23.2a8 8 0 0 1 14 0"/></svg></div>
-        <b class="ht-ttl">Profil simgesi</b><span class="ht-st" id="t-icon"></span></div>
-      <div class="ht-go">__arrow__</div>
+    <div class="ht" data-go="icon" id="tile-icon" style="--i:4;--c:56, 189, 248">
+      <div class="ht-bg" id="t-icon-bg"></div><div class="ht-ov"></div><i class="ht-pic" id="t-icon-pic"></i>
+      <div class="ht-in"><b class="ht-ttl">Profil simgesi</b><span class="ht-st" id="t-icon"></span></div>
     </div>
-    <div class="ht" data-go="profile" id="tile-profile" style="--i:5;--c:232, 121, 249;--g:url(#hg6)">
-      <div class="ht-bg" id="t-profile-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i>
-      <div class="ht-in"><div class="ht-orb"><svg viewBox="0 0 30 30"><rect class="f" x="4" y="6" width="22" height="18" rx="3"/><circle class="s" cx="11" cy="12" r="2.2"/><path d="m4.5 21 6-6 4 4 4-5 7 7"/></svg></div>
-        <b class="ht-ttl">Profil arka planı</b><span class="ht-st" id="t-profile"></span></div>
-      <div class="ht-go">__arrow__</div>
+    <div class="ht" data-go="profile" id="tile-profile" style="--i:5;--c:232, 121, 249">
+      <div class="ht-bg" id="t-profile-bg"></div><div class="ht-ov"></div>
+      <div class="ht-in"><b class="ht-ttl">Profil arka planı</b><span class="ht-st" id="t-profile"></span></div>
     </div>
-    <div class="ht" data-go="spotify" id="tile-spotify" style="--i:6;--c:30, 215, 96;--g:url(#hg7)">
-      <div class="ht-bg" id="t-spotify-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><i class="ht-cover" id="t-sp-cover"></i><svg class="ht-sp-big" viewBox="0 0 24 24"><defs><linearGradient id="spg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4ef08a"/><stop offset="1" stop-color="#0f8a3c"/></linearGradient></defs><circle cx="12" cy="12" r="11" fill="url(#spg)" stroke="none" opacity=".5"/><path d="M6.3 9.2c3.8-1.2 8.3-.9 11.6 1.1M6.9 12.5c3.1-.9 6.8-.6 9.5 1M7.5 15.6c2.5-.6 5.1-.4 7.2.8" stroke="#08130d" stroke-opacity=".75" stroke-width="1.9" stroke-linecap="round" fill="none"/></svg><span class="ht-eq" id="t-eq" hidden><i></i><i></i><i></i><i></i></span>
-      <div class="ht-in"><div class="ht-orb art"><svg class="sp-logo" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#1ed760" stroke="none"/><path d="M6.3 9.2c3.8-1.2 8.3-.9 11.6 1.1M6.9 12.5c3.1-.9 6.8-.6 9.5 1M7.5 15.6c2.5-.6 5.1-.4 7.2.8" stroke="#0b0b0b" stroke-width="1.9" fill="none"/></svg></div>
-        <b class="ht-ttl">Spotify</b><span class="ht-st" id="t-spotify"></span></div>
-      <div class="ht-go">__arrow__</div>
+    <div class="ht" data-go="spotify" id="tile-spotify" style="--i:6;--c:30, 215, 96">
+      <div class="ht-bg" id="t-spotify-bg"></div><div class="ht-ov"></div><i class="ht-cover" id="t-sp-cover"></i><svg class="ht-sp-big" viewBox="0 0 24 24"><defs><linearGradient id="spg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4ef08a"/><stop offset="1" stop-color="#0f8a3c"/></linearGradient></defs><circle cx="12" cy="12" r="11" fill="url(#spg)" stroke="none" opacity=".5"/><path d="M6.3 9.2c3.8-1.2 8.3-.9 11.6 1.1M6.9 12.5c3.1-.9 6.8-.6 9.5 1M7.5 15.6c2.5-.6 5.1-.4 7.2.8" stroke="#08130d" stroke-opacity=".75" stroke-width="1.9" stroke-linecap="round" fill="none"/></svg><span class="ht-eq" id="t-eq" hidden><i></i><i></i><i></i><i></i></span>
+      <div class="ht-in"><b class="ht-ttl">Spotify</b><span class="ht-st" id="t-spotify"></span></div>
     </div>
-    <div class="ht" data-go="auto" id="tile-auto" style="--i:7;--c:244, 63, 94;--g:url(#hg1)">
-      <div class="ht-bg" id="t-auto-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><div class="ht-cs" id="t-auto-draft"></div>
-      <div class="ht-in"><div class="ht-orb"><svg viewBox="0 0 30 30"><path class="f" d="M5 22 3 9l6.5 5L15 5l5.5 9L27 9l-2 13z"/><path d="M6 26h18"/></svg></div>
-        <b class="ht-ttl">Champ select</b><span class="ht-st" id="t-auto"></span></div>
-      <div class="ht-go">__arrow__</div>
+    <div class="ht" data-go="auto" id="tile-auto" style="--i:7;--c:244, 63, 94">
+      <div class="ht-bg" id="t-auto-bg"></div><div class="ht-ov"></div><div class="ht-cs" id="t-auto-draft"></div>
+      <div class="ht-in"><b class="ht-ttl">Champ select</b><span class="ht-st" id="t-auto"></span></div>
     </div>
-    <div class="ht" data-go="settings" id="tile-settings" style="--i:8;--c:167, 139, 250;--g:url(#hg9)">
-      <div class="ht-bg" id="t-settings-bg"></div><div class="ht-ov"></div><i class="ht-shine"></i><div class="ht-gear"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="74" fill="none" stroke="currentColor" stroke-width="26" stroke-dasharray="22 16.75"/><circle cx="100" cy="100" r="58" fill="none" stroke="currentColor" stroke-width="14"/><circle cx="100" cy="100" r="22" fill="none" stroke="currentColor" stroke-width="10"/></svg></div><div class="ht-sw"><i class="on"></i><i></i><i class="on"></i></div><i class="ht-haz"></i>
-      <div class="ht-in"><div class="ht-orb"><svg viewBox="0 0 30 30"><g class="spin"><circle class="f" cx="15" cy="15" r="8"/><circle cx="15" cy="15" r="3.6"/><path d="M15 3.5v3M15 23.5v3M3.5 15h3M23.5 15h3M6.9 6.9 9 9M21 21l2.1 2.1M6.9 23.1 9 21M21 9l2.1-2.1"/></g></svg></div>
-        <b class="ht-ttl">Ayarlar</b><span class="ht-st" id="t-settings"></span></div>
-      <div class="ht-go">__arrow__</div>
+    <div class="ht" data-go="settings" id="tile-settings" style="--i:8;--c:167, 139, 250">
+      <div class="ht-bg" id="t-settings-bg"></div><div class="ht-ov"></div><div class="ht-gear"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="74" fill="none" stroke="currentColor" stroke-width="26" stroke-dasharray="22 16.75"/><circle cx="100" cy="100" r="58" fill="none" stroke="currentColor" stroke-width="14"/><circle cx="100" cy="100" r="22" fill="none" stroke="currentColor" stroke-width="10"/></svg></div><div class="ht-sw"><i class="on"></i><i></i><i class="on"></i></div><i class="ht-haz"></i>
+      <div class="ht-in"><b class="ht-ttl">Ayarlar</b><span class="ht-st" id="t-settings"></span></div>
     </div>
     </div>
   </section>
@@ -1475,22 +1415,11 @@ PAGE = r"""<!doctype html>
   </section>
 
   <section class="page" id="page-settings">
-    <div class="card client-card">
-      <div class="ico">__brush__</div>
-      <div class="t"><b>LoL istemcisi ayarları</b><span>Tema, duvar kağıdı, eklentiler, Lobby Reveal ve yedekler LoL'ün içinde açılır.
-        LoL'de artık LUST sekmesi yok: buradan aç.</span></div>
-      <button class="btn primary" data-act="client_panel">İstemcide aç</button>
-    </div>
-    <div class="sg-head">
-      <div class="sg-tabs" id="sg-tabs">
-        <button class="on" data-sg="all">Hepsi</button><button data-sg="game">Oyun</button>
-        <button data-sg="app">Uygulama</button><button data-sg="look">Görünüm</button>
-      </div>
-    </div>
     <div class="sg-grid" id="sg-grid"></div>
     <div class="sg-foot">
       <div class="sg-mini" data-act="clear_cache">__trash__<div><b>Önbelleği temizle</b><span id="sg-cache">Hub'ın tarayıcı önbelleği</span></div></div>
       <div class="sg-mini" data-act="open_data">__folder__<div><b>Lust klasörü</b><span>Ayarlar, skinler, loglar</span></div></div>
+      <div class="sg-mini" data-act="client_panel">__brush__<div><b>İstemci paneli</b><span>LoL'ün içindeki tema ve eklenti ayarları</span></div></div>
     </div>
   </section>
 
@@ -1585,17 +1514,6 @@ PAGE = r"""<!doctype html>
     </div>
     <div class="note">Sıra sana gelince listendeki ilk boş şampiyon seçilir; banlanmış, alınmış ya da takım arkadaşının istediği şampiyon atlanır.
       Lust bunları LoL istemcisi üzerinden yapar, League açıkken çalışır.</div>
-  </section>
-
-  <section class="page" id="page-patch">
-    <div class="pn-hero">
-      <div class="pn-ver" id="pn-ver">…</div>
-      <div class="pn-t"><small>Yama notları</small><h2 id="pn-title">Yama notları alınıyor…</h2><span id="pn-sub"></span></div>
-      <button class="btn primary" data-act="patch_open">Notların tamamı</button>
-    </div>
-    <div class="section" id="pn-count">Değişen şampiyonlar</div>
-    <div class="pn-list" id="pn-list"></div>
-    <div class="note">Riot'un yama notlarından (leagueoflegends.com), birkaç saatte bir yenilenir.</div>
   </section>
 
   <section class="page" id="page-spotify">
@@ -1726,7 +1644,7 @@ function splashTint(img) {
   }
 }
 
-// The settings page: [key, group, icon, title, on text, off text, wide, options]
+// The settings page: [key, group, icon, title, on text, off text]
 const SETTINGS = [
   ["skins", "game", ICON.sparkle, "Skinler", "Oyunda uygulanır", "Kapalı: League normal açılır"],
   ["custom_skins", "game", ICON.plusbox, "Özel skinler", "Açık olanlar oynar", "Hepsi kapalı"],
@@ -1739,45 +1657,32 @@ const SETTINGS = [
   ["launch_league", "app", ICON.play, "League'i Lust ile aç", "Lust açılınca League başlar", "League'i sen açarsın"],
   ["performance_mode", "app", ICON.bolt, "Performans modu", "Maçta Lust dinlenir", "Maçta da her şey çalışır"],
   ["reduce_motion", "look", ICON.wind, "Animasyonları azalt", "Hareketler kapalı", "Hareketler açık"],
-  ["backdrop", "look", ICON.image, "Arka plan", "", "", true, [["cinematic", "Sinematik"], ["hextech", "Sade hextech"]]],
 ];
-let sgGroup = "all", sgKey = "";
+let sgKey = "";
 function settingValue(s, key) {
   if (key === "autostart") return !!s.autostart;
   if (key === "auto_update") return !!s.auto_update;
   if (key === "spotify_auto") return !!(s.spotify || {}).auto;
   const values = s.settings || {};
   const fallback = { performance_mode: true, skins: true, custom_skins: true, lobby_reveal: true, share_skins: true, rose_guard: true, quiet_start: false,
-    launch_league: true, backdrop: "cinematic", reduce_motion: false };
+    launch_league: true, reduce_motion: false };
   return key in values ? values[key] : fallback[key];
 }
 function drawSettings(s) {
-  const key = sgGroup + JSON.stringify(SETTINGS.map(([k]) => settingValue(s, k)));
+  const key = JSON.stringify(SETTINGS.map(([k]) => settingValue(s, k)));
   if (key === sgKey) return;
   sgKey = key;
-  $("sg-grid").replaceChildren(...SETTINGS.filter((x) => sgGroup === "all" || x[1] === sgGroup).map(
-    ([k, , icon, title, onText, offText, wide, options]) => {
-      const value = settingValue(s, k);
-      const tile = document.createElement("div");
-      tile.className = "sg" + (options ? "" : (value ? " on" : "")) + (wide ? " wide" : "");
-      tile.innerHTML = `<div class="si">${icon}</div><div><b></b><span></span></div>`;
-      tile.querySelector("b").textContent = title;
-      tile.querySelector("span").textContent = options ? "Hub'ın arkasındaki görüntü" : (value ? onText : offText);
-      if (options) {
-        const opt = document.createElement("div");
-        opt.className = "opt";
-        options.forEach(([v, label]) => {
-          const i = Object.assign(document.createElement("i"), { textContent: label, className: v === value ? "on" : "" });
-          i.addEventListener("click", (e) => { e.stopPropagation(); act("setting", { key: k, value: v }); });
-          opt.appendChild(i);
-        });
-        tile.appendChild(opt);
-      } else {
-        tile.addEventListener("click", () => act(["autostart", "auto_update", "spotify_auto"].includes(k) ? k : "setting",
-          { key: k, value: !value }));
-      }
-      return tile;
-    }));
+  $("sg-grid").replaceChildren(...SETTINGS.map(([k, , icon, title, onText, offText]) => {
+    const value = settingValue(s, k);
+    const tile = document.createElement("div");
+    tile.className = "sg" + (value ? " on" : "");
+    tile.innerHTML = `<div class="si">${icon}</div><div><b></b><span></span></div><i class="sw"></i>`;
+    tile.querySelector("b").textContent = title;
+    tile.querySelector("span").textContent = value ? onText : offText;
+    tile.addEventListener("click", () => act(["autostart", "auto_update", "spotify_auto"].includes(k) ? k : "setting",
+      { key: k, value: !value }));
+    return tile;
+  }));
 }
 
 // ---- Spotify: now playing ----
@@ -2055,7 +1960,6 @@ function render(s) {
   drawSettings(s);
   drawHome(s);
   const st = s.settings || {};
-  document.body.classList.toggle("bd-hextech", st.backdrop === "hextech");
   document.body.classList.toggle("calm", !!st.reduce_motion || !!s.resting);
   $("sg-cache").textContent = `Hub'ın tarayıcı önbelleği${s.cache_mb ? ` · ${s.cache_mb} MB` : ""}`;
   const sp = s.spotify || {};
@@ -2077,7 +1981,7 @@ async function poll() {
 }
 // ---- pages: the home tiles lead to each one, Esc or the back button comes home ----
 const PAGES = { home: "", lol: "Profil", spotify: "Spotify", maps: "Skinler ve Haritalar", fonts: "Fontlar", skins: "Skinler ve Haritalar",
-  profile: "Profil arka planı", icon: "Profil simgesi", settings: "Ayarlar", patch: "Patch notes", wallpaper: "Duvar kağıdı", auto: "Champ select" };
+  profile: "Profil arka planı", icon: "Profil simgesi", settings: "Ayarlar", wallpaper: "Duvar kağıdı", auto: "Champ select" };
 let page = "home";
 function showPage(name) {
   if (!(name in PAGES)) name = "home";
@@ -2095,7 +1999,6 @@ function showPage(name) {
   if (name === "skins") loadSkins();
   if (name === "profile") loadProfile();
   if (name === "icon") loadIcons();
-  if (name === "patch") loadPatch();
   if (name === "wallpaper") loadWalls();
   if (name === "auto") loadAuto();
 }
@@ -2127,10 +2030,6 @@ function setBg(id, url, cls) {
   };
   img.onerror = () => { if (++i < urls.length && el.dataset.url === String(url)) img.src = urls[i]; };
   img.src = urls[0];
-}
-function setArt(id, url) {
-  const el = $(id);
-  if (url && el.dataset.url !== url) { el.dataset.url = url; el.style.backgroundImage = `url("${url}")`; }
 }
 const greeting = () => {
   const h = new Date().getHours();
@@ -2188,10 +2087,6 @@ function drawHome(s) {
 let tiles = {}, auto = null;
 const TIER_COLOR = { iron: "#8a7a73", bronze: "#b0703f", silver: "#a9b8c6", gold: "#e0b54a", platinum: "#4fc1b5",
   emerald: "#2ecc71", diamond: "#5b8def", master: "#b14fe0", grandmaster: "#e0453f", challenger: "#f2c94c" };
-// Summoner's Rift art from the client's own game mode assets; the minimap if neither loads
-const SRU = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/content/src/leagueclient/gamemodeassets/classic_sru/img/";
-const RIFT = [SRU + "champ-select-flyout-background.jpg", SRU + "gameflow-background.jpg",
-  "https://ddragon.leagueoflegends.com/cdn/6.8.1/img/map/map11.png"];
 function drawTiles() {
   const s = state || {}, t = tiles || {}, hero = s.hero || {}, off = s.offline || {};
   // LoL: the welcome card's rank and last match
@@ -2225,36 +2120,24 @@ function drawTiles() {
   const mapText = mp && mp.name ? mp.name : "Sihirdar Vadisi";
   fill("t-maps", sk.count ? [["b", `${sk.count} custom skin`], ` · ${sk.on || 0} açık · ${mapText}`] : [["b", mapText], " · custom skin ekle"]);
   const skinChamps = sk.champions || [];
-  const facesKey = JSON.stringify(skinChamps);
-  if ($("t-maps-faces").dataset.key !== facesKey) {
-    $("t-maps-faces").dataset.key = facesKey;
-    $("t-maps-faces").replaceChildren(...skinChamps.map((id) => {
-      // A champion icon that can't load leaves no empty circle
-      const i = document.createElement("i"), img = new Image();
-      img.onload = () => { i.style.backgroundImage = `url("${img.src}")`; };
-      img.onerror = () => i.remove();
-      img.src = CHAMP_ICON(id);
-      return i;
-    }), ...(skinChamps.length ? [Object.assign(document.createElement("em"), { textContent: "açık" })] : []));
-  }
-  const fan = $("t-maps-fan");
-  if (fan.dataset.key !== facesKey) {
-    fan.dataset.key = facesKey;
-    fan.replaceChildren();
-    $("tile-maps").classList.remove("fan");
-    skinChamps.slice(0, 3).forEach((id) => {
+  const fan = $("t-maps-fan"), fanKey = JSON.stringify(skinChamps);
+  if (fan.dataset.key !== fanKey) {
+    fan.dataset.key = fanKey;
+    const ids = skinChamps.slice(0, 3);
+    fan.replaceChildren(...(ids.length ? ids : [0, 0, 0]).map((id, n) => {
+      const card = document.createElement("i");
+      card.append(Object.assign(document.createElement("em"), { textContent: ["I", "II", "III"][n] }));
+      if (!id) { card.className = "add"; return card; }
+      // The champion's square art, then its splash, then its icon: whichever loads first
+      const urls = [CHAMP_TILE(id), CHAMP_SPLASH(id), CHAMP_ICON(id)];
       const img = new Image();
-      img.onload = () => {
-        if (fan.dataset.key !== facesKey) return;
-        const i = document.createElement("i"); i.style.backgroundImage = `url("${img.src}")`;
-        fan.append(i);
-        $("tile-maps").classList.add("fan");
-      };
-      img.src = CHAMP_SPLASH(id);
-    });
+      let k = 0;
+      img.onload = () => { card.style.backgroundImage = `url("${img.src}")`; card.classList.add("art"); };
+      img.onerror = () => { if (++k < urls.length) img.src = urls[k]; };
+      img.src = urls[0];
+      return card;
+    }));
   }
-  // The tile wears the Custom skins art (the map's own art stays on its page); the Rift if it can't load
-  setBg("t-maps-bg", ["/hubart/custom-skins.jpg", ...RIFT]);
   const wl = t.wallpaper;
   fill("t-wall", wl && !wl.league && wl.name ? [["b", wl.name.replace(/\.[^.]+$/, "")], ` · ${wl.count} duvar kağıdı`]
     : [["b", "LoL'ün kendi arka planı"], wl && wl.count ? ` · ${wl.count} duvar kağıdı` : ""]);
@@ -2321,9 +2204,12 @@ function drawTiles() {
       Object.assign(document.createElement("span"), { textContent: label, className: on ? "on" : "" })));
     $("t-auto-draft").replaceChildren(leds, row("pick", a.picks, !!a.pick), row("ban", a.bans, !!a.ban));
   }
-  const warn = (s.rose && s.rose.installed) || ((s.patcher || {}).state && s.patcher.state !== "ok") || s.update_available;
+  const ltk = s.patcher || {};
+  const warn = s.update_available ? "Güncelleme hazır"
+    : (s.rose && s.rose.installed && !isDismissed("rose", "installed")) ? "Rose da kurulu, kaldırman iyi olur"
+    : (ltk.state && ltk.state !== "ok" && !isDismissed("ltk", ltk.state)) ? (LTK_TITLE[ltk.state] || LTK_TITLE.missing) : "";
   $("tile-settings").classList.toggle("warn", !!warn);
-  fill("t-settings", warn ? [["b", s.update_available ? "Güncelleme hazır" : "Bakman gereken bir şey var", "warn"]]
+  fill("t-settings", warn ? [["b", warn, "warn"]]
     : [["b", "✓ Her şey yolunda", "ok"], " · güncelleme, onarım, istemci"]);
 }
 async function loadTiles() {
@@ -2339,30 +2225,6 @@ async function homeMedia() {
   setTimeout(homeMedia, 3000);
 }
 homeMedia();
-
-// ---- patch notes ----
-async function loadPatch() {
-  let d;
-  try { d = await api("/api/patch"); } catch (e) { return; }
-  const champs = d.champions || [];
-  $("pn-ver").textContent = d.version || "…";
-  $("pn-title").textContent = d.title || (d.loading ? "Patch notes alınıyor…" : "Patch notes alınamadı");
-  $("pn-sub").textContent = d.url ? `${champs.length} şampiyon değişti${d.items ? ` · ${d.items} eşya` : ""}`
-    : (d.loading ? "" : "İnternet bağlantısını kontrol et, birazdan yeniden denenecek");
-  $("pn-count").textContent = champs.length ? `Değişen şampiyonlar · ${champs.length}` : "Değişen şampiyonlar";
-  $("pn-list").replaceChildren(...champs.map((c) => {
-    const el = document.createElement("div");
-    el.className = "pn";
-    const face = document.createElement("i");
-    if (c.icon) face.style.backgroundImage = `url("${c.icon}")`;
-    const text = document.createElement("div");
-    text.append(Object.assign(document.createElement("b"), { textContent: c.name }),
-      Object.assign(document.createElement("span"), { textContent: c.summary || "Ayrıntılar notların tamamında" }));
-    el.append(face, text);
-    return el;
-  }));
-  if (d.loading && page === "patch") setTimeout(() => page === "patch" && loadPatch(), 2500);
-}
 
 // ---- champ select: Auto Accept, Ban, Pick and Lobby Reveal ----
 async function loadAuto() {
@@ -2654,6 +2516,7 @@ fontDrop.addEventListener("drop", async (e) => {
 // ---- custom skins ----
 const ICON_SHIRT = `__shirt__`;
 const CHAMP_ICON = (id) => `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${id}.png`;
+const CHAMP_TILE = (id) => `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-tiles/${id}/${id}000.jpg`;
 const CHAMP_SPLASH = (id) => `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-splashes/${id}/${id}000.jpg`;
 let skinsData = null, skinsKey = "";
 // [badge, tooltip] for each patch status (pengu/communication/lust_custom_skins.status)
@@ -2944,12 +2807,6 @@ $("a-quit").addEventListener("click", () => {
   quitArmed = Date.now(); state && render(state); setTimeout(() => state && render(state), 3100);
 });
 $("v-btn").addEventListener("click", () => act(state && state.update_available ? "update" : "check"));
-document.querySelectorAll("#sg-tabs button").forEach((b) => b.addEventListener("click", () => {
-  sgGroup = b.dataset.sg;
-  document.querySelectorAll("#sg-tabs button").forEach((x) => x.classList.toggle("on", x === b));
-  sgKey = "";
-  state && drawSettings(state);
-}));
 // The version panel opens from the pill and closes on a click elsewhere or Escape
 function setVpop(open) {
   $("vpop").hidden = !open;

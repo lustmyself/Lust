@@ -26,24 +26,23 @@ class SettingsTests(unittest.TestCase):
         self.assertTrue(lust_settings.enabled("skins"))
         self.assertTrue(lust_settings.enabled("custom_skins"))
         self.assertFalse(lust_settings.enabled("quiet_start"))
-        self.assertEqual(lust_settings.get("backdrop"), "cinematic")
         self.assertTrue(lust_settings.enabled("something_unknown"))
 
     def test_saved_and_read_back(self):
         self.assertTrue(lust_settings.set_value("skins", False))
-        self.assertTrue(lust_settings.set_value("backdrop", "hextech"))
+        self.assertTrue(lust_settings.set_value("quiet_start", True))
         saved = json.loads((Path(self.folder.name) / lust_settings.FILE).read_text(encoding="utf-8"))
-        self.assertEqual((saved["skins"], saved["backdrop"]), (False, "hextech"))
+        self.assertEqual((saved["skins"], saved["quiet_start"]), (False, True))
         with mock.patch.object(lust_settings, "_cache", None):
             self.assertFalse(lust_settings.enabled("skins"))
 
     def test_only_offered_values(self):
         self.assertFalse(lust_settings.set_value("nope", True))
         self.assertFalse(lust_settings.set_value("skins", "yes"))
-        self.assertFalse(lust_settings.set_value("backdrop", "pink"))
+        self.assertFalse(lust_settings.set_value("backdrop", "hextech"))
 
     def test_a_broken_file_falls_back_to_defaults(self):
-        (Path(self.folder.name) / lust_settings.FILE).write_text('{"skins": "off", "backdrop": 3', encoding="utf-8")
+        (Path(self.folder.name) / lust_settings.FILE).write_text('{"skins": "off", "quiet_start": 3', encoding="utf-8")
         self.assertTrue(lust_settings.enabled("skins"))
         (Path(self.folder.name) / lust_settings.FILE).write_text('{"skins": "off"}', encoding="utf-8")
         with mock.patch.object(lust_settings, "_cache", None):

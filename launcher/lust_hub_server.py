@@ -151,11 +151,6 @@ class _Handler(BaseHTTPRequestHandler):
                 return self._send(403)
             from launcher import lust_auto
             return self._send(200, lust_auto.dumps_listing(), "application/json")
-        if path == "/api/patch":
-            if not self._authorized():
-                return self._send(403)
-            from launcher import lust_patch
-            return self._send(200, lust_patch.dumps(), "application/json")
         if path == "/api/wallpapers":
             if not self._authorized():
                 return self._send(403)
@@ -227,14 +222,6 @@ class _Handler(BaseHTTPRequestHandler):
             try:
                 from utils.core.paths import get_asset_path
                 return self._send(200, get_asset_path("lust_hub_fonts/" + match.group(1)).read_bytes(), "font/ttf")
-            except OSError:
-                return self._send(404)
-        # Pages' background art, bundled in assets/lust_hub_art
-        match = re.fullmatch(r"/hubart/([a-z0-9-]+\.jpg)", path)
-        if match:
-            try:
-                from utils.core.paths import get_asset_path
-                return self._send(200, get_asset_path("lust_hub_art/" + match.group(1)).read_bytes(), "image/jpeg")
             except OSError:
                 return self._send(404)
         if path == "/icon.png":

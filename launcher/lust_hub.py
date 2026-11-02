@@ -312,11 +312,6 @@ def _profile():
     return lust_profile
 
 
-def _patch():
-    from launcher import lust_patch
-    return lust_patch
-
-
 LINK_HOSTS = ("https://www.op.gg/", "https://op.gg/", "https://u.gg/", "https://porofessor.gg/",
               "https://www.leagueoflegends.com/")
 
@@ -412,7 +407,6 @@ def _tile_parts() -> dict:
     part("skins", skins)
     part("icon", icon)
     part("profile", profile)
-    part("patch", lambda: _patch().summary())
     part("wallpaper", lambda: (lambda w: {"league": w["league"], "name": w["name"], "count": len(w["files"]),
                                           "video": _wallpaper().is_video(w["name"]) if w["name"] else False})(_wallpaper().listing()))
     return parts
@@ -626,7 +620,6 @@ ACTIONS: dict[str, Callable[[dict], str]] = {
     "wallpaper_delete": lambda body: _wallpaper().delete(str(body.get("name") or "")),
     "wallpaper_folder": lambda body: _wallpaper().open_folder(),
     "open_link": lambda body: _open_link(str(body.get("url") or "")),
-    "patch_open": lambda body: _patch().open_notes(),
 }
 
 

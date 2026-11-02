@@ -28,6 +28,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import re
 import threading
 import time
 from typing import Dict, List, Optional, Set
@@ -45,12 +46,16 @@ LOBBY_PHASES = ("Lobby", "Matchmaking", "ReadyCheck")
 # The rooms stay as they are while the game starts: the others' skins are put in then
 KEEP_PHASES = ("GameStart", "InProgress", "Reconnect")
 # What our state carries next to the skin pick
-EXTRA_KEYS = ("icon_id", "puuid", "removed")
+# Who we are, next to the pick: Riot ID and Discord account (shown in friends' lists)
+PROFILE_KEYS = ("riot", "dc", "dcu", "dca")
+EXTRA_KEYS = ("icon_id", "puuid", "removed") + PROFILE_KEYS
 FRIENDS_FILE = "lust-friends.json"
 # Our own code, kept so the hub shows it while League is closed too
 MY_CODE_FILE = "lust-share-code.json"
 # Party Mode stays in at most 8 rooms: ours, a lobby, a team and the friends'
 MAX_FRIENDS = 5
+# Players who paired with our code (they join our room; no room of theirs to open)
+MAX_JOINED = 20
 
 _lock = threading.Lock()
 _runner: Optional["_Runner"] = None
@@ -122,8 +127,27 @@ def _friends_path():
     return get_user_data_dir() / FRIENDS_FILE
 
 
+def _clean_profile(data) -> dict:
+    """The Riot ID / Discord part of a friend entry or of a member's state, checked."""
+    result = {}
+    if not isinstance(data, dict):
+        return result
+    for key in PROFILE_KEYS:
+        value = data.get(key)
+        if not isinstance(value, str) or not value:
+            continue
+        if key == "dca" and not re.fullmatch(r"https://cdn\.discordapp\.com/[\w/.?=-]{1,160}", value):
+            continue
+        result[key] = value[:64] if key != "dca" else value
+    return result
+
+
 def load_friends() -> dict:
-    """{"friends": [{"id", "key", "name"}], "removed": [summoner ids]}"""
+    """{"friends": [{"id", "key", "name"}], "removed": [summoner ids], "joined": [{"id", "name"}]}
+
+    "joined" are the players who pasted our code: they come into our own room, we
+    have no code of theirs, but they are friends all the same.
+    """
     try:
         data = json.loads(_friends_path().read_text(encoding="utf-8"))
     except (OSError, ValueError):
@@ -137,9 +161,19 @@ def load_friends() -> dict:
         except (TypeError, ValueError):
             continue
         if sid > 0 and len(key) == 32:
-            friends.append({"id": sid, "key": key.hex(), "name": str(f.get("name") or "")[:64]})
+            friends.append({"id": sid, "key": key.hex(), "name": str(f.get("name") or "")[:64], **_clean_profile(f)})
     removed = [r for r in (data.get("removed") or [] if isinstance(data, dict) else []) if isinstance(r, int)]
-    return {"friends": friends[:MAX_FRIENDS], "removed": removed}
+    joined = []
+    for j in data.get("joined") or [] if isinstance(data, dict) else []:
+        if not isinstance(j, dict):
+            continue
+        try:
+            sid = int(j.get("id"))
+        except (TypeError, ValueError):
+            continue
+        if sid > 0 and sid not in removed and all(f["id"] != sid for f in friends) and all(x["id"] != sid for x in joined):
+            joined.append({"id": sid, "name": str(j.get("name") or "")[:64], **_clean_profile(j)})
+    return {"friends": friends[:MAX_FRIENDS], "removed": removed, "joined": joined[:MAX_JOINED]}
 
 
 def _save_friends(data: dict) -> bool:
@@ -203,6 +237,7 @@ def add_friend(code: str) -> str:
         if len(data["friends"]) >= MAX_FRIENDS:
             return f"En fazla {MAX_FRIENDS} arkadaşla eşleşebilirsin: önce birini çıkar"
         data["friends"].append({"id": token.summoner_id, "key": token.encryption_key.hex(), "name": ""})
+        data["joined"] = [j for j in data["joined"] if j["id"] != token.summoner_id]
         data["removed"] = [r for r in data["removed"] if r != token.summoner_id]
         if not _save_friends(data):
             return "Arkadaş kaydedilemedi"
@@ -218,6 +253,7 @@ def remove_friend(summoner_id) -> str:
     with _friends_lock:
         data = load_friends()
         data["friends"] = [f for f in data["friends"] if f["id"] != sid]
+        data["joined"] = [j for j in data["joined"] if j["id"] != sid]
         # They stop seeing us too, even though they kept our code (see Party Mode's "removed")
         if sid not in data["removed"]:
             data["removed"].append(sid)
@@ -226,14 +262,51 @@ def remove_friend(summoner_id) -> str:
     return "Arkadaş çıkarıldı"
 
 
-def _remember_names(names: Dict[int, str]) -> None:
+def _member_id(member) -> int:
+    try:
+        return int(member.get("summoner_id"))
+    except (AttributeError, TypeError, ValueError):
+        return 0
+
+
+def _member_name(member) -> str:
+    name = str(member.get("summoner_name") or "") if isinstance(member, dict) else ""
+    return "" if name == "Unknown" else name[:64]
+
+
+def _member_profile(member) -> dict:
+    """{"name", "riot", "dc", "dcu", "dca"} a member shows now (empty values left out)."""
+    skin = member.get("skin") if isinstance(member, dict) else None
+    result = _clean_profile(skin)
+    name = _member_name(member)
+    if name:
+        result["name"] = name
+    return result
+
+
+def _friend_row(f: dict, online: bool) -> dict:
+    row = {"id": str(f["id"]), "name": f.get("name") or "Arkadaş", "online": online}
+    row.update({key: f[key] for key in PROFILE_KEYS if f.get(key)})
+    return row
+
+
+def _remember_names(names: Dict[int, dict], joined: Optional[Dict[int, dict]] = None) -> None:
+    """Keep friends' last name and profile (shown while they are away), and the players
+    who joined our room with our code. names / joined: {summoner id: {"name", "riot", ...}}"""
     with _friends_lock:
         data = load_friends()
         changed = False
-        for f in data["friends"]:
-            name = names.get(f["id"])
-            if name and name != f["name"]:
-                f["name"], changed = name[:64], True
+        for f in data["friends"] + data["joined"]:
+            seen = names.get(f["id"]) or {}
+            for key, value in seen.items():
+                if value and f.get(key) != value:
+                    f[key], changed = value, True
+        known = {f["id"] for f in data["friends"] + data["joined"]} | set(data["removed"])
+        for sid, seen in (joined or {}).items():
+            if sid not in known and len(data["joined"]) < MAX_JOINED:
+                data["joined"].append({"id": sid, "name": "", **{k: v for k, v in seen.items() if v}})
+                known.add(sid)
+                changed = True
         if changed:
             _save_friends(data)
 
@@ -254,6 +327,29 @@ def wanted() -> bool:
     except Exception:  # noqa: BLE001
         pass
     return bool(relay_url())
+
+
+def _my_profile(lcu) -> dict:
+    """Our Riot ID (from the League client) and Discord account (if signed in in the hub)."""
+    result = {}
+    summoner = getattr(lcu, "current_summoner", None)
+    if isinstance(summoner, dict):
+        name, tag = summoner.get("gameName"), summoner.get("tagLine")
+        if isinstance(name, str) and name:
+            result["riot"] = f"{name}#{tag}" if isinstance(tag, str) and tag else name
+    try:
+        from launcher import lust_discord
+        user = lust_discord.user()
+    except Exception:  # noqa: BLE001
+        user = None
+    if user:
+        if user.get("name"):
+            result["dc"] = user["name"]
+        if user.get("username"):
+            result["dcu"] = user["username"]
+        if user.get("avatar_url"):
+            result["dca"] = user["avatar_url"]
+    return _clean_profile(result)
 
 
 def _my_icon() -> int:
@@ -322,6 +418,7 @@ def _manager_class():
                 # Keep our last pick until the next champ select (see the base)
                 skin = {k: v for k, v in self._skin_state.items() if k not in EXTRA_KEYS}
             state = dict(skin or {})
+            state.update(_my_profile(self.lcu))
             icon = _my_icon()
             if icon:
                 state["icon_id"] = icon
@@ -349,16 +446,25 @@ def _manager_class():
 
         def friends(self) -> List[dict]:
             members = self._merged_members()
-            result, names = [], {}
-            for f in load_friends()["friends"]:
+            data = load_friends()
+            # Who is in our own room pasted our code: a friend too
+            home = self._relays.get(self._home_room) if self._home_room else None
+            new = {}
+            listed = {f["id"] for f in data["friends"] + data["joined"]}
+            for member in list(home.members) if home else []:
+                sid = _member_id(member)
+                if sid and sid in members and sid not in listed:
+                    new[sid] = _member_profile(members[sid][0])
+            result, seen = [], {}
+            for f in data["friends"] + data["joined"] + [{"id": k} for k in new]:
                 entry = members.get(f["id"])
-                name = str(entry[0].get("summoner_name") or "") if entry else ""
-                if name and name != "Unknown":
-                    names[f["id"]] = name
-                result.append({"id": str(f["id"]), "name": name or f["name"] or "Arkadaş",
-                               "online": bool(entry and entry[1])})
-            if names:
-                _remember_names(names)
+                now = _member_profile(entry[0]) if entry else {}
+                if now:
+                    seen[f["id"]] = now
+                # Away: the name and accounts seen last
+                result.append(_friend_row({**f, **now}, bool(entry and entry[1])))
+            if seen or new:
+                _remember_names(seen, new)
             return result
 
         async def sync_rooms(self, keys: Set[str], resume: bool = False) -> None:
@@ -504,8 +610,7 @@ def status() -> Dict[str, object]:
         except Exception as e:  # noqa: BLE001
             log.debug(f"[Share] status: {e}")
     else:
-        result["friends"] = [{"id": str(f["id"]), "name": f["name"] or "Arkadaş", "online": False}
-                             for f in load_friends()["friends"]]
+        result["friends"] = [_friend_row(f, False) for data in [load_friends()] for f in data["friends"] + data["joined"]]
     if not result["code"]:
         # League closed or not connected yet: our code is still the same
         result["code"] = load_my_code()

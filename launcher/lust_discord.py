@@ -10,6 +10,7 @@ avatar in discord.json, and forgets the token. Nothing else from Discord is read
 from __future__ import annotations
 
 import json
+import re
 import secrets
 import threading
 import time
@@ -52,7 +53,18 @@ def user() -> Optional[dict]:
     avatar = _dir() / AVATAR
     return {"id": str(data["id"]), "name": str(data.get("name") or data.get("username") or ""),
             "username": str(data.get("username") or ""),
-            "avatar": int(avatar.stat().st_mtime) if avatar.exists() else 0}
+            "avatar": int(avatar.stat().st_mtime) if avatar.exists() else 0,
+            "avatar_url": avatar_url(str(data["id"]), data.get("avatar_hash"))}
+
+
+def avatar_url(user_id: str, avatar_hash) -> str:
+    """The Discord picture's address (Discord's default one when there is none, or it is unknown)."""
+    if isinstance(avatar_hash, str) and re.fullmatch(r"(a_)?[0-9a-f]{32}", avatar_hash):
+        return f"https://cdn.discordapp.com/avatars/{user_id}/{avatar_hash}.png?size=64"
+    try:
+        return f"https://cdn.discordapp.com/embed/avatars/{(int(user_id) >> 22) % 6}.png"
+    except ValueError:
+        return ""
 
 
 def avatar_path() -> Path:
@@ -99,7 +111,8 @@ def finish(access_token: str, state: str) -> str:
     if not isinstance(me, dict) or not me.get("id"):
         return "Discord hesabı okunamadı"
     data = {"id": str(me["id"]), "username": str(me.get("username") or ""),
-            "name": str(me.get("global_name") or me.get("username") or "")}
+            "name": str(me.get("global_name") or me.get("username") or ""),
+            "avatar_hash": str(me.get("avatar") or "")}
     try:
         (_dir() / FILE).write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
     except OSError as e:

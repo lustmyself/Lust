@@ -1140,6 +1140,19 @@ PAGE = r"""<!doctype html>
   .sh-f span { font-family: var(--p3-cond); font-size: 13px; color: var(--p3-ice); }
   .sh-f button { margin-left: auto; background: none; border: 0; color: var(--p3-ice); cursor: pointer; font-size: 13px; text-decoration: underline; }
   .sh-f button:hover { color: var(--p3-hot); }
+  /* A friend: Discord picture, Riot ID, Discord name; away ones show the accounts seen last */
+  .sh-f .av { position: relative; flex: none; width: 34px; height: 34px; transform: none; background: #1d245e center / cover;
+    clip-path: polygon(14% 0, 100% 0, 86% 100%, 0 100%); box-shadow: none; }
+  .sh-f:not(.on) .av { filter: grayscale(.8) brightness(.75); }
+  .sh-f .who { min-width: 0; display: grid; line-height: 1.15; }
+  .sh-f .who b, .sh-f .who em { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sh-f .who em { display: flex; align-items: center; gap: 4px; font-style: normal; font-family: var(--p3-cond); font-weight: 600;
+    font-size: 13px; color: #a5b4fc; }
+  .sh-f .who em svg { width: 13px; height: 13px; flex: none; fill: #a5b4fc; stroke: none; }
+  .sh-f .st { margin-left: auto; flex: none; display: flex; align-items: center; gap: 6px; }
+  .sh-f .st i { width: 8px; height: 8px; transform: rotate(45deg); background: #64748b; }
+  .sh-f.on .st i { background: #34d399; box-shadow: 0 0 8px #34d399; }
+  .sh-f .st + button { margin-left: 4px; }
   .sh-empty { font-family: var(--p3-cond); font-size: 14px; color: var(--p3-ice); opacity: .8; }
 
   /* Tiles: slanted panels on a blue shadow, a number, a title in big capitals */
@@ -1787,6 +1800,7 @@ $("np-mute").addEventListener("click", () => mediaAct("mute"));
 pollMedia(); pollLevel(); requestAnimationFrame(tickMedia);
 
 // Skin sharing in the home header (launcher/lust_share.py): the switch, and who sees your skins now
+const DC_SVG = '<svg viewBox="0 0 24 24"><path d="M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18.2 18.2 0 0 0-5.6 0L8.6 3a19.5 19.5 0 0 0-4.9 1.4C.6 9 0 13.5.3 18a19.7 19.7 0 0 0 6 3l1.3-2a12.7 12.7 0 0 1-2-1l.5-.4a14 14 0 0 0 11.8 0l.5.4c-.6.4-1.3.7-2 1l1.3 2a19.6 19.6 0 0 0 6-3c.4-5.2-.7-9.7-3.4-13.6ZM8.5 15.3c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.1 1.1 2.1 2.4-.9 2.4-2.1 2.4Zm7 0c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.1 1.1 2.1 2.4-.9 2.4-2.1 2.4Z"/></svg>';
 function drawShare(s) {
   const on = settingValue(s, "share_skins") !== false;
   const share = s.share || {};
@@ -1810,10 +1824,19 @@ function drawShare(s) {
     $("sh-list").replaceChildren(...(friends.length ? friends.map((f) => {
       const row = document.createElement("div");
       row.className = "sh-f" + (f.online ? " on" : "");
-      row.innerHTML = "<i></i><b></b><span></span><button>Çıkar</button>";
-      row.querySelector("b").textContent = f.name;
+      row.innerHTML = `<div class="av"></div><div class="who"><b></b><em hidden>${DC_SVG}<u></u></em></div>`
+        + "<div class=\"st\"><i></i><span></span></div><button>Çıkar</button>";
+      if (f.dca) row.querySelector(".av").style.backgroundImage = `url("${f.dca}")`;
+      row.querySelector("b").textContent = f.riot || f.name;
+      row.querySelector("b").title = f.riot ? `LoL: ${f.riot}` : "";
+      if (f.dc || f.dcu) {
+        const em = row.querySelector("em"); em.hidden = false;
+        em.querySelector("u").textContent = f.dc && f.dcu && f.dc !== f.dcu ? `${f.dc} · @${f.dcu}` : (f.dc || `@${f.dcu}`);
+        em.querySelector("u").style.textDecoration = "none";
+      }
       // Our own sharing runs only while League is open: until then nobody shows as connected
-      row.querySelector("span").textContent = f.online ? "Bağlı" : share.running ? "Lust kapalı" : "League açılınca bağlanır";
+      row.querySelector(".st span").textContent = f.online ? "Bağlı" : share.running ? "Çevrimdışı" : "League açılınca bağlanır";
+      if (!f.online && (f.riot || f.dc)) row.title = "Çevrimdışı: en son görülen hesapları";
       row.querySelector("button").addEventListener("click", () => act("share_remove", { id: f.id }));
       return row;
     }) : [Object.assign(document.createElement("div"), { className: "sh-empty",

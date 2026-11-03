@@ -126,6 +126,12 @@ class ExpiringTests(unittest.TestCase):
     def test_a_passed_end_of_life_before_league_updates_is_told(self):
         self.assertEqual(self._soon(self._status(self.NOW - DAY)), self.NOW - DAY)
 
+    def test_a_passed_end_of_life_says_it_still_works_until_league_updates(self):
+        self.assertIn("doluyor", setup.expiring_text(self.NOW + DAY, now=self.NOW))
+        passed = setup.expiring_text(self.NOW - DAY, now=self.NOW)
+        self.assertIn("doldu", passed)
+        self.assertIn("hâlâ çalışıyor", passed)
+
     def test_far_off_expired_missing_or_unreadable_patchers_are_not(self):
         self.assertIsNone(self._soon(self._status(self.NOW + 30 * DAY)))
         self.assertIsNone(self._soon(self._status(self.NOW - DAY, expired=True)))

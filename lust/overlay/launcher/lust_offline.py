@@ -141,8 +141,22 @@ def ensure_localhost_resolution() -> bool:
     return True
 
 
+# Lust Offline reads its startup status from this file ("chat" is online).
+STARTUP_STATUS_FILE = Path(os.environ.get("APPDATA", "")) / "Lust Offline" / "startupStatus"
+
+
+def start_online() -> None:
+    """League opens online every time; the player can go offline or mobile from Lust after."""
+    try:
+        STARTUP_STATUS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        STARTUP_STATUS_FILE.write_text("chat", encoding="utf-8")
+    except OSError as exc:
+        log.warning(f"[LustOffline] Could not set the startup status: {exc}")
+
+
 def _launch(exe) -> bool:
     ensure_localhost_resolution()
+    start_online()
     try:
         subprocess.Popen(
             [str(exe), "lol"],

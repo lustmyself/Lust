@@ -84,3 +84,12 @@ class LocalhostResolutionTests(unittest.TestCase):
     def test_commented_entry_does_not_count(self):
         _, text, _ = self._run("# 127.0.0.1 deceive-localhost.molenzwiebel.xyz\n", resolves=False)
         self.assertEqual(text.count("deceive-localhost"), 2)
+
+
+class StartOnlineTests(unittest.TestCase):
+    def test_league_starts_online(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "Lust Offline" / "startupStatus"
+            with patch.object(lust_offline, "STARTUP_STATUS_FILE", target):
+                lust_offline.start_online()
+            self.assertEqual(target.read_text(encoding="utf-8"), "chat")

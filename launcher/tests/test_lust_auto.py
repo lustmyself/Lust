@@ -101,5 +101,59 @@ class LockInTests(unittest.TestCase):
         self.assertEqual(len(sent), 2)
 
 
+def _game(game_id=42, queue=420, custom=False, kind="RANKED_SOLO_5x5"):
+    return {"gameData": {"gameId": game_id, "isCustomGame": custom, "queue": {"id": queue, "type": kind}}}
+
+
+class RequeueTests(unittest.TestCase):
+    def setUp(self):
+        lust_auto._requeue.update(game=None, until=0.0)
+
+    def _run(self, phases, session=None, lobby=None, search_ok=True):
+        calls = []
+
+        def lcu(method, path, body=None):
+            calls.append((method, path))
+            if path == "/lol-gameflow/v1/session":
+                return session if session is not None else _game()
+            if path == "/lol-lobby/v2/lobby":
+                return lobby if lobby is not None else {"canStartActivity": True, "localMember": {"isLeader": True}}
+            if path.endswith("/search") and not search_ok:
+                return None
+            return {}
+        with mock.patch.object(lust_auto, "_lcu", side_effect=lcu):
+            for phase in phases:
+                lust_auto._after_game(phase)
+        return [c for c in calls if c[0] != "GET"]
+
+    def test_matchmade_game_goes_back_and_queues(self):
+        sent = self._run(["InProgress", "PreEndOfGame", "EndOfGame", "EndOfGame", "Lobby", "Matchmaking"])
+        self.assertEqual(sent, [("POST", "/lol-lobby/v2/play-again"),
+                                ("POST", "/lol-lobby/v2/lobby/matchmaking/search")])
+
+    def test_custom_games_and_practice_tool_are_left_alone(self):
+        self.assertEqual(self._run(["EndOfGame", "Lobby"], session=_game(custom=True, queue=-1)), [])
+        self.assertEqual(self._run(["EndOfGame", "Lobby"], session=_game(queue=3140, kind="PRACTICETOOL")), [])
+
+    def test_a_lobby_without_a_game_before_is_not_queued(self):
+        self.assertEqual(self._run(["Lobby", "Lobby"]), [])
+
+    def test_party_member_leaves_the_queue_to_the_leader(self):
+        sent = self._run(["EndOfGame", "Lobby", "Lobby"], lobby={"localMember": {"isLeader": False}})
+        self.assertEqual(sent, [("POST", "/lol-lobby/v2/play-again")])
+
+    def test_waits_while_the_lobby_cannot_start(self):
+        sent = self._run(["EndOfGame", "Lobby", "Lobby"], lobby={"canStartActivity": False, "localMember": {"isLeader": True}})
+        self.assertEqual(sent, [("POST", "/lol-lobby/v2/play-again")])
+
+    def test_a_failed_search_is_tried_again(self):
+        sent = self._run(["EndOfGame", "Lobby", "Lobby"], search_ok=False)
+        self.assertEqual(sent.count(("POST", "/lol-lobby/v2/lobby/matchmaking/search")), 2)
+
+    def test_requeue_alone_keeps_the_thread(self):
+        self.assertTrue(lust_auto._any_on(lust_auto.clean({"requeue": True})))
+        self.assertFalse(lust_auto._any_on(lust_auto.clean({})))
+
+
 if __name__ == "__main__":
     unittest.main()

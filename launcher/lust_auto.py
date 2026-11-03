@@ -1,9 +1,10 @@
-"""Auto Accept, Auto Ban and Auto Pick from the desktop app.
+"""Auto Accept, Auto Ban, Auto Pick and Auto Requeue from the desktop app.
 
 While League is open a small thread watches the client (LCU): it accepts the ready check,
-and in champ select it bans and picks for the player when their turn comes, taking the first
-champion of their list that is still free. Each switch and both lists are the player's own,
-kept in Lust's data folder as lust-auto.json.
+in champ select it bans and picks for the player when their turn comes, taking the first
+champion of their list that is still free, and after a matchmade game it goes back to the
+lobby and starts the queue again. Each switch and both lists are the player's own, kept in
+Lust's data folder as lust-auto.json.
 """
 
 from __future__ import annotations
@@ -20,17 +21,21 @@ log = get_logger()
 
 FILE = "lust-auto.json"
 MAX_CHOICES = 5
-DEFAULTS = {"accept": False, "ban": False, "pick": False, "bans": [], "picks": []}
+SWITCHES = ("accept", "ban", "pick", "requeue")
+DEFAULTS = {"accept": False, "ban": False, "pick": False, "requeue": False, "bans": [], "picks": []}
 IDLE_S = 3.0   # League closed or nothing to do
 BUSY_S = 1.0   # ready check or champ select
 CREDS_TTL_S = 30.0
 MAX_TRIES = 30  # about one a second: the client can ignore a lock-in for the first seconds of a turn
+REQUEUE_WAIT_S = 90.0  # after "play again", how long the lobby may take before the queue starts
+END_PHASES = ("PreEndOfGame", "WaitingForStats", "EndOfGame")
 
 _lock = threading.Lock()
 _cache: Optional[dict] = None
 _thread: Optional[threading.Thread] = None
 _creds: dict = {"at": 0.0, "value": None}
 _done: dict = {}  # action id -> tries in this champ select
+_requeue: dict = {"game": None, "until": 0.0}  # the game already requeued; queue again until this time
 
 
 # ---- settings ----
@@ -39,7 +44,7 @@ def clean(data) -> dict:
     out = dict(DEFAULTS)
     if not isinstance(data, dict):
         return out
-    for key in ("accept", "ban", "pick"):
+    for key in SWITCHES:
         if isinstance(data.get(key), bool):
             out[key] = data[key]
     for key in ("bans", "picks"):
@@ -80,7 +85,7 @@ def update(changes: dict) -> str:
         except OSError as exc:
             log.warning(f"[Auto] Could not save: {exc}")
             return "Kaydedilemedi"
-    if cleaned["accept"] or cleaned["ban"] or cleaned["pick"]:
+    if _any_on(cleaned):
         start()
     return ""
 
@@ -255,6 +260,60 @@ def _champ_select(config: dict) -> None:
         log.info(f"[Auto] {kind} {champion} still open after {tries} tries, trying again")
 
 
+# ---- queue again after a game ----
+
+def requeue_game(session) -> Optional[int]:
+    """The game id to queue again after, or None: only matchmade games (not custom games,
+    practice tool or tutorials), so the player's own lobby setup is never started by surprise."""
+    if not isinstance(session, dict):
+        return None
+    data = session.get("gameData") or {}
+    queue = data.get("queue") or {}
+    if data.get("isCustomGame") or not isinstance(queue.get("id"), int) or queue["id"] <= 0:
+        return None
+    if queue.get("type") in ("PRACTICETOOL", "TUTORIAL") or str(queue.get("category", "")).lower() == "custom":
+        return None
+    game = data.get("gameId")
+    return game if isinstance(game, int) and game > 0 else None
+
+
+def _after_game(phase) -> bool:
+    """End of game: once the stats are up, back to the lobby. In that lobby: start the queue.
+    True while there is something left to do, so the thread checks more often."""
+    now = time.monotonic()
+    if phase == "EndOfGame":
+        game = requeue_game(_lcu("GET", "/lol-gameflow/v1/session"))
+        if game is None or game == _requeue["game"]:
+            return False
+        _requeue["game"] = game
+        if _lcu("POST", "/lol-lobby/v2/play-again") is None:
+            log.warning("[Auto] Could not go back to the lobby after the game")
+            return False
+        _requeue["until"] = now + REQUEUE_WAIT_S
+        log.info(f"[Auto] Game {game} over: back to the lobby to queue again")
+        return True
+    if phase in END_PHASES:
+        return True  # honor vote and stats come first
+    if phase != "Lobby" or now >= _requeue["until"]:
+        _requeue["until"] = 0.0
+        return False
+    lobby = _lcu("GET", "/lol-lobby/v2/lobby")
+    if not isinstance(lobby, dict):
+        return True  # the lobby is still opening
+    if not (lobby.get("localMember") or {}).get("isLeader", True):
+        _note("requeue-leader", "[Auto] Not the party leader: the leader starts the queue")
+        _requeue["until"] = 0.0
+        return False
+    if lobby.get("canStartActivity") is False:
+        _note("requeue-wait", "[Auto] Lobby not ready to queue yet (party members or a penalty), waiting")
+        return True
+    if _lcu("POST", "/lol-lobby/v2/lobby/matchmaking/search") is not None:
+        log.info("[Auto] Queue started again")
+        _requeue["until"] = 0.0
+        return False
+    return True
+
+
 _notes: set = set()
 _last: dict = {"phase": None}
 
@@ -268,7 +327,7 @@ def _note(key: str, text: str) -> None:
 
 def _tick() -> float:
     config = settings()
-    if not (config["accept"] or config["ban"] or config["pick"]):
+    if not _any_on(config):
         return IDLE_S
     phase = _lcu("GET", "/lol-gameflow/v1/gameflow-phase")
     if phase != _last["phase"]:
@@ -282,11 +341,13 @@ def _tick() -> float:
         _champ_select(config)
         return BUSY_S
     _done.clear()
+    if config["requeue"] and _after_game(phase):
+        return BUSY_S
     return IDLE_S
 
 
 def _any_on(config) -> bool:
-    return bool(config and (config["accept"] or config["ban"] or config["pick"]))
+    return bool(config and any(config.get(key) for key in SWITCHES))
 
 
 def _run() -> None:
@@ -309,8 +370,7 @@ def _run() -> None:
 def start() -> None:
     """Watch the client while any switch is on (the thread ends when all are off)."""
     global _thread
-    config = settings()
-    if not (config["accept"] or config["ban"] or config["pick"]):
+    if not _any_on(settings()):
         return
     with _lock:
         if _thread is not None:

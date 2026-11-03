@@ -1,6 +1,7 @@
 {
-  "version": "1.4.9.96",
+  "version": "1.4.9.97",
   "en": [
+    "LTK patcher: once its date has passed, the warning says so and that skins keep working until League's next update",
     "Profile: League's own client background is hidden on the profile page too, so only your profile background shows",
     "Profile: the profile page shows only your profile background; the wallpaper fades out there",
     "Lust Offline: League now opens online every time; switch to Offline or Mobile from Lust whenever you want",
@@ -103,6 +104,7 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "LTK patcher: tarihi geçince uyarı bunu söylüyor; skinler League'in bir sonraki güncellemesine kadar çalışmaya devam ediyor",
     "Profil: League'in kendi istemci arka planı da profil sayfasında gizleniyor, sadece profil arka planın görünüyor",
     "Profil: profil sayfasında artık sadece profil arka planın görünüyor; duvar kağıdı orada gizleniyor",
     "Lust Offline: League artık her açılışta çevrimiçi başlıyor; istediğin zaman Lust'tan Çevrimdışı veya Mobil'e geçebilirsin",

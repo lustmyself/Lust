@@ -1945,11 +1945,13 @@ function render(s) {
   const ltk = s.patcher || {};
   $("ltk").hidden = !ltk.state || ltk.state === "ok" || isDismissed("ltk", ltk.state);
   if (!$("ltk").hidden) {
-    $("ltk-t").textContent = LTK_TITLE[ltk.state] || LTK_TITLE.missing;
+    $("ltk-t").textContent = ltk.state === "expiring" && ltk.past ? LTK_TITLE.expired : (LTK_TITLE[ltk.state] || LTK_TITLE.missing);
     $("ltk-b").textContent = ltk.waiting
       ? "ltk_patcher.zip bekleniyor: İndirilenler'e inince Lust imzasını kontrol edip kendisi kurar."
       : (ltk.state === "expiring"
-        ? `Süresi ${ltk.eol} tarihinde doluyor; League'in sonraki güncellemesinden sonra skinler yüklenmez.` +
+        ? (ltk.past
+          ? `Süresi ${ltk.eol} tarihinde doldu ama şimdiki League sürümüyle hâlâ çalışıyor; League'in sonraki güncellemesinden sonra skinler yüklenmez.`
+          : `Süresi ${ltk.eol} tarihinde doluyor; League'in sonraki güncellemesinden sonra skinler yüklenmez.`) +
           (ltk.newer ? " Yeni ltk_patcher.zip hazır." : " Yenisi Rose Discord'unda (#tutorial) paylaşılınca indir.")
         : "Skinler için ltk_patcher.zip gerekli. İndir, Lust onu İndirilenler'de bulup kendisi kurar.");
   }

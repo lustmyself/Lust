@@ -225,14 +225,24 @@ def _date(timestamp: int) -> str:
     return time.strftime("%d.%m.%Y", time.localtime(timestamp))
 
 
+def expiring_text(eol: int, now: Optional[float] = None) -> str:
+    """The warning in Turkish. The DLL only refuses League builds made after its end of life,
+    so once the date has passed it still works until League's next update."""
+    now = time.time() if now is None else now
+    if eol <= now:
+        return (f"LTK patcher'ın süresi {_date(eol)} tarihinde doldu ama şimdiki League sürümüyle hâlâ çalışıyor; "
+                "League'in bir sonraki güncellemesinden sonra skinler yüklenmez.")
+    return (f"LTK patcher'ın süresi {_date(eol)} tarihinde doluyor: League'in bir sonraki güncellemesinden "
+            "sonra skinler yüklenmez.")
+
+
 def warn_if_expiring(tools_dir: Path, game_dir: Optional[Path]) -> bool:
     """Tell the player ahead of time that the patcher is about to stop working."""
     eol = expiring_soon(tools_dir, game_dir)
     if eol is None:
         return False
     newer = (newest_eol() or 0) > eol
-    turkish = (f"LTK patcher'ın süresi {_date(eol)} tarihinde doluyor: League'in bir sonraki güncellemesinden "
-               "sonra skinler yüklenmez. ")
+    turkish = expiring_text(eol) + " "
     turkish += ("Yeni ltk_patcher.zip çıktı: hub'daki \"İndirme sayfasını aç\" düğmesine bas." if newer else
                 "Rose Discord'unda (#tutorial) yeni ltk_patcher.zip paylaşılınca indir.")
     log.warning(f"[LTK] The patcher reaches its end of life on {_date(eol)}"
@@ -285,6 +295,7 @@ def hub_status() -> dict:
     eol = check_ltk_patcher(_tools_dir).eol
     state = problem or ("expiring" if expiring_soon(_tools_dir, game_dir) else "ok")
     return {"state": state, "eol": _date(eol) if eol else "", "waiting": _hub_wait.is_set(),
+            "past": bool(eol and eol <= time.time()),
             "newer": bool(eol and (newest_eol() or 0) > eol)}
 
 

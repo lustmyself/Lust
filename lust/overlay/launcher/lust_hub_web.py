@@ -881,6 +881,7 @@ PAGE = r"""<!doctype html>
   .au { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 16px; cursor: pointer;
     background: rgba(22, 28, 78, .55); border: 1px solid rgba(255, 255, 255, .07); transition: border-color .2s, background .2s, transform .15s; }
   .au:hover { border-color: rgba(244, 63, 94, .45); transform: translateY(-2px); }
+  .au-wide { grid-column: 1 / -1; }
   .au:active { transform: scale(.98); }
   .au-i { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; flex: none;
     background: rgba(244, 63, 94, .1); border: 1px solid rgba(244, 63, 94, .3); color: #fb7185; }
@@ -1524,11 +1525,13 @@ PAGE = r"""<!doctype html>
     <div class="au-cards">
       <div class="au" data-auto="accept"><i class="au-i"><svg viewBox="0 0 24 24"><path d="M12 22s8-3.5 8-10V5l-8-3-8 3v7c0 6.5 8 10 8 10z"/></svg></i>
         <div><b>Auto Accept</b><span>Maç bulununca kabul eder</span></div><i class="au-ck">__check__</i></div>
+      <div class="au" data-auto="requeue"><i class="au-i"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg></i>
+        <div><b>Auto Requeue</b><span>Maç bitince lobiye dönüp tekrar sıraya girer</span></div><i class="au-ck">__check__</i></div>
       <div class="au" data-auto="ban"><i class="au-i"><svg viewBox="0 0 24 24"><path d="M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2M9.5 17.5 21 6V3h-3L6.5 14.5M11 19l-6-6M8 16l-4 4M5 21l-2-2"/></svg></i>
         <div><b>Auto Ban</b><span>Sıran gelince listedeki ilk boştakini banlar</span></div><i class="au-ck">__check__</i></div>
       <div class="au" data-auto="pick"><i class="au-i"><svg viewBox="0 0 24 24"><path d="M5 19 3 7l5 4 4-7 4 7 5-4-2 12z"/></svg></i>
         <div><b>Auto Pick</b><span>Sıran gelince listedeki ilk boştakini seçer</span></div><i class="au-ck">__check__</i></div>
-      <div class="au" data-auto="reveal"><i class="au-i"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></i>
+      <div class="au au-wide" data-auto="reveal"><i class="au-i"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></i>
         <div><b>Lobby Reveal</b><span>Champ select'te takım arkadaşlarının adları ve op.gg</span></div><i class="au-ck">__check__</i></div>
     </div>
     <div class="au-team" id="au-team" hidden>
@@ -1542,6 +1545,7 @@ PAGE = r"""<!doctype html>
         <input type="search" placeholder="Seçilecek şampiyon ekle" autocomplete="off"><div class="au-sug"></div></div>
     </div>
     <div class="note">Sıra sana gelince listendeki ilk boş şampiyon seçilir; banlanmış, alınmış ya da takım arkadaşının istediği şampiyon atlanır.
+      Auto Requeue yalnızca eşleşmeli maçlardan sonra çalışır (özel oyun ve antrenman aracı hariç); grupta sırayı lider başlatır.
       Lust bunları LoL istemcisi üzerinden yapar, League açıkken çalışır.</div>
   </section>
 
@@ -2206,11 +2210,11 @@ function drawTiles() {
     $("t-spotify-bg").style.backgroundImage = `url("${cover}")`;
   } else if (!cover) { $("t-sp-cover").dataset.url = ""; $("t-spotify-bg").style.backgroundImage = ""; }
   const a = auto || {};
-  const names = [["accept", "Accept"], ["ban", "Ban"], ["pick", "Pick"]];
+  const names = [["accept", "Accept"], ["requeue", "Requeue"], ["ban", "Ban"], ["pick", "Pick"]];
   const reveal = !!((a.reveal || {}).on);
   const onCount = names.filter(([k]) => a[k]).length + (reveal ? 1 : 0);
-  fill("t-auto", onCount ? [["b", `${onCount}/4 açık`]] : ["Hepsi kapalı"]);
-  const draftKey = JSON.stringify([a.ban, a.pick, a.accept, reveal, a.bans, a.picks]);
+  fill("t-auto", onCount ? [["b", `${onCount}/${names.length + 1} açık`]] : ["Hepsi kapalı"]);
+  const draftKey = JSON.stringify([a.ban, a.pick, a.accept, a.requeue, reveal, a.bans, a.picks]);
   if ($("t-auto-draft").dataset.key !== draftKey) {
     $("t-auto-draft").dataset.key = draftKey;
     // Five pick slots and five ban slots, filled in list order
@@ -2230,7 +2234,7 @@ function drawTiles() {
     };
     const leds = document.createElement("div");
     leds.className = "dr-leds";
-    leds.append(...[["Accept", a.accept], ["Ban", a.ban], ["Pick", a.pick], ["Reveal", reveal]].map(([label, on]) =>
+    leds.append(...[["Accept", a.accept], ["Requeue", a.requeue], ["Ban", a.ban], ["Pick", a.pick], ["Reveal", reveal]].map(([label, on]) =>
       Object.assign(document.createElement("span"), { textContent: label, className: on ? "on" : "" })));
     $("t-auto-draft").replaceChildren(leds, row("pick", a.picks, !!a.pick), row("ban", a.bans, !!a.ban));
   }

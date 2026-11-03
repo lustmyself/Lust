@@ -1,6 +1,7 @@
 {
-  "version": "1.4.9.97",
+  "version": "1.4.9.98",
   "en": [
+    "Skin sharing: a friend shown only as \"Arkadaş\" now gets their Riot ID from League",
     "LTK patcher: once its date has passed, the warning says so and that skins keep working until League's next update",
     "Profile: League's own client background is hidden on the profile page too, so only your profile background shows",
     "Profile: the profile page shows only your profile background; the wallpaper fades out there",
@@ -104,6 +105,7 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "Skin paylaşımı: sadece \"Arkadaş\" yazan arkadaşların Riot ID'si artık League'den alınıp gösteriliyor",
     "LTK patcher: tarihi geçince uyarı bunu söylüyor; skinler League'in bir sonraki güncellemesine kadar çalışmaya devam ediyor",
     "Profil: League'in kendi istemci arka planı da profil sayfasında gizleniyor, sadece profil arka planın görünüyor",
     "Profil: profil sayfasında artık sadece profil arka planın görünüyor; duvar kağıdı orada gizleniyor",

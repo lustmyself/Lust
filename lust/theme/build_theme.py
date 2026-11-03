@@ -154,9 +154,11 @@ ADD_WALLPAPER_JS = '''    const addBg = this.createElementWithId("div", "add-bg"
     });
 '''
 
-ADD_WALLPAPER_CSS = '''/* Lust: the profile page shows only the profile background, not the wallpaper */
+ADD_WALLPAPER_CSS = '''/* Lust: the profile page shows only the profile background, not the wallpaper
+   and not League's own client background either */
 html.lust-profile-page #lust-bg,
-html.lust-profile-page #lust-static-bg {
+html.lust-profile-page #lust-static-bg,
+html.lust-profile-page #background-ambient {
     opacity: 0 !important;
 }
 
@@ -392,12 +394,14 @@ function lustWallpaperLink(tries = 0) {
 function lustProfileWallpaper() {
   let shown = null;
   const check = () => {
-    const page = document.querySelector('.screen-root[data-screen-name="rcp-fe-lol-profiles-main"]');
+    const pages = document.querySelectorAll(
+      '.screen-root[data-screen-name="rcp-fe-lol-profiles-main"], .rcp-fe-lol-profiles-main');
     let open = false;
-    if (page) {
+    for (const page of pages) {
       open = page.checkVisibility
         ? page.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })
         : page.getClientRects().length > 0;
+      if (open) break;
     }
     if (open !== shown) {
       shown = open;

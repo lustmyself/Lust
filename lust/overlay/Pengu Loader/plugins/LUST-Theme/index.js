@@ -5037,12 +5037,14 @@ function lustWallpaperLink(tries = 0) {
 function lustProfileWallpaper() {
   let shown = null;
   const check = () => {
-    const page = document.querySelector('.screen-root[data-screen-name="rcp-fe-lol-profiles-main"]');
+    const pages = document.querySelectorAll(
+      '.screen-root[data-screen-name="rcp-fe-lol-profiles-main"], .rcp-fe-lol-profiles-main');
     let open = false;
-    if (page) {
+    for (const page of pages) {
       open = page.checkVisibility
         ? page.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })
         : page.getClientRects().length > 0;
+      if (open) break;
     }
     if (open !== shown) {
       shown = open;

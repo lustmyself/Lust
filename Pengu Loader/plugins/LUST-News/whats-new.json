@@ -1,6 +1,7 @@
 {
-  "version": "1.4.9.92",
+  "version": "1.4.9.93",
   "en": [
+    "Champ select: Auto Requeue goes back to the lobby and queues again after a matchmade game (off by default)",
     "Skin sharing: League friends who use Lust pair by themselves, no code needed",
     "Window: dropping the title bar at the top of the screen maximizes it",
     "Skin sharing: your code no longer changes every second; it stays the same (older codes still work)",
@@ -99,6 +100,7 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "Champ select: Auto Requeue, eşleşmeli maç bitince lobiye dönüp tekrar sıraya girer (varsayılan kapalı)",
     "Skin paylaşımı: Lust kullanan LoL arkadaşların kod girmeden kendiliğinden eşleşir",
     "Pencere: başlık çubuğunu ekranın en üstüne sürükleyip bırakınca tam ekran olur",
     "Skin paylaşımı: kodun artık her saniye değişmiyor, hep aynı kalıyor (eski kodlar da çalışıyor)",

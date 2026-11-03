@@ -1,6 +1,7 @@
 {
-  "version": "1.4.9.94",
+  "version": "1.4.9.95",
   "en": [
+    "Profile: the profile page shows only your profile background; the wallpaper fades out there",
     "Lust Offline: League now opens online every time; switch to Offline or Mobile from Lust whenever you want",
     "Champ select: Auto Requeue goes back to the lobby and queues again after a matchmade game (off by default)",
     "Skin sharing: League friends who use Lust pair by themselves, no code needed",
@@ -101,6 +102,7 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "Profil: profil sayfasında artık sadece profil arka planın görünüyor; duvar kağıdı orada gizleniyor",
     "Lust Offline: League artık her açılışta çevrimiçi başlıyor; istediğin zaman Lust'tan Çevrimdışı veya Mobil'e geçebilirsin",
     "Champ select: Auto Requeue, eşleşmeli maç bitince lobiye dönüp tekrar sıraya girer (varsayılan kapalı)",
     "Skin paylaşımı: Lust kullanan LoL arkadaşların kod girmeden kendiliğinden eşleşir",

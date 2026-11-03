@@ -290,6 +290,12 @@
     cursor: pointer;
 }
 
+/* Lust: the profile page shows only the profile background, not the wallpaper */
+html.lust-profile-page #lust-bg,
+html.lust-profile-page #lust-static-bg {
+    opacity: 0 !important;
+}
+
 #add-bg {
     position: relative !important;
     width: 21px !important;

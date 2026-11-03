@@ -154,7 +154,13 @@ ADD_WALLPAPER_JS = '''    const addBg = this.createElementWithId("div", "add-bg"
     });
 '''
 
-ADD_WALLPAPER_CSS = '''#add-bg {
+ADD_WALLPAPER_CSS = '''/* Lust: the profile page shows only the profile background, not the wallpaper */
+html.lust-profile-page #lust-bg,
+html.lust-profile-page #lust-static-bg {
+    opacity: 0 !important;
+}
+
+#add-bg {
     position: relative !important;
     width: 21px !important;
     height: 21px !important;
@@ -381,11 +387,33 @@ function lustWallpaperLink(tries = 0) {
   setInterval(() => lustWallpaperState(), 5000);
 }
 
+// Lust: the profile page has its own background (the profile splash). While it is the
+// page on screen the wallpaper fades out, so the two don't show through each other.
+function lustProfileWallpaper() {
+  let shown = null;
+  const check = () => {
+    const page = document.querySelector('.screen-root[data-screen-name="rcp-fe-lol-profiles-main"]');
+    let open = false;
+    if (page) {
+      open = page.checkVisibility
+        ? page.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })
+        : page.getClientRects().length > 0;
+    }
+    if (open !== shown) {
+      shown = open;
+      document.documentElement.classList.toggle("lust-profile-page", open);
+    }
+  };
+  check();
+  setInterval(check, 300);
+}
+
 function Settings(context) {
   ElainaData.set("settingsChangenumber", 0);
   mountLustHub();
   applyLustColors();
   lustWallpaperLink();
+  lustProfileWallpaper();
 }
 
 // Lust: the LUST item in the top navigation opens the Lust hub, a centered window

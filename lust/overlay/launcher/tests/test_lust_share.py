@@ -321,6 +321,21 @@ class LolFriendsTest(unittest.TestCase):
         with patch.object(lust_share, "_ask_directory", return_value=None):
             self.assertIsNone(lust_share.lol_friends_using_lust(self.lcu(self.FRIENDS), "me-puuid"))
 
+    def test_a_friend_never_seen_gets_a_name_from_league(self):
+        state = SimpleNamespace(phase="None", locked_champ_id=None, hovered_champ_id=None, party_manager=None)
+        lcu = FakeLcu()
+        lcu.get = lambda path, timeout=1.0: ({"gameName": "Kislotny", "tagLine": "TR1"}
+                                             if path == "/lol-summoner/v1/summoners/33" else None)
+        manager = lust_share._manager_class()(lcu, state)
+        with patch.object(lust_share, "_my_profile", return_value={}):
+            asyncio.run(ManagerTest._enable(None, manager))
+        lust_share._save_friends({"friends": [], "removed": [], "joined": [{"id": 33, "name": ""}, {"id": 34, "name": ""}]})
+        rows = {r["id"]: r for r in manager.friends()}
+        self.assertEqual(rows["33"]["riot"], "Kislotny#TR1")
+        self.assertEqual(rows["34"]["name"], "Arkadaş")
+        # kept for next time
+        self.assertEqual(lust_share.load_friends()["joined"][0]["riot"], "Kislotny#TR1")
+
     def test_friends_are_listed_and_their_rooms_opened(self):
         state = SimpleNamespace(phase="None", locked_champ_id=None, hovered_champ_id=None, party_manager=None)
         manager = lust_share._manager_class()(FakeLcu(), state)

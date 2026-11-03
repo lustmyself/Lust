@@ -559,9 +559,14 @@ def _manager_class():
                 if sid and sid in members and sid not in listed:
                     new[sid] = _member_profile(members[sid][0])
             result, seen = [], {}
+            lol_by_id = {f["id"]: f for f in self.lol_friends.values()}
             for f in data["friends"] + data["joined"] + [{"id": k} for k in new]:
                 entry = members.get(f["id"])
                 now = _member_profile(entry[0]) if entry else {}
+                # Never seen with a name: the League friend list, or else League itself, knows it
+                if not (f.get("name") or f.get("riot") or now.get("name") or now.get("riot")):
+                    lol = lol_by_id.get(f["id"])
+                    now = {**(({"name": lol["name"], "riot": lol["riot"]} if lol else None) or self._look_up(f["id"])), **now}
                 if now:
                     seen[f["id"]] = now
                 # Away: the name and accounts seen last
@@ -581,6 +586,22 @@ def _manager_class():
             if seen or new:
                 _remember_names(seen, new)
             return result
+
+        def _look_up(self, summoner_id: int) -> dict:
+            """{"name", "riot"} of a player by summoner id, from League (each one asked once)."""
+            looked = self.__dict__.setdefault("_looked_up", {})
+            if summoner_id not in looked:
+                looked[summoner_id] = {}
+                try:
+                    found = self.lcu.get(f"/lol-summoner/v1/summoners/{int(summoner_id)}")
+                except Exception:  # noqa: BLE001
+                    found = None
+                if isinstance(found, dict):
+                    name = str(found.get("gameName") or found.get("displayName") or "")[:64]
+                    tag = str(found.get("tagLine") or "")
+                    if name:
+                        looked[summoner_id] = {"name": name, "riot": f"{name}#{tag}" if tag else name}
+            return dict(looked[summoner_id])
 
         async def sync_rooms(self, keys: Set[str], resume: bool = False) -> None:
             if getattr(self, "_need_publish", False):

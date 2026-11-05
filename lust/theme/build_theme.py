@@ -240,6 +240,7 @@ const LUST_TR = {
   "Keep at least one": "En az bir tane kalmalı",
   "{name} isn't a {type} file": "{name} bir {type} dosyası değil",
   "Adding {name}...": "{name} ekleniyor...",
+  "Large package, this can take a while": "Paket boyutları büyük olduğu için işlem uzun sürebilir",
   "Lust isn't connected": "Lust bağlı değil",
   "Lust didn't answer": "Lust cevap vermedi",
   "What's new in Lust {version}": "Lust {version} yenilikleri",
@@ -525,12 +526,13 @@ async function customSkinsTab(page) {
     section.parentElement.classList.remove("dragging");
     busy = true;
     for (const file of [...((event.dataTransfer && event.dataTransfer.files) || [])]) {
-      say(lustTr("Adding {name}...", { name: file.name }));
+      say(lustAddingText(file));
       const total = Math.max(1, Math.ceil(file.size / LUST_ASSET_CHUNK));
       let error = "";
       for (let index = 0; index < total && !error; index++) {
         const data = await lustBlobToBase64(file.slice(index * LUST_ASSET_CHUNK, (index + 1) * LUST_ASSET_CHUNK));
         error = (await lustCustomSkins("chunk", { name: file.name, index, total, data })).error;
+        if (!error && index + 1 < total) say(lustAddingText(file, (index + 1) / total));
       }
       say(error, true);
     }
@@ -1697,6 +1699,13 @@ ASSET_LIBRARY_JS = '''// Lust: the asset library shows each folder's files (Lust
 // bridge, since Pengu 1.1.6 plugins can't), Add opens the folder, x deletes a file,
 // and files dropped on a row are copied into its folder.
 const LUST_ASSET_CHUNK = 512 * 1024;
+// Past this size an upload takes a while: say so, and show how far it got
+const LUST_BIG_FILE = 50 * 1024 * 1024;
+function lustAddingText(file, done = 0) {
+  const text = lustTr("Adding {name}...", { name: file.name });
+  if (file.size < LUST_BIG_FILE) return text;
+  return `${text} ${Math.floor(done * 100)}% - ${lustTr("Large package, this can take a while")}`;
+}
 const lustAssetWaiters = new Map();
 let lustAssetRequests = 0;
 let lustAssetsSubscribed = false;
@@ -1734,12 +1743,13 @@ function lustBlobToBase64(blob) {
     reader.readAsDataURL(blob);
   });
 }
-async function uploadLustAsset(kind, file) {
+async function uploadLustAsset(kind, file, onProgress = () => {}) {
   const total = Math.max(1, Math.ceil(file.size / LUST_ASSET_CHUNK));
   for (let index = 0; index < total; index++) {
     const data = await lustBlobToBase64(file.slice(index * LUST_ASSET_CHUNK, (index + 1) * LUST_ASSET_CHUNK));
     const reply = await lustAssets(kind, "save", { name: file.name, index, total, data });
     if (reply.error) return reply;
+    onProgress((index + 1) / total);
   }
   return lustAssets(kind, "list");
 }
@@ -1813,8 +1823,8 @@ async function createFileListRow(type, dataKey, inputKey, regex) {
         show(null, lustTr("{name} isn't a {type} file", { name: file.name, type: title.textContent.toLowerCase() }));
         continue;
       }
-      hint.textContent = lustTr("Adding {name}...", { name: file.name });
-      const reply = await uploadLustAsset(type, file);
+      hint.textContent = lustAddingText(file);
+      const reply = await uploadLustAsset(type, file, (done) => { hint.textContent = lustAddingText(file, done); });
       show(reply.files, reply.error);
     }
   });

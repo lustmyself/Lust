@@ -312,29 +312,15 @@ def _check_dll_present() -> bool:
     if sys.platform != "win32":
         return True  # Only relevant on Windows
 
-    from datetime import datetime
-    from config import get_config_option
-    from injection.tools.patcher import check_ltk_patcher
-
     tools_dir = _get_tools_dir()
     _sync_cslol_stub(tools_dir)
     try:
-        # Takes a downloaded ltk_patcher.zip, or opens its download page and waits for it
+        # Takes an ltk_patcher.zip the player downloaded; never asks or opens a page
         from injection.tools.ltk_manager_setup import startup_check
         startup_check(tools_dir)
     except Exception as e:
         log.warning(f"[LTK] Could not set up the patcher: {e}")
-    status = check_ltk_patcher(tools_dir)
-    if status.missing:
-        return _show_dll_dialog(tools_dir, reason="missing", detail=" and ".join(status.missing))
-    if status.eol is None:
-        return _show_dll_dialog(tools_dir, reason="invalid")
-    # The DLL keeps working past its end of life until League updates, so only
-    # block when the game Lust last found is a build it refuses
-    league_path = get_config_option("General", "leaguePath")
-    if status.expired_for(Path(league_path) if league_path else None):
-        eol = datetime.fromtimestamp(status.eol).strftime("%Y-%m-%d %H:%M")
-        return _show_dll_dialog(tools_dir, reason="expired", detail=eol)
+    # Lust starts without a usable patcher too; startup_check logged why skins won't load
     return True
 
 

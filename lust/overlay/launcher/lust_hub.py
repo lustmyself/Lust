@@ -281,12 +281,6 @@ def _patcher_status():
     return hub_status()
 
 
-def _patcher_download() -> str:
-    from injection.tools.ltk_manager_setup import hub_download
-    _cache.pop("patcher", None)
-    return hub_download()
-
-
 def _maps():
     from launcher import lust_maps
     return lust_maps
@@ -590,7 +584,6 @@ ACTIONS: dict[str, Callable[[dict], str]] = {
     "spotify_apply": lambda body: _spotify_apply(str(body.get("theme") or "")),
     "spotify_auto": lambda body: _spotify_auto(),
     "rose_uninstall": lambda body: _rose_uninstall(),
-    "patcher_download": lambda body: _patcher_download(),
     "discord_login": lambda body: _discord_login(),
     "discord_logout": lambda body: _discord_logout(),
     "map_select": lambda body: _maps().select(body.get("id") or None),

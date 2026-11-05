@@ -1,6 +1,7 @@
 {
-  "version": "1.4.9.98",
+  "version": "1.4.9.99",
   "en": [
+    "Adding a big custom skin or asset (50 MB or more) shows how far the upload got, with a note that it can take a while",
     "Skin sharing: a friend shown only as \"Arkadaş\" now gets their Riot ID from League",
     "LTK patcher: once its date has passed, the warning says so and that skins keep working until League's next update",
     "Profile: League's own client background is hidden on the profile page too, so only your profile background shows",
@@ -105,6 +106,7 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "Büyük bir özel skin ya da dosya (50 MB ve üstü) eklerken yüklemenin yüzdesi görünüyor; paket boyutları büyük olduğu için işlemin uzun sürebileceği de yazıyor",
     "Skin paylaşımı: sadece \"Arkadaş\" yazan arkadaşların Riot ID'si artık League'den alınıp gösteriliyor",
     "LTK patcher: tarihi geçince uyarı bunu söylüyor; skinler League'in bir sonraki güncellemesine kadar çalışmaya devam ediyor",
     "Profil: League'in kendi istemci arka planı da profil sayfasında gizleniyor, sadece profil arka planın görünüyor",

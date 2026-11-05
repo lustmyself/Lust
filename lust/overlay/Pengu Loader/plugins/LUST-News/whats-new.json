@@ -1,6 +1,7 @@
 {
-  "version": "1.4.9.100",
+  "version": "1.4.9.101",
   "en": [
+    "No more patcher pop-up with an outdated download link, and Lust stays open without a working patcher: skins just don't load, and the Settings tile says why",
     "Hub: adding a big custom skin, map, font or wallpaper keeps the progress note on screen until it is done",
     "Adding a big custom skin or asset (50 MB or more) shows how far the upload got, with a note that it can take a while",
     "Skin sharing: a friend shown only as \"Arkadaş\" now gets their Riot ID from League",
@@ -107,6 +108,7 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "Eski indirme linkine götüren patcher penceresi kalktı; çalışan patcher yokken Lust artık kapanmıyor: skinler yüklenmiyor, nedenini Ayarlar kutucuğu söylüyor",
     "Hub: büyük bir custom skin, harita, font veya duvar kağıdı eklerken ilerleme yazısı iş bitene kadar ekranda kalır",
     "Büyük bir özel skin ya da dosya (50 MB ve üstü) eklerken yüklemenin yüzdesi görünüyor; paket boyutları büyük olduğu için işlemin uzun sürebileceği de yazıyor",
     "Skin paylaşımı: sadece \"Arkadaş\" yazan arkadaşların Riot ID'si artık League'den alınıp gösteriliyor",

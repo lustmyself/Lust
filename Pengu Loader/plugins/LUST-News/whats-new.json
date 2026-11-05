@@ -1,6 +1,7 @@
 {
-  "version": "1.4.9.50",
+  "version": "1.4.9.51",
   "en": [
+    "Adding a big custom skin or asset (50 MB or more) shows how far the upload got, with a note that it can take a while",
     "No patcher? Lust opens the ltk_patcher.zip download (Rose Discord, #tutorial) and installs it as soon as it lands in Downloads, no restart",
     "Lust no longer installs or updates LTK Manager: its patchers since 1.30 don't work with Lust",
     "Uninstalling Lust no longer leaves a dead \"Lust\" in Windows' Apps list, and the list shows the version you run",
@@ -21,6 +22,7 @@
     "Pick the hub's backdrop (cinematic or plain hextech) and turn its animations off"
   ],
   "tr": [
+    "Büyük bir özel skin ya da dosya (50 MB ve üstü) eklerken yüklemenin yüzdesi görünüyor; paket boyutları büyük olduğu için işlemin uzun sürebileceği de yazıyor",
     "Patcher yok mu? Lust ltk_patcher.zip indirme sayfasını (Rose Discord, #tutorial) açıyor ve dosya İndirilenler'e iner inmez kuruyor, yeniden başlatmaya gerek yok",
     "Lust artık LTK Manager'ı kurmuyor ve güncellemiyor: 1.30'dan beri onun patcher'ları Lust'la çalışmıyor",
     "Lust'ı kaldırmak artık Windows'un Uygulamalar listesinde ölü bir \"Lust\" bırakmıyor, liste de çalışan sürümü gösteriyor",

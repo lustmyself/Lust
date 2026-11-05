@@ -1352,12 +1352,6 @@ PAGE = r"""<!doctype html>
       <button class="btn danger" style="margin-left:auto" data-act="rose_uninstall">Rose'u kaldır</button>
       <button class="dismiss" data-dismiss="rose" title="Kapat">__close__</button>
     </div>
-    <div class="card rose" id="ltk" hidden>
-      <div class="ico">__close__</div>
-      <div class="t"><b id="ltk-t"></b><span id="ltk-b"></span></div>
-      <button class="btn primary" style="margin-left:auto" id="ltk-btn" data-act="patcher_download">İndirme sayfasını aç</button>
-      <button class="dismiss" data-dismiss="ltk" title="Kapat">__close__</button>
-    </div>
     <div class="card prompt" id="prompt" hidden>
       <div class="t"><b id="q-title"></b><span id="q-body"></span></div>
       <button class="btn primary" style="margin-left:auto" data-act="prompt" data-body='{"accept":true}'>Kur</button>
@@ -1942,19 +1936,6 @@ function render(s) {
   $("h-bar").firstElementChild.style.width = busy ? "" : `${s.progress}%`;
 
   $("rose").hidden = !(s.rose && s.rose.installed) || isDismissed("rose", "installed");
-  const ltk = s.patcher || {};
-  $("ltk").hidden = !ltk.state || ltk.state === "ok" || isDismissed("ltk", ltk.state);
-  if (!$("ltk").hidden) {
-    $("ltk-t").textContent = ltk.state === "expiring" && ltk.past ? LTK_TITLE.expired : (LTK_TITLE[ltk.state] || LTK_TITLE.missing);
-    $("ltk-b").textContent = ltk.waiting
-      ? "ltk_patcher.zip bekleniyor: İndirilenler'e inince Lust imzasını kontrol edip kendisi kurar."
-      : (ltk.state === "expiring"
-        ? (ltk.past
-          ? `Süresi ${ltk.eol} tarihinde doldu ama şimdiki League sürümüyle hâlâ çalışıyor; League'in sonraki güncellemesinden sonra skinler yüklenmez.`
-          : `Süresi ${ltk.eol} tarihinde doluyor; League'in sonraki güncellemesinden sonra skinler yüklenmez.`) +
-          (ltk.newer ? " Yeni ltk_patcher.zip hazır." : " Yenisi Rose Discord'unda (#tutorial) paylaşılınca indir.")
-        : "Skinler için ltk_patcher.zip gerekli. İndir, Lust onu İndirilenler'de bulup kendisi kurar.");
-  }
   $("prompt").hidden = !s.prompt;
   if (s.prompt) {
     $("q-title").textContent = `Lust ${s.prompt.version} kurulmaya hazır`;
@@ -2243,7 +2224,7 @@ function drawTiles() {
   const ltk = s.patcher || {};
   const warn = s.update_available ? "Güncelleme hazır"
     : (s.rose && s.rose.installed && !isDismissed("rose", "installed")) ? "Rose da kurulu, kaldırman iyi olur"
-    : (ltk.state && ltk.state !== "ok" && !isDismissed("ltk", ltk.state)) ? (LTK_TITLE[ltk.state] || LTK_TITLE.missing) : "";
+    : (ltk.state && ltk.state !== "ok") ? (ltk.state === "expiring" && ltk.past ? LTK_TITLE.expired : (LTK_TITLE[ltk.state] || LTK_TITLE.missing)) : "";
   $("tile-settings").classList.toggle("warn", !!warn);
   fill("t-settings", warn ? [["b", warn, "warn"]]
     : [["b", "✓ Her şey yolunda", "ok"], " · güncelleme, onarım, istemci"]);
@@ -2818,7 +2799,7 @@ document.querySelectorAll("[data-act]").forEach((el) => el.addEventListener("cli
 }));
 document.querySelectorAll("[data-dismiss]").forEach((b) => b.addEventListener("click", () => {
   const card = b.dataset.dismiss, st = state || {};
-  dismiss(card, card === "ltk" ? (st.patcher || {}).state : "installed");
+  dismiss(card, "installed");
   $(card).hidden = true;
 }));
 document.querySelectorAll(".status-seg button").forEach((b) => b.addEventListener("click", () => act("status", { value: b.dataset.status })));

@@ -89,13 +89,13 @@ Lust includes a suite of JavaScript plugins that extend the League Client UI:
 
 - **Windows 10/11**
 - **League of Legends** installed
-- **LTK patcher** - `ltk_patcher.zip`, which Lust asks you to download (see below)
+- **LTK patcher** - `ltk_patcher.zip` in your Downloads folder (see below)
 
 ### LTK Patcher Requirement
 
-Lust injects with the LTK patcher (`ltk_patcher_host.exe` and `ltk_patcher_dll.dll`). LTK Manager's own builds since 1.30 refuse every program but LTK Manager, so Lust uses the [ltk_patcher.zip](https://www.mediafire.com/file/g0lzcgpr97jd9r3/ltk_patcher.zip/file) that Rose's Discord shares (#tutorial). When the patcher is missing, Lust opens that page: download the zip and Lust finds it in your Downloads folder, checks that both files are signed by League Toolkit, and installs them.
+Lust injects with the LTK patcher (`ltk_patcher_host.exe` and `ltk_patcher_dll.dll`). LTK Manager's own builds since 1.30 refuse every program but LTK Manager, so Lust uses an ltk_patcher.zip that works outside LTK Manager. Put it in your Downloads folder and Lust finds it at its next start, checks that both files are signed by League Toolkit, and installs them. Without a usable patcher Lust still runs; skins just don't load, and the hub's Settings tile says why.
 
-The patcher stops working with game builds released after its end-of-life date: Lust then asks for the newer ltk_patcher.zip the same way.
+The patcher stops working with game builds released after its end-of-life date: skins then stop loading until a newer ltk_patcher.zip is in your Downloads folder.
 
 ## Installation
 

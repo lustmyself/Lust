@@ -301,16 +301,24 @@ EDITS += [
      '        f"{status_title}\\n\\n{status_body}\\n\\nHow to fix it:\\n{steps}\\n\\n"\n        "Lust only installs patcher files signed by League Toolkit.\\n\\n"\n'),
     ('main/__init__.py',
      '    _sync_cslol_stub(tools_dir)\n    status = check_ltk_patcher(tools_dir)\n',
-     '    _sync_cslol_stub(tools_dir)\n    try:\n        # Takes a downloaded ltk_patcher.zip, or opens its download page and waits for it\n        from injection.tools.ltk_manager_setup import startup_check\n        startup_check(tools_dir)\n    except Exception as e:\n        log.warning(f"[LTK] Could not set up the patcher: {e}")\n    status = check_ltk_patcher(tools_dir)\n'),
+     '    _sync_cslol_stub(tools_dir)\n    try:\n        # Takes an ltk_patcher.zip the player downloaded; never asks or opens a page\n        from injection.tools.ltk_manager_setup import startup_check\n        startup_check(tools_dir)\n    except Exception as e:\n        log.warning(f"[LTK] Could not set up the patcher: {e}")\n    status = check_ltk_patcher(tools_dir)\n'),
+    # Without a usable patcher Lust keeps running (hub, theme, Spotify, Offline): no dialog, no exit.
+    # Injection reports a missing or expired patcher per game and the game starts without mods.
+    ('main/__init__.py',
+     '        return True  # Only relevant on Windows\n\n    from datetime import datetime\n    from config import get_config_option\n    from injection.tools.patcher import check_ltk_patcher\n\n    tools_dir = _get_tools_dir()\n',
+     '        return True  # Only relevant on Windows\n\n    tools_dir = _get_tools_dir()\n'),
+    ('main/__init__.py',
+     '    status = check_ltk_patcher(tools_dir)\n    if status.missing:\n        return _show_dll_dialog(tools_dir, reason="missing", detail=" and ".join(status.missing))\n    if status.eol is None:\n        return _show_dll_dialog(tools_dir, reason="invalid")\n    # The DLL keeps working past its end of life until League updates, so only\n    # block when the game Lust last found is a build it refuses\n    league_path = get_config_option("General", "leaguePath")\n    if status.expired_for(Path(league_path) if league_path else None):\n        eol = datetime.fromtimestamp(status.eol).strftime("%Y-%m-%d %H:%M")\n        return _show_dll_dialog(tools_dir, reason="expired", detail=eol)\n    return True\n',
+     '    # Lust starts without a usable patcher too; startup_check logged why skins won\'t load\n    return True\n'),
     ('README.md',
      '- **League of Legends** installed\n- **LTK patcher** - You must provide it yourself (see below)\n',
-     '- **League of Legends** installed\n- **LTK patcher** - `ltk_patcher.zip`, which Lust asks you to download (see below)\n'),
+     '- **League of Legends** installed\n- **LTK patcher** - `ltk_patcher.zip` in your Downloads folder (see below)\n'),
     ('README.md',
      '\nDue to DMCA restrictions, Lust cannot distribute the LTK patcher. Get its two files, `ltk_patcher_host.exe` and `ltk_patcher_dll.dll`, from an LTK Manager install.\n',
-     '\nLust injects with the LTK patcher (`ltk_patcher_host.exe` and `ltk_patcher_dll.dll`). LTK Manager\'s own builds since 1.30 refuse every program but LTK Manager, so Lust uses the [ltk_patcher.zip](https://www.mediafire.com/file/g0lzcgpr97jd9r3/ltk_patcher.zip/file) that Rose\'s Discord shares (#tutorial). When the patcher is missing, Lust opens that page: download the zip and Lust finds it in your Downloads folder, checks that both files are signed by League Toolkit, and installs them.\n'),
+     '\nLust injects with the LTK patcher (`ltk_patcher_host.exe` and `ltk_patcher_dll.dll`). LTK Manager\'s own builds since 1.30 refuse every program but LTK Manager, so Lust uses an ltk_patcher.zip that works outside LTK Manager. Put it in your Downloads folder and Lust finds it at its next start, checks that both files are signed by League Toolkit, and installs them. Without a usable patcher Lust still runs; skins just don\'t load, and the hub\'s Settings tile says why.\n'),
     ('README.md',
      '\nOn first launch, Lust asks for these files and opens its tools folder, where they go. The patcher stops working with game builds released after its end-of-life date: Lust then tells you to update LTK Manager and replace both files.\n',
-     '\nThe patcher stops working with game builds released after its end-of-life date: Lust then asks for the newer ltk_patcher.zip the same way.\n'),
+     '\nThe patcher stops working with game builds released after its end-of-life date: skins then stop loading until a newer ltk_patcher.zip is in your Downloads folder.\n'),
 ]
 
 # One click on the LUST label toggled the panel twice (nav item + section listeners),

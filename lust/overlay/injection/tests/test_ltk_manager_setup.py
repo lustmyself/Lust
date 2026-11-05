@@ -1,5 +1,4 @@
 import tempfile
-import time
 import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -16,52 +15,30 @@ def _status(missing=(), eol=100, expired=False):
     return s
 
 
-class EnsurePatcherTests(unittest.TestCase):
+class StartupCheckTests(unittest.TestCase):
+    def _run(self, problem):
+        calls = []
+        with patch.object(setup, "manifest"), patch.object(setup, "_game_dir", return_value=None), \
+                patch.object(setup, "take_downloaded_patcher", side_effect=lambda *a: calls.append("take")), \
+                patch.object(setup, "import_from_ltk_manager", side_effect=lambda *a: calls.append("import")), \
+                patch.object(setup, "patcher_problem", return_value=problem), \
+                patch.object(setup, "warn_if_host_locked", return_value=False), \
+                patch.object(setup, "warn_if_expiring", return_value=False), \
+                patch("webbrowser.open", side_effect=AssertionError("opened a download page")):
+            setup.startup_check(self.tools)
+        return calls
+
     def setUp(self):
         self.tools = Path(tempfile.mkdtemp())
-        self.calls = []
-        self.problems = []  # returned by patcher_problem, in order
-        for name in ("take_downloaded_patcher", "import_from_ltk_manager"):
-            p = patch.object(setup, name, side_effect=lambda *a, n=name: self.calls.append(n.split("_")[0]))
-            p.start()
-            self.addCleanup(p.stop)
-        p = patch.object(setup, "patcher_problem", side_effect=lambda *a: self.problems.pop(0))
-        p.start()
-        self.addCleanup(p.stop)
 
-    def _run(self, answer=True, arrives=True):
-        def ask(problem):
-            self.calls.append(f"ask:{problem}")
-            return answer
-
-        def wait(ready):
-            self.calls.append("wait")
-            return ready() if arrives else False
-
-        return setup.ensure_ltk_patcher(self.tools, None, ask=ask, wait=wait,
-                                        open_page=lambda url: self.calls.append(f"open:{url}"))
-
-    def test_usable_patcher_asks_nothing(self):
-        self.problems = [None]
-        self.assertTrue(self._run())
-        self.assertEqual(self.calls, ["take", "import"])
-
-    def test_missing_patcher_opens_the_zip_page_and_waits_for_it(self):
-        self.problems = ["missing", None]
-        self.assertTrue(self._run())
-        self.assertEqual(self.calls, ["take", "import", "ask:missing", f"open:{setup.PATCHER_URL}", "wait",
-                                      "take", "import"])
-
-    def test_locked_and_expired_patchers_ask_too(self):
-        for problem in ("locked", "expired"):
+    def test_takes_a_downloaded_patcher_without_asking(self):
+        for problem in (None, "missing", "locked", "expired"):
             with self.subTest(problem=problem):
-                self.calls, self.problems = [], [problem]
-                self.assertFalse(self._run(answer=False))
-                self.assertEqual(self.calls, ["take", "import", f"ask:{problem}"])
+                self.assertEqual(self._run(problem), ["take", "import"])
 
-    def test_nothing_arriving_leaves_it_unusable(self):
-        self.problems = ["missing"]
-        self.assertFalse(self._run(arrives=False))
+    def test_no_dialog_left_to_show(self):
+        for name in ("ensure_ltk_patcher", "ask_to_download", "wait_for_download", "hub_download"):
+            self.assertFalse(hasattr(setup, name), name)
 
     def test_ltk_manager_is_never_installed(self):
         for name in ("download_verified_installer", "open_installer", "run_installer_silently",
@@ -82,30 +59,6 @@ class PatcherProblemTests(unittest.TestCase):
         self.assertEqual(self._problem(_status(), locked=True), "locked")
         self.assertEqual(self._problem(_status(), expired=True), "expired")
         self.assertIsNone(self._problem(_status()))
-
-
-class WaitTests(unittest.TestCase):
-    def _wait(self, ready, dialog_s=0.5, timeout_s=5):
-        # Stands in for the marquee window: open for dialog_s, as if the player left it alone
-        with patch.object(setup, "_run_task_dialog", side_effect=lambda *a, **k: time.sleep(dialog_s)):
-            return setup.wait_for_download(ready, timeout_s=timeout_s, poll_s=0.05)
-
-    def test_returns_once_the_patcher_is_ready(self):
-        checks = iter([False, False, True])
-        self.assertTrue(self._wait(lambda: next(checks)))
-
-    def test_a_closed_window_stops_the_wait(self):
-        self.assertFalse(self._wait(lambda: False, dialog_s=0.2))
-
-    def test_a_failing_check_is_tried_again(self):
-        checks = iter([OSError("half written"), True])
-
-        def ready():
-            value = next(checks)
-            if isinstance(value, Exception):
-                raise value
-            return value
-        self.assertTrue(self._wait(ready))
 
 
 class SignatureTests(unittest.TestCase):

@@ -1601,9 +1601,34 @@ async function api(path, body) {
 }
 const act = (name, body = {}) => api(`/api/action/${name}`, body).then(() => setTimeout(poll, 250)).catch(() => {});
 
-function showToast(text) {
+function showToast(text, stay = false) {
   $("toast").textContent = text; $("toast").classList.add("show");
-  clearTimeout(showToast.t); showToast.t = setTimeout(() => $("toast").classList.remove("show"), 3800);
+  clearTimeout(showToast.t);
+  if (!stay) showToast.t = setTimeout(() => $("toast").classList.remove("show"), 3800);
+}
+// Past this size an upload takes a while: the toast stays up and shows how far it got
+const BIG_FILE = 50 * 1024 * 1024;
+function addingText(file, done) {
+  const text = `${file.name} ekleniyor…`;
+  if (file.size < BIG_FILE) return text;
+  return `${text} %${Math.floor(done * 100)} · Paket büyük olduğu için işlem uzun sürebilir`;
+}
+function uploadFile(kind, file) {
+  showToast(addingText(file, 0), true);
+  return new Promise((resolve) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `/api/${kind}/upload?name=${encodeURIComponent(file.name)}`);
+    xhr.setRequestHeader("X-Lust-Hub", TOKEN);
+    xhr.upload.onprogress = (e) => { if (e.lengthComputable) showToast(addingText(file, e.loaded / e.total), true); };
+    xhr.onload = () => {
+      let out = {};
+      try { out = JSON.parse(xhr.responseText); } catch (err) {}
+      showToast(out.message || (xhr.status < 300 ? `${file.name} eklendi` : "Eklenemedi"));
+      resolve(out);
+    };
+    xhr.onerror = () => { showToast("Eklenemedi"); resolve({}); };
+    xhr.send(file);
+  });
 }
 function ago(s) {
   if (!s) return "henüz yok";
@@ -2394,13 +2419,7 @@ const drop = $("drop");
 ["dragleave", "drop"].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
 drop.addEventListener("drop", async (e) => {
   for (const file of e.dataTransfer.files) {
-    showToast(`${file.name} ekleniyor…`);
-    try {
-      const r = await fetch(`/api/maps/upload?name=${encodeURIComponent(file.name)}`,
-        { method: "POST", headers: { "X-Lust-Hub": TOKEN }, body: file });
-      const out = await r.json();
-      if (out.message) showToast(out.message);
-    } catch (err) { showToast("Eklenemedi"); }
+    await uploadFile("maps", file);
   }
   mapsKey = ""; loadMaps();
 });
@@ -2461,13 +2480,7 @@ const wallDrop = $("wall-drop");
 ["dragleave", "drop"].forEach((t) => wallDrop.addEventListener(t, (e) => { e.preventDefault(); wallDrop.classList.remove("over"); }));
 wallDrop.addEventListener("drop", async (e) => {
   for (const file of e.dataTransfer.files) {
-    showToast(`${file.name} ekleniyor…`);
-    try {
-      const r = await fetch(`/api/wallpapers/upload?name=${encodeURIComponent(file.name)}`,
-        { method: "POST", headers: { "X-Lust-Hub": TOKEN }, body: file });
-      const out = await r.json();
-      if (out.message) showToast(out.message);
-    } catch (err) { showToast("Eklenemedi"); }
+    await uploadFile("wallpapers", file);
   }
   wallsKey = ""; loadWalls();
 });
@@ -2519,13 +2532,7 @@ const fontDrop = $("font-drop");
 ["dragleave", "drop"].forEach((t) => fontDrop.addEventListener(t, (e) => { e.preventDefault(); fontDrop.classList.remove("over"); }));
 fontDrop.addEventListener("drop", async (e) => {
   for (const file of e.dataTransfer.files) {
-    showToast(`${file.name} ekleniyor…`);
-    try {
-      const r = await fetch(`/api/fonts/upload?name=${encodeURIComponent(file.name)}`,
-        { method: "POST", headers: { "X-Lust-Hub": TOKEN }, body: file });
-      const out = await r.json();
-      if (out.message) showToast(out.message);
-    } catch (err) { showToast("Eklenemedi"); }
+    await uploadFile("fonts", file);
   }
   fontsKey = ""; loadFonts();
 });
@@ -2643,13 +2650,7 @@ const skinDrop = $("skin-drop");
 ["dragleave", "drop"].forEach((t) => skinDrop.addEventListener(t, (e) => { e.preventDefault(); skinDrop.classList.remove("over"); }));
 skinDrop.addEventListener("drop", async (e) => {
   for (const file of e.dataTransfer.files) {
-    showToast(`${file.name} ekleniyor…`);
-    try {
-      const r = await fetch(`/api/skins/upload?name=${encodeURIComponent(file.name)}`,
-        { method: "POST", headers: { "X-Lust-Hub": TOKEN }, body: file });
-      const out = await r.json();
-      if (out.message) showToast(out.message);
-    } catch (err) { showToast("Eklenemedi"); }
+    await uploadFile("skins", file);
   }
   skinsKey = ""; loadSkins();
 });

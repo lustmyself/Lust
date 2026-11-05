@@ -112,5 +112,58 @@ class UpdateScriptOfflineTests(unittest.TestCase):
         self.assertNotIn("pause", failure)
         self.assertIn('start "" /D "%DEST%"', failure)
 
+
+class GeometryTests(unittest.TestCase):
+    def test_dragging_an_edge(self):
+        rect = (100, 100, 1380, 900)
+        self.assertEqual(lust_hub_shell.resized("se", rect, 50, 20), (100, 100, 1430, 920))
+        self.assertEqual(lust_hub_shell.resized("nw", rect, -10, -10), (90, 90, 1380, 900))
+
+    def test_never_under_the_minimum(self):
+        rect = (0, 0, 1280, 800)
+        self.assertEqual(lust_hub_shell.resized("w", rect, 900, 0), (300, 0, 1280, 800))
+        self.assertEqual(lust_hub_shell.resized("s", rect, 0, -700), (0, 0, 1280, 640))
+
+    def test_saved_geometry_on_screen(self):
+        out = lust_hub_shell.clean_geometry({"x": 50, "y": 40, "width": 1500, "height": 900, "maximized": True},
+                                            (0, 0, 1920, 1080))
+        self.assertEqual(out, {"x": 50, "y": 40, "width": 1500, "height": 900, "maximized": True})
+
+    def test_saved_geometry_off_screen_keeps_only_the_size(self):
+        out = lust_hub_shell.clean_geometry({"x": 5000, "y": 40, "width": 200, "height": 100}, (0, 0, 1920, 1080))
+        self.assertEqual(out, {"x": None, "y": None, "width": 980, "height": 640, "maximized": False})
+
+    def test_nothing_saved(self):
+        self.assertIsNone(lust_hub_shell.clean_geometry(None))
+        self.assertIsNone(lust_hub_shell.clean_geometry({"width": "x"}))
+
+
+class DragOutTests(unittest.TestCase):
+    def test_the_window_comes_back_under_the_cursor(self):
+        # grabbed at the middle of the bar, 20 px down: the normal-size window keeps that spot
+        self.assertEqual(lust_hub_shell.dragged_out((1000, 30), (1200, 800), 0.5, 20), (400, 10, 1600, 810))
+
+    def test_the_grab_stays_inside_the_window(self):
+        self.assertEqual(lust_hub_shell.dragged_out((10, 5), (600, 400), 1.7, 900), (-590, -394, 10, 6))
+
+    def test_only_a_maximized_window_is_dragged_out(self):
+        api = lust_hub_shell._Api()
+        with mock.patch("threading.Thread") as thread:
+            api.drag_restore(0.5, 10)
+        thread.assert_not_called()
+
+    def test_dropped_at_the_top_maximizes(self):
+        self.assertTrue(lust_hub_shell.snaps_to_top(0, 0))
+        self.assertTrue(lust_hub_shell.snaps_to_top(-1080, -1080))  # a screen above the main one
+        self.assertFalse(lust_hub_shell.snaps_to_top(40, 0))
+
+    def test_only_a_normal_window_is_watched(self):
+        api = lust_hub_shell._Api()
+        api._mode = "maximized"
+        with mock.patch("threading.Thread") as thread:
+            api.drag_watch()
+        thread.assert_not_called()
+
+
 if __name__ == "__main__":
     unittest.main()

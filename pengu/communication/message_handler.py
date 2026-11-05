@@ -247,6 +247,14 @@ class MessageHandler:
             from pengu.communication.lust_custom_skins import handle as _handle_custom_skins
             self._send_response(json.dumps(_handle_custom_skins(payload)))
             return
+        if payload_type == "lust-profile-icon":
+            from launcher.lust_icon import bridge_reply as _lust_icon_reply
+            self._send_response(json.dumps(_lust_icon_reply()))
+            return
+        if payload_type == "lust-wallpaper":
+            from launcher.lust_wallpaper import bridge_reply as _lust_wallpaper_reply
+            self._send_response(json.dumps(_lust_wallpaper_reply(payload)))
+            return
         if payload_type == "lust-assets":
             from pengu.communication.lust_assets import handle as _handle_lust_assets
             self._send_response(json.dumps(_handle_lust_assets(payload)))

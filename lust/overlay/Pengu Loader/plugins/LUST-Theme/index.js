@@ -1660,6 +1660,9 @@ function initHomepageData() {
     if (!wallpapers.includes(name)) wallpapers.push(name);
   }
   LustData.set("Wallpaper-list", wallpapers);
+  if (!LustData.has("lust-league-background"))
+    LustData.set("lust-league-background", true);
+  document.documentElement.classList.toggle("lust-league-bg", !!LustData.get("lust-league-background"));
 }
 async function updateSummonerIdentity() {
   const summonerID = await utils.getSummonerID();
@@ -2003,7 +2006,7 @@ class MainController {
     const muteAudioIcon = this.createIcon("mute-audio-icon", `${iconFolder$3}plugins-icons/mute-audio.png`);
     const audioLoopIcon = this.createIcon("audio-loop-icon", `${iconFolder$3}plugins-icons/audio-loop.png`);
     const wallpaperControls = this.createElementWithClass("div", "wallpaper-controls");
-    if (LustData.get("disable-theme-wallpaper"))
+    if (LustData.get("disable-theme-wallpaper") || LustData.get("lust-league-background"))
       wallpaperControls.style.display = "none";
     const pauseBg = this.createElementWithId("div", "pause-bg");
     const nextBg = this.createElementWithId("div", "next-bg");
@@ -2532,7 +2535,7 @@ class WallpaperAndAudio {
     document.body.prepend(audio);
   };
   setWallpaperElement = () => {
-    if (!LustData.get("disable-theme-wallpaper")) {
+    if (!LustData.get("disable-theme-wallpaper") && !LustData.get("lust-league-background")) {
       if (LustData.get("wallpaper-index") > LustData.get("Wallpaper-list").length - 1) {
         LustData.set("wallpaper-index", 0);
       }
@@ -2568,7 +2571,7 @@ class WallpaperAndAudio {
     }
   };
   setImageWallpaperElement = () => {
-    if (!LustData.get("disable-theme-wallpaper")) {
+    if (!LustData.get("disable-theme-wallpaper") && !LustData.get("lust-league-background")) {
       const imgWallpaper = document.getElementById("lust-static-bg");
       imgWallpaper.preload = "metadata";
       imgWallpaper.src = `${bgFolder$1}wallpapers/${LustData.get("Wallpaper-list")[LustData.get("wallpaper-index")]}`;
@@ -2731,7 +2734,7 @@ class WindowEffects {
   applyWindowEffect = () => {
     if (!window.Effect)
       return;
-    if (!LustData.get("disable-theme-wallpaper")) {
+    if (!LustData.get("disable-theme-wallpaper") || LustData.get("lust-league-background")) {
       window.Effect.clear();
       return;
     }
@@ -3150,6 +3153,35 @@ async function windowEffectsRow() {
 async function wallpaperSection() {
   const br = () => document.createElement("br");
   return UI.createSection("theme-settings-wallpaper", await getString("theme-settings.settings-section-wallpaper"), [
+    UI.createCheckBox(
+      lustTr("Use League's own background"),
+      "lustleaguebg",
+      "lustleaguebgbox",
+      () => {
+        const on = !!LustData.get("lust-league-background");
+        document.documentElement.classList.toggle("lust-league-bg", on);
+        const controls = document.querySelector(".wallpaper-controls");
+        const video = document.getElementById("lust-bg");
+        const imgWallpaper = document.getElementById("lust-static-bg");
+        if (!on && !LustData.get("disable-theme-wallpaper")) {
+          setWallpaper();
+          setImageWallpaper();
+          wallpaperPlayPause();
+          if (controls)
+            controls.style.display = "flex";
+        } else {
+          if (video)
+            video.src = "";
+          if (imgWallpaper)
+            imgWallpaper.src = "";
+          if (controls)
+            controls.style.display = "none";
+        }
+        applyWindowEffect();
+      },
+      true,
+      "lust-league-background"
+    ),
     UI.createButton(await getString("theme-settings.open-background-folder"), "open-background-folder", () => {
       window.openPluginsFolder(`${LustData.get("Plugin-folder-name")}/assets/backgrounds`);
     }),
@@ -3547,6 +3579,14 @@ class AddCss {
   };
   componentsCss = () => {
     let cssImports = "";
+    if (!LustData.get("lust-profile-background-shown")) {
+      LustData.set("lust-profile-background-shown", true);
+      LustData.set("hide-profile-background", false);
+    }
+    if (!LustData.get("lust-gamemode-icons-reset")) {
+      LustData.set("lust-gamemode-icons-reset", true);
+      LustData.set("Custom-Gamemode-Icon", false);
+    }
     let addonCssList = {
       "componentsCss": [
         {
@@ -4853,6 +4893,7 @@ const LUST_TR = {
   "Not a video or image file name": "Video ya da resim dosyası adı değil",
   "{name} is not in the folder": "{name} klasörde yok",
   "16:9 Size Preferred": "16:9 boyut önerilir",
+  "Use League's own background": "LoL'ün kendi arka planını kullan",
   "Add": "Ekle",
   "Delete": "Sil",
   "Drop files here, or Add to open the folder": "Dosyaları buraya bırak ya da klasörü açmak için Ekle'ye bas",
@@ -4909,10 +4950,126 @@ function lustTr(text, vars) {
   return out;
 }
 
+// Lust: the desktop app picks the wallpaper. Its choice comes over the bridge when the
+// theme starts and whenever it changes; the theme tells the app what it shows.
+let lustWallpaperSent = "";
+function lustWallpaperState(force = false) {
+  const bridge = window.__lustBridge;
+  if (!bridge) return;
+  const list = LustData.get("Wallpaper-list") || [];
+  const league = !!LustData.get("lust-league-background");
+  const name = list[LustData.get("wallpaper-index")] || "";
+  const key = `${league}|${name}`;
+  if (!force && key === lustWallpaperSent) return;
+  lustWallpaperSent = key;
+  bridge.send({ type: "lust-wallpaper", action: "state", league, name });
+}
+async function lustApplyWallpaper(msg) {
+  if (!msg || msg.action !== "apply") return;
+  if (typeof msg.rev === "number" && msg.rev === LustData.get("lust-wallpaper-rev")) {
+    lustWallpaperState(true);
+    return;
+  }
+  console.log("[LUST] wallpaper from the app:", msg.league ? "League's own" : msg.name);
+  // Save the choice first: if the client's home page has not loaded yet, the theme's
+  // own start-up shows it from these values
+  const league = !!msg.league;
+  LustData.set("lust-league-background", league);
+  document.documentElement.classList.toggle("lust-league-bg", league);
+  if (msg.name) {
+    const list = LustData.get("Wallpaper-list") || [];
+    if (!list.includes(msg.name))
+      LustData.set("Wallpaper-list", [...list, msg.name]);
+    LustData.set("wallpaper-index", LustData.get("Wallpaper-list").indexOf(msg.name));
+  }
+  if (typeof msg.rev === "number")
+    LustData.set("lust-wallpaper-rev", msg.rev);
+  for (let i = 0; i < 240 && !document.getElementById("lust-bg"); i++)
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  const video = document.getElementById("lust-bg");
+  const image = document.getElementById("lust-static-bg");
+  const controls = document.querySelector(".wallpaper-controls");
+  if (!video || !image) {
+    lustWallpaperState(true);
+    return;
+  }
+  if (league || LustData.get("disable-theme-wallpaper")) {
+    video.pause();
+    video.removeAttribute("src");
+    video.load();
+    image.removeAttribute("src");
+    if (controls)
+      controls.style.display = "none";
+  } else {
+    // A wallpaper picked in the app plays, even if the last one was paused
+    if (LustData.get("pause-wallpaper") % 2 === 0)
+      LustData.set("pause-wallpaper", LustData.get("pause-wallpaper") + 1);
+    LustData.set("Wallpaper-currentTime", 0);
+    setWallpaper();
+    setImageWallpaper();
+    video.classList.remove("webm-hidden");
+    image.classList.remove("webm-hidden");
+    video.play().catch((err) => console.warn("[LUST] wallpaper play", err));
+    if (controls)
+      controls.style.display = "flex";
+    try {
+      wallpaperController.playPauseSetIcon();
+    } catch (err) {
+      console.warn("[LUST] wallpaper icon", err);
+    }
+  }
+  try {
+    applyWindowEffect();
+  } catch (err) {
+    console.warn("[LUST] window effect", err);
+  }
+  lustWallpaperState(true);
+}
+function lustWallpaperLink(tries = 0) {
+  const bridge = window.__lustBridge;
+  if (!bridge) {
+    if (tries < 120)
+      setTimeout(() => lustWallpaperLink(tries + 1), 1000);
+    return;
+  }
+  bridge.subscribe("lust-wallpaper", (msg) => {
+    lustApplyWallpaper(msg).catch((err) => console.warn("[LUST] wallpaper", err));
+  });
+  bridge.send({ type: "lust-wallpaper", action: "get" });
+  setTimeout(() => lustWallpaperState(true), 3000);
+  // A wallpaper changed inside the client shows in the app too
+  setInterval(() => lustWallpaperState(), 5000);
+}
+
+// Lust: the profile page has its own background (the profile splash). While it is the
+// page on screen the wallpaper fades out, so the two don't show through each other.
+function lustProfileWallpaper() {
+  let shown = null;
+  const check = () => {
+    const pages = document.querySelectorAll(
+      '.screen-root[data-screen-name="rcp-fe-lol-profiles-main"], .rcp-fe-lol-profiles-main');
+    let open = false;
+    for (const page of pages) {
+      open = page.checkVisibility
+        ? page.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })
+        : page.getClientRects().length > 0;
+      if (open) break;
+    }
+    if (open !== shown) {
+      shown = open;
+      document.documentElement.classList.toggle("lust-profile-page", open);
+    }
+  };
+  check();
+  setInterval(check, 300);
+}
+
 function Settings(context) {
   LustData.set("settingsChangenumber", 0);
   mountLustHub();
   applyLustColors();
+  lustWallpaperLink();
+  lustProfileWallpaper();
 }
 
 // Lust: the LUST item in the top navigation opens the Lust hub, a centered window
@@ -5803,6 +5960,7 @@ function cleanRosePanel(panel) {
   return true;
 }
 function mountLustHub() {
+  window.lustOpenHub = openLustHub;
   const style = document.createElement("style");
   style.textContent = LUST_PANEL_CSS;
   document.head.appendChild(style);
@@ -12127,16 +12285,30 @@ async function init(context) {
   initThemeName(context);
   log("Initializing LustData storage");
   await LustData$1.init(context);
-  await restoreDefaultDataStore();
+  try {
+    await restoreDefaultDataStore();
+  } catch (err) {
+    error("Theme init: default data failed", err);
+  }
   LustData$1.set("start-time", Date.now());
-  log("Initializing file system for theme");
-  await fileSystem.init(context);
-  log("Initializing icon sync storage");
-  await syncUserIcons.init();
-  log("Initializing theme");
-  await initThemeDataCdn();
+  try {
+    Settings(context);
+  } catch (err) {
+    error("Lust hub failed to mount", err);
+  }
+  for (const [name, step] of [
+    ["file system", () => fileSystem.init(context)],
+    ["icon sync storage", () => syncUserIcons.init()],
+    ["theme data", () => initThemeDataCdn()]
+  ]) {
+    log(`Initializing ${name}`);
+    try {
+      await step();
+    } catch (err) {
+      error(`Theme init: ${name} failed`, err);
+    }
+  }
   initDebug();
-  Settings(context);
   transparentLobby(context);
 }
 class LustTheme {

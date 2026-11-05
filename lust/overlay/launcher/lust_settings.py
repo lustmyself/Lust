@@ -18,14 +18,14 @@ DEFAULTS = {
     "skins": True,           # inject skins at all
     "custom_skins": True,    # play switched-on custom skins
     "lobby_reveal": True,    # teammates' names in champ select
+    "share_skins": True,     # Lust users in our lobby/team see our skins and icon (lust_share.py)
     "rose_guard": True,      # close Rose and take the League hook back
     "quiet_start": False,    # start in the tray, no hub window
     "launch_league": True,   # open League through Lust Offline when Lust starts
-    "backdrop": "cinematic", # the hub's background
     "reduce_motion": False,  # the hub without animations
     "performance_mode": True,  # background work rests during a match (launcher/lust_perf.py)
 }
-CHOICES = {"backdrop": ("cinematic", "hextech")}
+CHOICES: dict = {}  # settings with a few named values (none now; the rest are switches)
 FILE = "hub-settings.json"
 _lock = threading.Lock()
 _cache: dict | None = None

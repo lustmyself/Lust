@@ -197,6 +197,12 @@ def start() -> None:
             except Exception as exc:  # noqa: BLE001
                 log.debug(f"[Hero] Refresh failed: {exc}")
                 ok = False
+            if ok:
+                try:
+                    from launcher import lust_profile
+                    lust_profile.apply_pending()  # a background picked while League was closed
+                except Exception as exc:  # noqa: BLE001
+                    log.debug(f"[Hero] Profile background failed: {exc}")
             time.sleep(REFRESH_S if ok else RETRY_S)
 
     threading.Thread(target=loop, daemon=True, name="LustHero").start()

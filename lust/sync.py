@@ -566,7 +566,7 @@ EDITS += [
      '[issue forms](https://github.com/lustmyself/Lust/issues/new/choose); installation\nquestions are welcome there too.\n'),
     ('README.md',
      '- **Party Mode**: Enables skin sharing between friends in the same lobby via a Cloudflare WebSocket relay\n',
-     '- **Party Mode**: Skin sharing between friends through a WebSocket relay (off in Lust: no relay server)\n'),
+     '- **Skin sharing**: Lust users in the same lobby or team see each other\'s skins and icons\n'),
     ('README.md',
      '# 🌹 Lust - Effortless Skin Changer for LoL\n',
      '# 💜 Lust - Effortless Skin Changer for LoL\n'),
@@ -581,7 +581,7 @@ EDITS += [
      '<!-- Rose\'s party relay server is not part of Lust -->\n\n'),
     ('README.md',
      "- **Party Mode**: Friends running Lust 1.4.4 or newer see each other's skins and custom mods in game\n",
-     "- **Desktop hub**: Startup progress, updates, your Riot ID, rank, last match and your server's\n  Grandmaster and Challenger LP cutoffs, quick actions and Lust Offline's status\n- **Lust Offline**: Appear offline or on mobile to your friends while you play\n- **Custom skins tab**: Drop your own `.fantome`, `.zip` or `.modpkg` skins in and switch them\n  on per champion; they play on the champion's default skin\n- **Spotify themes**: 22 Spicetify themes for the Spotify desktop app, re-applied after\n  Spotify updates\n- **Silent updates**: New versions download in the background and install while League is closed\n- **Lobby Reveal**: Your teammates' names and op.gg links in champion select\n- **Party Mode**: Needs a party relay server; Lust doesn't run one, so it is off\n"),
+     "- **Desktop hub**: Startup progress, updates, your Riot ID, rank, last match and your server's\n  Grandmaster and Challenger LP cutoffs, quick actions and Lust Offline's status\n- **Lust Offline**: Appear offline or on mobile to your friends while you play\n- **Custom skins tab**: Drop your own `.fantome`, `.zip` or `.modpkg` skins in and switch them\n  on per champion; they play on the champion's default skin\n- **Spotify themes**: 22 Spicetify themes for the Spotify desktop app, re-applied after\n  Spotify updates\n- **Silent updates**: New versions download in the background and install while League is closed\n- **Lobby Reveal**: Your teammates' names and op.gg links in champion select\n- **Skin sharing**: Lust users in your lobby or champ select team see each other's skins and\n  profile icons, through Lust's own relay (`lust/relay`)\n"),
     ('README.md',
      '## Support\n\nIf you enjoy Lust and want to support its development:\n\n[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/roseapp)\n\nYour support helps keep the project alive and motivates continued development!\n\n',
      '## Support\n\nFound a bug or have an idea? Open an [issue](https://github.com/lustmyself/Lust/issues/new/choose).\n\n'),
@@ -673,13 +673,20 @@ EDITS += [
      '        if payload_type == "lust-assets":\n'),
     ('threads/handlers/injection_trigger.py',
      '            # Auto-select previously used custom mods (so users don\'t need to open the Custom Mods UI)\n',
-     '            # Lust custom skins: the one switched on for this champion plays on its default skin\n'
+     '            # Lust custom skins: the one switched on for this champion plays on the skin picked\n'
+     '            # (a chroma counts as its skin, so the mod targets the skin and the chroma rides along)\n'
      '            if not selected_custom_mod:\n'
      '                try:\n'
      '                    from pengu.communication.lust_custom_skins import custom_mod_for\n'
+     '                    _lust_skin = effective_skin_id or ui_skin_id\n'
+     '                    _lust_chromas = getattr(getattr(self.skin_scraper, "cache", None), "chroma_id_map", None) or {}\n'
+     '                    try:\n'
+     '                        _lust_skin = int(_lust_chromas[_lust_skin]["skinId"])\n'
+     '                    except (KeyError, TypeError, ValueError):\n'
+     '                        pass\n'
      '                    lust_custom_skin = custom_mod_for(\n'
      '                        self.state.locked_champ_id or self.state.hovered_champ_id,\n'
-     '                        effective_skin_id or ui_skin_id,\n'
+     '                        _lust_skin,\n'
      '                    )\n'
      '                    if lust_custom_skin:\n'
      '                        self.state.selected_custom_mod = lust_custom_skin\n'
@@ -721,6 +728,12 @@ EDITS += [
      '                        elif parts[2] == "exited" and session.get("injected_at"):\n'
      '                            quick = time.monotonic() - session.pop("injected_at") < QUICK_EXIT_S\n'
      '                            session["quick_exits"] = session.get("quick_exits", 0) + 1 if quick else 0\n'
+     '                            if not quick:\n'
+     '                                try:\n'
+     '                                    from pengu.communication.lust_custom_skins import game_ran_fine\n'
+     '                                    game_ran_fine()\n'
+     '                                except Exception as e:\n'
+     '                                    log.debug(f"[INJECT] Custom skin check failed: {e}")\n'
      '                            if session["quick_exits"] >= QUICK_EXITS_TO_STOP and not session.get("crash_loop"):\n'
      '                                session["crash_loop"] = True\n'
      '                                session["error"] = "the game closed right after loading the mods, every time"\n'
@@ -800,6 +813,19 @@ EDITS += [
      "              detail ? t('What happened: {detail}', { detail }) : t('What happened: the LTK patcher reported an error.'),\n",
      "              e?.cause === 'locked' ? t('What happened: this LTK patcher only runs inside LTK Manager, so it refused Lust and the game started without skins.')\n"
      "                : detail ? t('What happened: {detail}', { detail }) : t('What happened: the LTK patcher reported an error.'),\n"),
+]
+
+# A click on LUST that reaches Rose's panel (the theme's hub didn't catch it) opens the hub
+# when the theme has one; only the hub's "Open core settings" opens Rose's panel.
+EDITS += [
+    ('Pengu Loader/plugins/LUST-SettingsPanel/index.js',
+     '    if (navItem) {\n      // Toggle: if panel is already open, close it\n',
+     '    const panelOpen = settingsPanel && document.getElementById(PANEL_ID);\n'
+     '    if (navItem && !panelOpen && !e.detail?.lustCore && typeof window.lustOpenHub === "function") {\n'
+     '      window.lustOpenHub();\n'
+     '      return;\n'
+     '    }\n'
+     '    if (navItem) {\n      // Toggle: if panel is already open, close it\n'),
 ]
 
 # Lust's own texts in the client plugins' languages (LUST-I18n): Turkish where Lust has it,
@@ -980,6 +1006,102 @@ EDITS += [
 ]
 
 
+# Map skins in the hub (launcher/lust_maps.py) and the patcher manifest
+# (injection/tools/patcher_manifest.py): the hub sees the shared state, PyInstaller takes both
+EDITS += [
+    ("main/core/initialization.py",
+     '        state = SharedState()\n        log.info("Shared state initialized")\n',
+     '        state = SharedState()\n        log.info("Shared state initialized")\n'
+     '        try:\n'
+     '            from launcher import lust_maps\n'
+     '            lust_maps.attach_state(state)\n'
+     '        except Exception as e:  # noqa: BLE001\n'
+     '            log.debug(f"[Maps] Hub map picks stay saved choices only: {e}")\n'),
+    ("Lust.spec", "    'launcher.lust_offline',\n    'launcher.autostart_default',\n",
+     "    'launcher.lust_offline',\n    'launcher.lust_maps',\n    'injection.tools.patcher_manifest',\n"
+     "    'launcher.autostart_default',\n"),
+]
+
+
+# Profile background in the hub (launcher/lust_profile.py): PyInstaller takes it
+EDITS += [
+    ("Lust.spec", "    'launcher.lust_maps',\n", "    'launcher.lust_maps',\n    'launcher.lust_profile',\n"),
+]
+
+# Troubleshooting: a slow base skin confirmation raises Injection Threshold by itself (to the
+# tracker's recommendation) instead of asking the player to press "Apply recommended", and the
+# "Pengu Loader could not be activated" report goes away once the client plugins connect.
+EDITS += [
+    ('threads/handlers/injection_trigger.py',
+     '                                    rec_ms = stats.get("recommended_threshold_ms")\n'
+     '                                    hint = "Retry your skin selection. If the warning persists, increase Injection Threshold."\n',
+     '                                    rec_ms = stats.get("recommended_threshold_ms")\n'
+     '                                    # Lust: take the recommendation itself while it is above the current threshold\n'
+     '                                    if rec_ms is not None:\n'
+     '                                        rec_s = round(float(rec_ms) / 1000.0, 2)\n'
+     '                                        if not isinstance(threshold_s, (int, float)) or rec_s > float(threshold_s) + 0.001:\n'
+     '                                            from config import set_config_option\n'
+     '                                            set_config_option("General", "injection_threshold", str(rec_s))\n'
+     '                                            if self.injection_manager is not None:\n'
+     '                                                self.injection_manager.refresh_injection_threshold()\n'
+     '                                            log.info(f"[INJECT] Injection threshold raised to the recommended {rec_s}s")\n'
+     '                                            from utils.core.issue_reporter import remove_issues\n'
+     '                                            remove_issues(lambda line, fix: "Base skin verification failed" in line)\n'
+     '                                            break\n'
+     '                                    hint = "Retry your skin selection. If the warning persists, increase Injection Threshold."\n'),
+    ('pengu/core/websocket_server.py',
+     '        self._connections.add(websocket)\n',
+     '        self._connections.add(websocket)\n'
+     '        try:  # Lust: a plugin reached the bridge, so Pengu Loader is active\n'
+     '            from utils.integration.pengu_loader import _clear_stale_activation_issue\n'
+     '            _clear_stale_activation_issue()\n'
+     '        except Exception:  # noqa: BLE001\n'
+     '            pass\n'),
+]
+
+# Profile icon (launcher/lust_icon.py): the LUST-ProfileIcon plugin asks for the chosen icon
+EDITS += [
+    ('pengu/communication/message_handler.py',
+     '        if payload_type == "lust-assets":\n',
+     '        if payload_type == "lust-profile-icon":\n'
+     '            from launcher.lust_icon import bridge_reply as _lust_icon_reply\n'
+     '            self._send_response(json.dumps(_lust_icon_reply()))\n'
+     '            return\n'
+     '        if payload_type == "lust-assets":\n'),
+    ("Lust.spec", "    'launcher.lust_profile',\n", "    'launcher.lust_profile',\n    'launcher.lust_icon',\n"),
+]
+
+# Performance: during a match the main loop has no skin UI to follow, so it wakes twice a
+# second instead of twenty times (launcher/lust_perf.py has the rest of performance mode)
+EDITS += [
+    ('main/runtime/loop.py',
+     '    return MAIN_LOOP_SLEEP if fast_loop else MAIN_LOOP_IDLE_SLEEP\n',
+     '    if not fast_loop and getattr(state, "phase", None) == "InProgress":\n        return 0.5  # Lust: a match is running\n    return MAIN_LOOP_SLEEP if fast_loop else MAIN_LOOP_IDLE_SLEEP\n'),
+]
+
+
+# Fonts in the hub (launcher/lust_fonts.py): the hub sees the shared state, the bundled Korean
+# font is added and picked once on a fresh install, PyInstaller takes the module
+EDITS += [
+    ("main/core/initialization.py",
+     '            log.debug(f"[Maps] Hub map picks stay saved choices only: {e}")\n',
+     '            log.debug(f"[Maps] Hub map picks stay saved choices only: {e}")\n'
+     '        try:\n'
+     '            # Before the fonts: their marker tells a fresh install from an update\n'
+     '            from pengu.communication.lust_custom_skins import ensure_default as _lust_default_skin\n'
+     '            _lust_default_skin()\n'
+     '        except Exception as e:  # noqa: BLE001\n'
+     '            log.debug(f"[CustomSkins] Bundled skin not set up: {e}")\n'
+     '        try:\n'
+     '            from launcher import lust_fonts\n'
+     '            lust_fonts.attach_state(state)\n'
+     '            lust_fonts.ensure_default()\n'
+     '        except Exception as e:  # noqa: BLE001\n'
+     '            log.debug(f"[Fonts] Default font not set up: {e}")\n'),
+    ("Lust.spec", "    'launcher.lust_maps',\n", "    'launcher.lust_maps',\n    'launcher.lust_fonts',\n"),
+]
+
+
 # Rose's files that Lust doesn't use: dropped from the tree on every sync
 REMOVE = [
     "relay-worker",  # Rose's party relay server (Cloudflare worker); Lust runs no relay
@@ -1055,6 +1177,75 @@ def install(tree):
         if path.is_dir() and ".git" not in path.parts and not any(path.iterdir()):
             path.rmdir()
 
+
+# The desktop app holds everything: the client shows no LUST tab (the skin wheel in champ
+# select stays). Lust's client panel (theme, wallpaper, plugins) opens from the app's
+# Settings, through the bridge; lust_auto runs Auto Accept/Ban/Pick from the app.
+HIDE_NAV_CSS = r"""    /* Lust: everything is in the desktop app, no LUST tab in the client */
+    lol-uikit-navigation-item.menu_item_Golden.Lust {
+      display: none !important;
+    }
+
+"""
+EDITS += [
+    (UI_JS, NAV_ACTIVE_ANCHOR, HIDE_NAV_CSS + NAV_ACTIVE_ANCHOR),
+    (UI_JS,
+     '      bridge.subscribe("phase-change", handlePhaseChangeFromPython);\n',
+     '      bridge.subscribe("phase-change", handlePhaseChangeFromPython);\n'
+     '      // Lust: the desktop app opens the client panel (the LUST tab is hidden)\n'
+     '      bridge.subscribe("lust-open-hub", () => {\n'
+     '        if (typeof window.lustOpenHub === "function") {\n'
+     '          window.lustOpenHub();\n'
+     '          return;\n'
+     '        }\n'
+     '        const navItem = document.querySelector("lol-uikit-navigation-item.menu_item_Golden.Lust");\n'
+     '        window.dispatchEvent(new CustomEvent("lust-open-settings", { detail: { navItem } }));\n'
+     '      });\n'),
+    ("main/core/initialization.py",
+     '            log.debug(f"[Fonts] Default font not set up: {e}")\n',
+     '            log.debug(f"[Fonts] Default font not set up: {e}")\n'
+     '        try:\n'
+     '            from launcher import lust_client\n'
+     '            lust_client.attach_state(state)\n'
+     '        except Exception as e:  # noqa: BLE001\n'
+     '            log.debug(f"[Client] The app cannot reach the client panel: {e}")\n'),
+    ("Lust.spec", "    'launcher.lust_fonts',\n",
+     "    'launcher.lust_fonts',\n    'launcher.lust_client',\n    'launcher.lust_auto',\n"),
+]
+
+
+# Wallpaper from the desktop app (launcher/lust_wallpaper.py): the theme asks for the app's
+# choice and reports what it shows over the bridge
+EDITS += [
+    ('pengu/communication/message_handler.py',
+     '        if payload_type == "lust-assets":\n',
+     '        if payload_type == "lust-wallpaper":\n'
+     '            from launcher.lust_wallpaper import bridge_reply as _lust_wallpaper_reply\n'
+     '            self._send_response(json.dumps(_lust_wallpaper_reply(payload)))\n'
+     '            return\n'
+     '        if payload_type == "lust-assets":\n'),
+    ("Lust.spec", "    'launcher.lust_auto',\n", "    'launcher.lust_auto',\n    'launcher.lust_wallpaper',\n"),
+    # Sign in with Discord (launcher/lust_discord.py)
+    ("Lust.spec", "    'launcher.lust_wallpaper',\n", "    'launcher.lust_wallpaper',\n    'launcher.lust_discord',\n"),
+]
+
+
+
+# Skin sharing (launcher/lust_share.py): Rose's Party Mode, joined by itself in the rooms of our
+# lobby and champ select team, through Lust's own relay (lust/relay)
+EDITS += [
+    ("main/core/initialization.py",
+     "        sys.exit(1)\n    \n    return lcu, skin_scraper, state, injection_manager\n",
+     "        sys.exit(1)\n    \n"
+     "    try:\n"
+     "        from launcher import lust_share\n"
+     "        lust_share.attach(lcu, state, injection_manager)\n"
+     "    except Exception as e:  # noqa: BLE001\n"
+     "        log.debug(f\"[Share] Skin sharing not started: {e}\")\n"
+     "    return lcu, skin_scraper, state, injection_manager\n"),
+    ("Lust.spec", "    'party.integration.injection_hook',\n",
+     "    'party.integration.injection_hook',\n    'party.network.relay_config',\n    'launcher.lust_share',\n"),
+]
 
 LUST_PATCH = ROOT / "lust" / "lust_patch.txt"
 

@@ -52,6 +52,28 @@ def initialize_core_components(args, injection_threshold: Optional[float] = None
         log.info("Initializing shared state...")
         state = SharedState()
         log.info("Shared state initialized")
+        try:
+            from launcher import lust_maps
+            lust_maps.attach_state(state)
+        except Exception as e:  # noqa: BLE001
+            log.debug(f"[Maps] Hub map picks stay saved choices only: {e}")
+        try:
+            # Before the fonts: their marker tells a fresh install from an update
+            from pengu.communication.lust_custom_skins import ensure_default as _lust_default_skin
+            _lust_default_skin()
+        except Exception as e:  # noqa: BLE001
+            log.debug(f"[CustomSkins] Bundled skin not set up: {e}")
+        try:
+            from launcher import lust_fonts
+            lust_fonts.attach_state(state)
+            lust_fonts.ensure_default()
+        except Exception as e:  # noqa: BLE001
+            log.debug(f"[Fonts] Default font not set up: {e}")
+        try:
+            from launcher import lust_client
+            lust_client.attach_state(state)
+        except Exception as e:  # noqa: BLE001
+            log.debug(f"[Client] The app cannot reach the client panel: {e}")
     except Exception as e:
         log.error("=" * 80)
         log.error("FATAL ERROR DURING INITIALIZATION")
@@ -117,5 +139,10 @@ def initialize_core_components(args, injection_threshold: Optional[float] = None
                 pass
         sys.exit(1)
     
+    try:
+        from launcher import lust_share
+        lust_share.attach(lcu, state, injection_manager)
+    except Exception as e:  # noqa: BLE001
+        log.debug(f"[Share] Skin sharing not started: {e}")
     return lcu, skin_scraper, state, injection_manager
 

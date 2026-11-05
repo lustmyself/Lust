@@ -1,0 +1,8 @@
+{
+ "about": "Read by Lust at runtime (injection/tools/patcher_manifest.py): ltk_patcher.zip download pages, builds that work with Lust (SHA-256 of both files, eol as a Unix time) and DLL builds that refuse Lust. Lust logs the hashes of every patcher it installs ([LTK] Took the LTK patcher ...).",
+ "downloads": [
+  {"url": "https://www.mediafire.com/file/g0lzcgpr97jd9r3/ltk_patcher.zip/file", "source": "Rose Discord #tutorial"}
+ ],
+ "builds": [],
+ "locked": []
+}

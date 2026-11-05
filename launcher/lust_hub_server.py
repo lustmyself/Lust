@@ -65,6 +65,44 @@ class _Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _send_file(self, path, kind: str) -> None:
+        """A wallpaper file, streamed; videos ask for byte ranges to seek."""
+        try:
+            size = path.stat().st_size
+            start, end = 0, size - 1
+            ranged = re.fullmatch(r"bytes=(\d*)-(\d*)", self.headers.get("Range", "").strip())
+            if ranged and (ranged.group(1) or ranged.group(2)):
+                if ranged.group(1):
+                    start = int(ranged.group(1))
+                    end = min(int(ranged.group(2)), size - 1) if ranged.group(2) else size - 1
+                else:
+                    start = max(size - int(ranged.group(2)), 0)
+                if start > end:
+                    self.send_response(416)
+                    self.send_header("Content-Range", f"bytes */{size}")
+                    self.end_headers()
+                    return
+            self.send_response(206 if ranged else 200)
+            self.send_header("Content-Type", kind)
+            self.send_header("Accept-Ranges", "bytes")
+            self.send_header("Content-Length", str(end - start + 1))
+            if ranged:
+                self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("X-Content-Type-Options", "nosniff")
+            self.end_headers()
+            with path.open("rb") as handle:
+                handle.seek(start)
+                left = end - start + 1
+                while left > 0:
+                    chunk = handle.read(min(left, 256 * 1024))
+                    if not chunk:
+                        break
+                    self.wfile.write(chunk)
+                    left -= len(chunk)
+        except (OSError, ConnectionError):
+            pass
+
     def do_GET(self) -> None:  # noqa: N802
         global _last_seen
         if not self._allowed_host():
@@ -88,12 +126,80 @@ class _Handler(BaseHTTPRequestHandler):
             if preview:
                 return self._send(200, preview.read_bytes(), "image/png")
             return self._send(404)
+        if path == "/discord":
+            from launcher.lust_discord import CALLBACK_PAGE
+            return self._send(200, CALLBACK_PAGE.encode("utf-8"), "text/html; charset=utf-8")
+        if path == "/discord-avatar.png":
+            from launcher import lust_discord
+            try:
+                return self._send(200, lust_discord.avatar_path().read_bytes(), "image/png")
+            except OSError:
+                return self._send(404)
         if path == "/hero.jpg":
             from launcher import lust_hero
             try:
                 return self._send(200, lust_hero.image_path().read_bytes(), "image/jpeg")
             except OSError:
                 return self._send(404)
+        if path == "/api/tiles":
+            if not self._authorized():
+                return self._send(403)
+            from launcher import lust_hub
+            return self._send(200, json.dumps(lust_hub.tiles(), ensure_ascii=False).encode("utf-8"), "application/json")
+        if path == "/api/auto":
+            if not self._authorized():
+                return self._send(403)
+            from launcher import lust_auto
+            return self._send(200, lust_auto.dumps_listing(), "application/json")
+        if path == "/api/wallpapers":
+            if not self._authorized():
+                return self._send(403)
+            from launcher import lust_wallpaper
+            return self._send(200, lust_wallpaper.dumps_listing(), "application/json")
+        if path == "/wallpaper-file":
+            from urllib.parse import parse_qs
+            from launcher import lust_wallpaper
+            name = (parse_qs(self.path.split("?", 1)[-1]).get("name") or [""])[0]
+            found = lust_wallpaper.file_info(name) if name else None
+            return self._send_file(*found) if found else self._send(404)
+        if path == "/api/maps":
+            if not self._authorized():
+                return self._send(403)
+            from launcher import lust_maps
+            return self._send(200, lust_maps.dumps_listing(), "application/json")
+        if path == "/api/fonts":
+            if not self._authorized():
+                return self._send(403)
+            from launcher import lust_fonts
+            return self._send(200, lust_fonts.dumps_listing(), "application/json")
+        if path == "/api/skins":
+            if not self._authorized():
+                return self._send(403)
+            from launcher import lust_skins
+            return self._send(200, lust_skins.dumps_listing(), "application/json")
+        if path == "/api/profile":
+            if not self._authorized():
+                return self._send(403)
+            from launcher import lust_profile
+            return self._send(200, lust_profile.dumps_listing(), "application/json")
+        if path == "/api/icon":
+            if not self._authorized():
+                return self._send(403)
+            from launcher import lust_icon
+            return self._send(200, lust_icon.dumps_listing(), "application/json")
+        if path == "/api/profile/skins":
+            if not self._authorized():
+                return self._send(403)
+            from urllib.parse import parse_qs
+            from launcher import lust_profile
+            champion = (parse_qs(self.path.split("?", 1)[-1]).get("champion") or [""])[0]
+            return self._send(200, lust_profile.dumps_skins(champion), "application/json")
+        if path == "/map-preview":
+            from urllib.parse import parse_qs
+            from launcher import lust_maps
+            map_id = (parse_qs(self.path.split("?", 1)[-1]).get("id") or [""])[0]
+            found = lust_maps.preview_bytes(map_id) if map_id else None
+            return self._send(200, *found) if found else self._send(404)
         if path == "/api/media":
             if not self._authorized():
                 return self._send(403)
@@ -110,6 +216,22 @@ class _Handler(BaseHTTPRequestHandler):
                 return self._send(200, lust_media.cover_path().read_bytes(), "image/jpeg")
             except OSError:
                 return self._send(404)
+        # The home page's fonts (Anton, Barlow Condensed; OFL), bundled in assets/lust_hub_fonts
+        match = re.fullmatch(r"/hubfont/([A-Za-z-]+\.ttf)", path)
+        if match:
+            try:
+                from utils.core.paths import get_asset_path
+                return self._send(200, get_asset_path("lust_hub_fonts/" + match.group(1)).read_bytes(), "font/ttf")
+            except OSError:
+                return self._send(404)
+        # Pages' background art, bundled in assets/lust_hub_art
+        match = re.fullmatch(r"/hubart/([a-z0-9-]+\.jpg)", path)
+        if match:
+            try:
+                from utils.core.paths import get_asset_path
+                return self._send(200, get_asset_path("lust_hub_art/" + match.group(1)).read_bytes(), "image/jpeg")
+            except OSError:
+                return self._send(404)
         if path == "/icon.png":
             try:
                 from utils.core.paths import get_asset_path
@@ -119,11 +241,81 @@ class _Handler(BaseHTTPRequestHandler):
         return self._send(404)
 
     def do_POST(self) -> None:  # noqa: N802
+        # Discord's sign-in comes back in the player's browser, which has no hub token:
+        # the one-time state the hub made for this sign-in is the proof
+        if self._allowed_host() and self.path == "/discord/finish":
+            try:
+                length = min(int(self.headers.get("Content-Length") or 0), 4096)
+                body = json.loads(self.rfile.read(length) or b"{}")
+            except ValueError:
+                body = {}
+            body = body if isinstance(body, dict) else {}
+            from launcher import lust_discord, lust_hub
+            message = lust_discord.finish(body.get("access_token"), body.get("state"))
+            lust_hub.toast(message)
+            lust_hub._cache.pop("discord", None)
+            return self._send(200, json.dumps({"message": message}).encode("utf-8"), "application/json")
         if self._authorized() and self.path.startswith("/api/media/"):
             from launcher import lust_media
             ok = lust_media.control(self.path.rsplit("/", 1)[-1])
             return self._send(200 if ok else 404, b'{"ok": true}' if ok else b"", "application/json")
+        if self._authorized() and self.path.startswith("/api/maps/upload"):
+            from urllib.parse import parse_qs, unquote
+            from launcher import lust_hub, lust_maps
+            name = unquote((parse_qs(self.path.split("?", 1)[-1]).get("name") or [""])[0])
+            try:
+                length = int(self.headers.get("Content-Length") or 0)
+            except ValueError:
+                length = 0
+            message = lust_maps.import_upload(name, self.rfile, length)
+            if message:
+                lust_hub.toast(message)
+            return self._send(200, json.dumps({"message": message}).encode("utf-8"), "application/json")
+        if self._authorized() and self.path.startswith("/api/fonts/upload"):
+            from urllib.parse import parse_qs, unquote
+            from launcher import lust_fonts, lust_hub
+            name = unquote((parse_qs(self.path.split("?", 1)[-1]).get("name") or [""])[0])
+            try:
+                length = int(self.headers.get("Content-Length") or 0)
+            except ValueError:
+                length = 0
+            message = lust_fonts.import_upload(name, self.rfile, length)
+            if message:
+                lust_hub.toast(message)
+            return self._send(200, json.dumps({"message": message}).encode("utf-8"), "application/json")
+        if self._authorized() and self.path.startswith("/api/wallpapers/upload"):
+            from urllib.parse import parse_qs, unquote
+            from launcher import lust_hub, lust_wallpaper
+            name = unquote((parse_qs(self.path.split("?", 1)[-1]).get("name") or [""])[0])
+            try:
+                length = int(self.headers.get("Content-Length") or 0)
+            except ValueError:
+                length = 0
+            message = lust_wallpaper.import_upload(name, self.rfile, length)
+            if message:
+                lust_hub.toast(message)
+            return self._send(200, json.dumps({"message": message}).encode("utf-8"), "application/json")
+        if self._authorized() and self.path.startswith("/api/skins/upload"):
+            from urllib.parse import parse_qs, unquote
+            from launcher import lust_hub, lust_skins
+            name = unquote((parse_qs(self.path.split("?", 1)[-1]).get("name") or [""])[0])
+            try:
+                length = int(self.headers.get("Content-Length") or 0)
+            except ValueError:
+                length = 0
+            message = lust_skins.import_upload(name, self.rfile, length)
+            if message:
+                lust_hub.toast(message)
+            return self._send(200, json.dumps({"message": message}).encode("utf-8"), "application/json")
         if not self._authorized() or not self.path.startswith("/api/action/"):
+            # Read a small body first: closing with it unread resets the connection on Windows
+            # before the client sees the 403
+            try:
+                length = int(self.headers.get("Content-Length") or 0)
+                if 0 < length <= 4096:
+                    self.rfile.read(length)
+            except (ValueError, OSError):
+                pass
             return self._send(403)
         name = self.path.rsplit("/", 1)[-1]
         from launcher import lust_hub

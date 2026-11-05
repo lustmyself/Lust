@@ -1,0 +1,4 @@
+{
+ "about": "Lust's map skin catalog, read by the hub at runtime (launcher/lust_maps.py). Each entry: id (letters, digits, - and _), name, author, description, preview (https image), url (https .zip/.fantome/.modpkg) and sha256 of that file. Add only maps whose authors allow redistribution.",
+ "maps": []
+}

@@ -156,6 +156,11 @@ class WebSocketServer:
         client = websocket.remote_address
         log.info("[SkinMonitor] Client connected: %s", client)
         self._connections.add(websocket)
+        try:  # Lust: a plugin reached the bridge, so Pengu Loader is active
+            from utils.integration.pengu_loader import _clear_stale_activation_issue
+            _clear_stale_activation_issue()
+        except Exception:  # noqa: BLE001
+            pass
         try:
             async for message in websocket:
                 if self.message_handler:

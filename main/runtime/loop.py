@@ -67,6 +67,8 @@ def _compute_main_loop_sleep(state: SharedState, ui_activity: bool) -> float:
         or state.chroma_panel_open
         or state.pending_chroma_selection
     )
+    if not fast_loop and getattr(state, "phase", None) == "InProgress":
+        return 0.5  # Lust: a match is running
     return MAIN_LOOP_SLEEP if fast_loop else MAIN_LOOP_IDLE_SLEEP
 
 

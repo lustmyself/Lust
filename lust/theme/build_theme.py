@@ -154,7 +154,15 @@ ADD_WALLPAPER_JS = '''    const addBg = this.createElementWithId("div", "add-bg"
     });
 '''
 
-ADD_WALLPAPER_CSS = '''#add-bg {
+ADD_WALLPAPER_CSS = '''/* Lust: the profile page shows only the profile background, not the wallpaper
+   and not League's own client background either */
+html.lust-profile-page #lust-bg,
+html.lust-profile-page #lust-static-bg,
+html.lust-profile-page #background-ambient {
+    opacity: 0 !important;
+}
+
+#add-bg {
     position: relative !important;
     width: 21px !important;
     height: 21px !important;
@@ -234,6 +242,7 @@ const LUST_TR = {
   "Not a video or image file name": "Video ya da resim dosyası adı değil",
   "{name} is not in the folder": "{name} klasörde yok",
   "16:9 Size Preferred": "16:9 boyut önerilir",
+  "Use League's own background": "LoL'ün kendi arka planını kullan",
   "Add": "Ekle",
   "Delete": "Sil",
   "Drop files here, or Add to open the folder": "Dosyaları buraya bırak ya da klasörü açmak için Ekle'ye bas",
@@ -290,10 +299,126 @@ function lustTr(text, vars) {
   return out;
 }
 
+// Lust: the desktop app picks the wallpaper. Its choice comes over the bridge when the
+// theme starts and whenever it changes; the theme tells the app what it shows.
+let lustWallpaperSent = "";
+function lustWallpaperState(force = false) {
+  const bridge = window.__lustBridge;
+  if (!bridge) return;
+  const list = ElainaData.get("Wallpaper-list") || [];
+  const league = !!ElainaData.get("lust-league-background");
+  const name = list[ElainaData.get("wallpaper-index")] || "";
+  const key = `${league}|${name}`;
+  if (!force && key === lustWallpaperSent) return;
+  lustWallpaperSent = key;
+  bridge.send({ type: "lust-wallpaper", action: "state", league, name });
+}
+async function lustApplyWallpaper(msg) {
+  if (!msg || msg.action !== "apply") return;
+  if (typeof msg.rev === "number" && msg.rev === ElainaData.get("lust-wallpaper-rev")) {
+    lustWallpaperState(true);
+    return;
+  }
+  console.log("[LUST] wallpaper from the app:", msg.league ? "League's own" : msg.name);
+  // Save the choice first: if the client's home page has not loaded yet, the theme's
+  // own start-up shows it from these values
+  const league = !!msg.league;
+  ElainaData.set("lust-league-background", league);
+  document.documentElement.classList.toggle("lust-league-bg", league);
+  if (msg.name) {
+    const list = ElainaData.get("Wallpaper-list") || [];
+    if (!list.includes(msg.name))
+      ElainaData.set("Wallpaper-list", [...list, msg.name]);
+    ElainaData.set("wallpaper-index", ElainaData.get("Wallpaper-list").indexOf(msg.name));
+  }
+  if (typeof msg.rev === "number")
+    ElainaData.set("lust-wallpaper-rev", msg.rev);
+  for (let i = 0; i < 240 && !document.getElementById("elaina-bg"); i++)
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  const video = document.getElementById("elaina-bg");
+  const image = document.getElementById("elaina-static-bg");
+  const controls = document.querySelector(".wallpaper-controls");
+  if (!video || !image) {
+    lustWallpaperState(true);
+    return;
+  }
+  if (league || ElainaData.get("disable-theme-wallpaper")) {
+    video.pause();
+    video.removeAttribute("src");
+    video.load();
+    image.removeAttribute("src");
+    if (controls)
+      controls.style.display = "none";
+  } else {
+    // A wallpaper picked in the app plays, even if the last one was paused
+    if (ElainaData.get("pause-wallpaper") % 2 === 0)
+      ElainaData.set("pause-wallpaper", ElainaData.get("pause-wallpaper") + 1);
+    ElainaData.set("Wallpaper-currentTime", 0);
+    setWallpaper();
+    setImageWallpaper();
+    video.classList.remove("webm-hidden");
+    image.classList.remove("webm-hidden");
+    video.play().catch((err) => console.warn("[LUST] wallpaper play", err));
+    if (controls)
+      controls.style.display = "flex";
+    try {
+      wallpaperController.playPauseSetIcon();
+    } catch (err) {
+      console.warn("[LUST] wallpaper icon", err);
+    }
+  }
+  try {
+    applyWindowEffect();
+  } catch (err) {
+    console.warn("[LUST] window effect", err);
+  }
+  lustWallpaperState(true);
+}
+function lustWallpaperLink(tries = 0) {
+  const bridge = window.__lustBridge;
+  if (!bridge) {
+    if (tries < 120)
+      setTimeout(() => lustWallpaperLink(tries + 1), 1000);
+    return;
+  }
+  bridge.subscribe("lust-wallpaper", (msg) => {
+    lustApplyWallpaper(msg).catch((err) => console.warn("[LUST] wallpaper", err));
+  });
+  bridge.send({ type: "lust-wallpaper", action: "get" });
+  setTimeout(() => lustWallpaperState(true), 3000);
+  // A wallpaper changed inside the client shows in the app too
+  setInterval(() => lustWallpaperState(), 5000);
+}
+
+// Lust: the profile page has its own background (the profile splash). While it is the
+// page on screen the wallpaper fades out, so the two don't show through each other.
+function lustProfileWallpaper() {
+  let shown = null;
+  const check = () => {
+    const pages = document.querySelectorAll(
+      '.screen-root[data-screen-name="rcp-fe-lol-profiles-main"], .rcp-fe-lol-profiles-main');
+    let open = false;
+    for (const page of pages) {
+      open = page.checkVisibility
+        ? page.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })
+        : page.getClientRects().length > 0;
+      if (open) break;
+    }
+    if (open !== shown) {
+      shown = open;
+      document.documentElement.classList.toggle("lust-profile-page", open);
+    }
+  };
+  check();
+  setInterval(check, 300);
+}
+
 function Settings(context) {
   ElainaData.set("settingsChangenumber", 0);
   mountLustHub();
   applyLustColors();
+  lustWallpaperLink();
+  lustProfileWallpaper();
 }
 
 // Lust: the LUST item in the top navigation opens the Lust hub, a centered window
@@ -1184,6 +1309,7 @@ function cleanRosePanel(panel) {
   return true;
 }
 function mountLustHub() {
+  window.lustOpenHub = openLustHub;
   const style = document.createElement("style");
   style.textContent = LUST_PANEL_CSS;
   document.head.appendChild(style);
@@ -1290,6 +1416,27 @@ PATCHES = [
      '      ElainaData.set("Custom-Font", false);\n'
      '    }\n'
      '    if (!ElainaData.get("Custom-Font")) {\n'),
+    # The profile page shows its background splash (the hub's Profile background page picks
+    # it): shown by default, and shown once for players who had it hidden from the old default
+    ("config/datastoreDefault.js", '"hide-profile-background"       : true,',
+     '"hide-profile-background"       : false,'),
+    ("index.js",
+     '  componentsCss = () => {\n    let cssImports = "";\n',
+     '  componentsCss = () => {\n    let cssImports = "";\n'
+     '    if (!ElainaData.get("lust-profile-background-shown")) {\n'
+     '      ElainaData.set("lust-profile-background-shown", true);\n'
+     '      ElainaData.set("hide-profile-background", false);\n'
+     '    }\n'),
+    # League's own game mode icons in the play menu (the theme's recoloured ones are off by
+    # default, and off once for players who had them on; they can turn them on again)
+    ("config/datastoreDefault.js", '"Custom-Gamemode-Icon"\t\t\t: true,', '"Custom-Gamemode-Icon"\t\t\t: false,'),
+    ("index.js",
+     '      ElainaData.set("hide-profile-background", false);\n    }\n',
+     '      ElainaData.set("hide-profile-background", false);\n    }\n'
+     '    if (!ElainaData.get("lust-gamemode-icons-reset")) {\n'
+     '      ElainaData.set("lust-gamemode-icons-reset", true);\n'
+     '      ElainaData.set("Custom-Gamemode-Icon", false);\n'
+     '    }\n'),
     # League's own status icons in the friend list: a flat green fill turned the round
     # masked online icon into a square, and position:relative moved it
     ("assets/styles/themes/rcp-fe-viewport-sidebar.css",
@@ -1302,6 +1449,26 @@ PATCHES = [
     ("assets/styles/themes/elaina.css", '@import url("./theme-update-message.css");\n', ""),
     # No automation that plays for the player: auto find queue and honor skip.
     ("index.js", "  AutoQueue(context);\n  skipHonor(context);\n", ""),
+    # The hub goes up right after the theme's storage, before the steps that read files
+    # and load the theme data: when one of those was slow or failed, the hub was never
+    # mounted and the LUST tab opened Rose's settings panel instead.
+    ("index.js",
+     '  await restoreDefaultDataStore();\n  ElainaData$1.set("start-time", Date.now());\n'
+     '  log("Initializing file system for theme");\n  await fileSystem.init(context);\n'
+     '  log("Initializing icon sync storage");\n  await syncUserIcons.init();\n'
+     '  log("Initializing theme");\n  await initThemeDataCdn();\n  initDebug();\n'
+     '  Settings(context);\n  transparentLobby(context);\n}\n',
+     '  try {\n    await restoreDefaultDataStore();\n  } catch (err) {\n    error("Theme init: default data failed", err);\n  }\n'
+     '  ElainaData$1.set("start-time", Date.now());\n'
+     '  try {\n    Settings(context);\n  } catch (err) {\n    error("Lust hub failed to mount", err);\n  }\n'
+     '  for (const [name, step] of [\n'
+     '    ["file system", () => fileSystem.init(context)],\n'
+     '    ["icon sync storage", () => syncUserIcons.init()],\n'
+     '    ["theme data", () => initThemeDataCdn()]\n'
+     '  ]) {\n'
+     '    log(`Initializing ${name}`);\n'
+     '    try {\n      await step();\n    } catch (err) {\n      error(`Theme init: ${name} failed`, err);\n    }\n  }\n'
+     '  initDebug();\n  transparentLobby(context);\n}\n'),
     ("index.js", "        await queueSection(),\n", ""),
     # No fake mastery score or rank sent to friends.
     ("index.js",
@@ -1417,9 +1584,11 @@ PATCHES = [
     ("assets/styles/themes/theme-wallpapers.css",
      "#elaina-bg {\n\twidth:100%;\n\theight: 100%;\n",
      "#elaina-bg {\n\twidth:100%;\n\theight: 100%;\n\tobject-fit: cover;\n"),
+    # A picture wallpaper is stretched to the client left of the friends list (225px): all of it
+    # shows, nothing is cut off, and it is stretched less than across the whole window
     ("assets/styles/themes/theme-wallpapers.css",
      "#elaina-static-bg {\n\twidth:100%;\n",
-     "#elaina-static-bg {\n\twidth:100%;\n\theight: 100%;\n\tobject-fit: cover;\n"),
+     "#elaina-static-bg {\n\twidth: calc(100% - 225px);\n\theight: 100%;\n\tobject-fit: fill;\n\timage-rendering: auto;\n"),
     # No button that hides the top-right nav icons.
     ("index.js",
      'if (ElainaData.get("enable-hide-top-navbar-friendlist-button")) {\n      hideTopNavbarButton.addHideButton();',
@@ -1585,7 +1754,79 @@ PATCHES = [
      '  for (const name of defaultData["Wallpaper-list"]) {\n'
      '    if (!wallpapers.includes(name)) wallpapers.push(name);\n'
      '  }\n'
-     '  ElainaData.set("Wallpaper-list", wallpapers);\n}'),
+     '  ElainaData.set("Wallpaper-list", wallpapers);\n'
+     '  if (!ElainaData.has("lust-league-background"))\n'
+     '    ElainaData.set("lust-league-background", true);\n'
+     '  document.documentElement.classList.toggle("lust-league-bg", !!ElainaData.get("lust-league-background"));\n}'),
+    # League's own background is the default: no theme wallpaper, no window effect, and
+    # the rules that hide League's backgrounds only apply while a theme wallpaper is on.
+    # A wallpaper is picked from the hub's Wallpaper page (the checkbox below).
+    ("config/datastoreDefault.js",
+     '"disable-theme-wallpaper"       : false,',
+     '"disable-theme-wallpaper"       : false,\n\t"lust-league-background"        : true,'),
+    ("index.js",
+     '    if (ElainaData.get("disable-theme-wallpaper"))\n      wallpaperControls.style.display = "none";',
+     '    if (ElainaData.get("disable-theme-wallpaper") || ElainaData.get("lust-league-background"))\n'
+     '      wallpaperControls.style.display = "none";'),
+    ("index.js",
+     '  setWallpaperElement = () => {\n    if (!ElainaData.get("disable-theme-wallpaper")) {',
+     '  setWallpaperElement = () => {\n'
+     '    if (!ElainaData.get("disable-theme-wallpaper") && !ElainaData.get("lust-league-background")) {'),
+    ("index.js",
+     '  setImageWallpaperElement = () => {\n    if (!ElainaData.get("disable-theme-wallpaper")) {',
+     '  setImageWallpaperElement = () => {\n'
+     '    if (!ElainaData.get("disable-theme-wallpaper") && !ElainaData.get("lust-league-background")) {'),
+    ("index.js",
+     '    if (!ElainaData.get("disable-theme-wallpaper")) {\n      window.Effect.clear();',
+     '    if (!ElainaData.get("disable-theme-wallpaper") || ElainaData.get("lust-league-background")) {\n'
+     '      window.Effect.clear();'),
+    ("index.js",
+     '  return UI.createSection("theme-settings-wallpaper", await getString("theme-settings.settings-section-wallpaper"), [\n',
+     '  return UI.createSection("theme-settings-wallpaper", await getString("theme-settings.settings-section-wallpaper"), [\n'
+     '    UI.createCheckBox(\n'
+     '      lustTr("Use League\'s own background"),\n'
+     '      "lustleaguebg",\n'
+     '      "lustleaguebgbox",\n'
+     '      () => {\n'
+     '        const on = !!ElainaData.get("lust-league-background");\n'
+     '        document.documentElement.classList.toggle("lust-league-bg", on);\n'
+     '        const controls = document.querySelector(".wallpaper-controls");\n'
+     '        const video = document.getElementById("elaina-bg");\n'
+     '        const imgWallpaper = document.getElementById("elaina-static-bg");\n'
+     '        if (!on && !ElainaData.get("disable-theme-wallpaper")) {\n'
+     '          setWallpaper();\n'
+     '          setImageWallpaper();\n'
+     '          wallpaperPlayPause();\n'
+     '          if (controls)\n'
+     '            controls.style.display = "flex";\n'
+     '        } else {\n'
+     '          if (video)\n'
+     '            video.src = "";\n'
+     '          if (imgWallpaper)\n'
+     '            imgWallpaper.src = "";\n'
+     '          if (controls)\n'
+     '            controls.style.display = "none";\n'
+     '        }\n'
+     '        applyWindowEffect();\n'
+     '      },\n'
+     '      true,\n'
+     '      "lust-league-background"\n'
+     '    ),\n'),
+    ("assets/styles/themes/elaina.css", "\n#background-ambient {\n", "\nhtml:not(.lust-league-bg) #background-ambient {\n"),
+    ("assets/styles/themes/elaina.css", "\n.store-backdrop {\n", "\nhtml:not(.lust-league-bg) .store-backdrop {\n"),
+    ("assets/styles/themes/elaina.css", "\n.background {\n", "\nhtml:not(.lust-league-bg) .background {\n"),
+    ("assets/styles/themes/elaina.css", "\n.rcp-fe-lol-game-in-progress {\n", "\nhtml:not(.lust-league-bg) .rcp-fe-lol-game-in-progress {\n"),
+    ("assets/styles/themes/elaina.css", "\n.loading-tab::after {\n", "\nhtml:not(.lust-league-bg) .loading-tab::after {\n"),
+    ("assets/styles/themes/elaina.css", "\n.yourshop-root {\n", "\nhtml:not(.lust-league-bg) .yourshop-root {\n"),
+    ("assets/styles/themes/elaina.css", "\n.npe-root-component {\n", "\nhtml:not(.lust-league-bg) .npe-root-component {\n"),
+    ("assets/styles/themes/elaina.css", "\ndiv > div > .rcp-fe-lol-tft-application-background {\n", "\nhtml:not(.lust-league-bg) div > div > .rcp-fe-lol-tft-application-background {\n"),
+    ("assets/styles/themes/rcp-fe-lol-parties.css",
+     "\n.parties-background.ember-view .lol-uikit-background-switcher-image {",
+     "\nhtml:not(.lust-league-bg) .parties-background.ember-view .lol-uikit-background-switcher-image {"),
+    ("assets/styles/themes/rcp-fe-lol-parties.css", "\n.parties-background {",
+     "\nhtml:not(.lust-league-bg) .parties-background {"),
+    ("assets/styles/components/lobby-transparent-filter.css", ".parties-view .parties-background {",
+     "html:not(.lust-league-bg) .parties-view .parties-background {"),
     # The real summoner level shows instead of a custom one.
     ("index.js",
      '      if (ElainaData$1.get("custom-summoner-lv"))\n        customSummonerLv.main();',

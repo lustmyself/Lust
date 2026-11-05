@@ -5289,6 +5289,11 @@
       document.querySelector(
         "lol-uikit-navigation-item.menu_item_Golden.Lust"
       );
+    const panelOpen = settingsPanel && document.getElementById(PANEL_ID);
+    if (navItem && !panelOpen && !e.detail?.lustCore && typeof window.lustOpenHub === "function") {
+      window.lustOpenHub();
+      return;
+    }
     if (navItem) {
       // Toggle: if panel is already open, close it
       if (settingsPanel && document.getElementById(PANEL_ID)) {

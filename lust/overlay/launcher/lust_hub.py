@@ -173,6 +173,20 @@ def _settings() -> dict:
     return lust_settings.all_settings()
 
 
+def _share_mod():
+    from launcher import lust_share
+    return lust_share
+
+
+def _share() -> dict:
+    """Skin sharing for the home header: running, and with how many Lust users right now."""
+    try:
+        from launcher import lust_share
+        return lust_share.status()
+    except Exception:  # noqa: BLE001
+        return {"available": False, "running": False, "peers": 0, "code": "", "friends": []}
+
+
 def _set_setting(body: dict) -> str:
     from launcher import lust_settings
     key, value = str(body.get("key") or ""), body.get("value")
@@ -182,6 +196,7 @@ def _set_setting(body: dict) -> str:
         "skins": "Skinler açık" if value else "Skinler kapalı: League modsuz açılır",
         "custom_skins": "" if value else "Özel skinler kapalı",
         "lobby_reveal": "" if value else "Lobby Reveal kapalı",
+        "share_skins": "Skinlerin diğer Lust kullanıcılarına gider" if value else "Skin paylaşımı kapalı",
         "rose_guard": "" if value else "Rose koruması kapalı",
         "quiet_start": "Lust bir sonraki açılışta tepside başlar" if value else "",
         "launch_league": "",
@@ -261,6 +276,170 @@ def _rose_uninstall() -> str:
     return lust_rose.uninstall()
 
 
+def _patcher_status():
+    from injection.tools.ltk_manager_setup import hub_status
+    return hub_status()
+
+
+def _patcher_download() -> str:
+    from injection.tools.ltk_manager_setup import hub_download
+    _cache.pop("patcher", None)
+    return hub_download()
+
+
+def _maps():
+    from launcher import lust_maps
+    return lust_maps
+
+
+def _fonts():
+    from launcher import lust_fonts
+    return lust_fonts
+
+
+def _skins():
+    from launcher import lust_skins
+    return lust_skins
+
+
+def _icon():
+    from launcher import lust_icon
+    return lust_icon
+
+
+def _profile():
+    from launcher import lust_profile
+    return lust_profile
+
+
+LINK_HOSTS = ("https://www.op.gg/", "https://op.gg/", "https://u.gg/", "https://porofessor.gg/",
+              "https://www.leagueoflegends.com/")
+
+
+def _open_link(url: str) -> str:
+    """Open a teammate's profile or the patch notes in the browser (only those sites)."""
+    if not url.startswith(LINK_HOSTS):
+        return ""
+    import webbrowser
+    webbrowser.open(url)
+    return ""
+
+
+def _discord_login() -> str:
+    from launcher import lust_discord, lust_hub_server
+    link = lust_discord.login_url(lust_hub_server._port)
+    if not link:
+        return "Discord girişi bu sürümde yok"
+    import webbrowser
+    webbrowser.open(link)
+    _cache.pop("discord", None)
+    return "Discord tarayıcıda açıldı: girişi onayla"
+
+
+def _discord_logout() -> str:
+    from launcher import lust_discord
+    _cache.pop("discord", None)
+    return lust_discord.logout()
+
+
+def _discord() -> dict:
+    from launcher import lust_discord
+    return {"available": lust_discord.available(), "user": lust_discord.user()}
+
+
+def _wallpaper():
+    from launcher import lust_wallpaper
+    return lust_wallpaper
+
+
+def _auto():
+    from launcher import lust_auto
+    return lust_auto
+
+
+def _client_panel() -> str:
+    from launcher import lust_client
+    return lust_client.open_panel(bool(_cached("league", 2, _league_running)))
+
+
+def _tile_parts() -> dict:
+    """One line for each home tile, from the same lists the pages show. Each part on its own:
+    one that fails (no internet, no League) leaves the others."""
+    parts: dict = {}
+
+    def part(name, compute):
+        try:
+            parts[name] = compute()
+        except Exception as exc:  # noqa: BLE001
+            log.debug(f"[Hub] Tile {name}: {exc}")
+
+    def maps():
+        data = _maps().listing()
+        chosen = next((m for m in data["installed"] if m["id"] == data["selected"]), None)
+        return {"name": chosen["name"] if chosen else "", "count": len(data["installed"]),
+                "preview": bool(chosen and chosen.get("preview")), "id": chosen["id"] if chosen else ""}
+
+    def fonts():
+        data = _fonts().listing()
+        chosen = next((f for f in data["installed"] if f["id"] == data["selected"]), None)
+        return {"name": chosen["name"] if chosen else "", "count": len(data["installed"])}
+
+    def skins():
+        from pengu.communication import lust_custom_skins
+        listed = lust_custom_skins.list_skins()
+        on = [s for s in listed if s.get("enabled")]
+        champions = list(dict.fromkeys(s["championId"] for s in on if s.get("championId")))
+        return {"count": len(listed), "on": len(on), "champions": champions[:4],
+                "title": on[0].get("title", "") if on else ""}
+
+    def icon():
+        chosen = _icon().chosen()
+        found = _icon().icon(chosen) if chosen else None
+        return {"id": chosen, "name": (found or {}).get("title", ""), "image": _icon().image_url(chosen) if chosen else ""}
+
+    def profile():
+        shown = _profile().pending() or _profile().current() or 0
+        found = _profile().skin(shown) if shown else None
+        return {"name": (found or {}).get("name", ""), "image": (found or {}).get("splash", "")}
+
+    part("maps", maps)
+    part("fonts", fonts)
+    part("skins", skins)
+    part("icon", icon)
+    part("profile", profile)
+    part("wallpaper", lambda: (lambda w: {"league": w["league"], "name": w["name"], "count": len(w["files"]),
+                                          "video": _wallpaper().is_video(w["name"]) if w["name"] else False})(_wallpaper().listing()))
+    return parts
+
+
+# The art on two tiles: (champion id, words in the skin's name)
+TILE_ART = {"icon": (40, "sacred sword"), "profile": (145, "ig ")}
+
+
+def _tile_art() -> dict:
+    """The square art and splash of Sacred Sword Janna and iG Kai'Sa, from CommunityDragon."""
+    art = {}
+    for key, (champion, words) in TILE_ART.items():
+        found = next((s for s in _profile().skins(champion) if words in (s["name"] + " ").casefold()), None)
+        if found:
+            art[key] = {"tile": found["tile"], "splash": found["splash"]}
+    # The profile icon tile shows the Sacred Sword Janna summoner icon itself
+    try:
+        from launcher import lust_icon
+        janna = next((i for i in lust_icon.icons() if "sacred sword janna" in i["title"].casefold()), None)
+        if janna:
+            art.setdefault("icon", {})["picture"] = lust_icon.image_url(janna["id"])
+    except Exception as e:  # noqa: BLE001
+        log.debug(f"[Hub] Sacred Sword Janna icon not found: {e}")
+    return art
+
+
+def tiles() -> dict:
+    parts = dict(_cached("tiles", 8, _tile_parts) or {})
+    parts["art"] = _cached("tile_art", 3600, _tile_art) or {}
+    return parts
+
+
 def _spotify_status():
     from launcher import lust_spotify
     return lust_spotify.status()
@@ -309,10 +488,13 @@ def snapshot() -> dict:
         news=_cached("news", 300, _news) or {"version": "", "items": []},
         spotify=_cached("spotify", 5, _spotify_status) or {},
         rose=_cached("rose", 20, _rose_status) or {},
+        patcher=_cached("patcher", 10, _patcher_status) or {"state": "ok"},
         auto_update=_cached("auto_update", 5, _auto_update_on),
         pending=_auto_update_pending(),
         hero=_hero(),
+        discord=_cached("discord", 3, _discord) or {"available": False, "user": None},
         settings=_settings(),
+        share=_share(),
         resting=_resting(),
         cache_mb=_cached("cache_mb", 60, _cache_mb),
     )
@@ -408,10 +590,36 @@ ACTIONS: dict[str, Callable[[dict], str]] = {
     "spotify_apply": lambda body: _spotify_apply(str(body.get("theme") or "")),
     "spotify_auto": lambda body: _spotify_auto(),
     "rose_uninstall": lambda body: _rose_uninstall(),
+    "patcher_download": lambda body: _patcher_download(),
+    "discord_login": lambda body: _discord_login(),
+    "discord_logout": lambda body: _discord_logout(),
+    "map_select": lambda body: _maps().select(body.get("id") or None),
+    "map_delete": lambda body: _maps().delete(str(body.get("id") or "")),
+    "map_install": lambda body: _maps().install(str(body.get("id") or "")),
+    "map_folder": lambda body: _maps().open_folder(),
+    "font_select": lambda body: _fonts().select(body.get("id") or None),
+    "font_delete": lambda body: _fonts().delete(str(body.get("id") or "")),
+    "font_folder": lambda body: _fonts().open_folder(),
+    "skin_toggle": lambda body: _skins().toggle(str(body.get("name") or ""), bool(body.get("enabled"))),
+    "skin_champion": lambda body: _skins().set_champion(str(body.get("name") or ""), body.get("championId")),
+    "skin_delete": lambda body: _skins().delete(str(body.get("name") or "")),
+    "skin_folder": lambda body: _skins().open_folder(),
+    "skin_search": lambda body: _skins().search_update(str(body.get("name") or "")),
+    "profile_background": lambda body: _profile().set_background(body.get("skinId")),
+    "profile_icon": lambda body: _icon().choose(body.get("iconId")),
+    "clear_tokens": lambda body: _icon().clear_tokens(),
     "auto_update": lambda body: _toggle_auto_update(),
     "setting": lambda body: _set_setting(body),
+    "share_add": lambda body: _share_mod().add_friend(str(body.get("code") or "")),
+    "share_remove": lambda body: _share_mod().remove_friend(body.get("id")),
     "clear_cache": lambda body: _clear_cache(),
     "open_data": lambda body: _open_data(),
+    "client_panel": lambda body: _client_panel(),
+    "auto_set": lambda body: _auto().update(body.get("changes") or {}),
+    "wallpaper_set": lambda body: _wallpaper().choose(body.get("name") if isinstance(body.get("name"), str) else None),
+    "wallpaper_delete": lambda body: _wallpaper().delete(str(body.get("name") or "")),
+    "wallpaper_folder": lambda body: _wallpaper().open_folder(),
+    "open_link": lambda body: _open_link(str(body.get("url") or "")),
 }
 
 
@@ -669,8 +877,11 @@ def attach(tray_manager) -> None:
     from launcher import lust_cleanup, lust_rose
     threading.Thread(target=lust_cleanup.run, daemon=True, name="LustCleanup").start()
     lust_rose.keep_rose_off()
+    from launcher import lust_perf
+    lust_perf.start()
     from launcher import lust_hero
     lust_hero.start()
+    _auto().start()
 
 
 def _spotify_reapply() -> None:

@@ -52,6 +52,21 @@ class ServerTests(unittest.TestCase):
     def test_previews_only_for_known_themes(self):
         self.assertEqual(_request("GET", "/preview/..%2fsecret.png")[0], 404)
 
+    def test_home_fonts_are_served_and_nothing_else(self):
+        status, body = _request("GET", "/hubfont/Anton-Regular.ttf")
+        self.assertEqual(status, 200)
+        self.assertGreater(len(body), 10000)
+        self.assertEqual(_request("GET", "/hubfont/Missing.ttf")[0], 404)
+        self.assertEqual(_request("GET", "/hubfont/..%2ficon.ico")[0], 404)
+
+
+    def test_page_art_is_served_and_nothing_else(self):
+        status, body = _request("GET", "/hubart/custom-skins.jpg")
+        self.assertEqual(status, 200)
+        self.assertEqual(body[:2], b"\xff\xd8")
+        self.assertEqual(_request("GET", "/hubart/missing.jpg")[0], 404)
+        self.assertEqual(_request("GET", "/hubart/..%2ficon.ico")[0], 404)
+
 
 class ShellArgTests(unittest.TestCase):
     def test_only_runs_for_its_argument_and_local_urls(self):

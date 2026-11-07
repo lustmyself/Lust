@@ -22,13 +22,9 @@ PERSISTENT_ROOT_FILES = ("icon.ico", "unins000.exe", "unins000.dat")
 
 # User-provided files that should survive updates (relative to install dir)
 # In frozen builds, files are under _internal/
-PERSISTENT_USER_FILES = (
-    # User-provided LTK patcher, not redistributed with Lust
-    "_internal/injection/tools/ltk_patcher_host.exe",
-    "_internal/injection/tools/ltk_patcher_dll.dll",
-)
+PERSISTENT_USER_FILES = ()
 
-# Copies the update over the install once Lust has exited, then starts it
+# Copies the update over the install once Rose has exited, then starts it
 # again. Its paths come in as environment variables (see install). robocopy
 # retries a locked file 1,000,000 times 30s apart by default, which left the
 # update hanging unseen: /R:5 /W:2 makes it fail and say so instead. /XD only
@@ -38,32 +34,24 @@ APPLY_UPDATE_SCRIPT = r"""@echo off
 setlocal enableextensions
 echo [%date% %time%] Update start > "%LOG%"
 if defined PID (
-    echo [%date% %time%] Waiting for Lust to exit >> "%LOG%"
+    echo [%date% %time%] Waiting for Rose to exit >> "%LOG%"
     powershell -NoProfile -NonInteractive -Command "Wait-Process -Id %PID% -Timeout 30 -ErrorAction SilentlyContinue" >nul 2>&1
 )
-echo [%date% %time%] Closing Lust windows left open >> "%LOG%"
-powershell -NoProfile -NonInteractive -Command "Get-Process -Name Lust -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path.StartsWith($env:DEST, [StringComparison]::OrdinalIgnoreCase) } | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 800" >nul 2>&1
 echo [%date% %time%] Mirroring files >> "%LOG%"
-set "KEEP_OFFLINE="
-powershell -NoProfile -NonInteractive -Command "if (Get-Process -Name LustOffline -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path.StartsWith($env:DEST, [StringComparison]::OrdinalIgnoreCase) }) { exit 1 }" >nul 2>&1
-if errorlevel 1 (
-    set "KEEP_OFFLINE=LustOffline.exe"
-    echo [%date% %time%] Lust Offline is running ^(League chat goes through it^): its file stays as it is >> "%LOG%"
-)
-robocopy "%SOURCE%" "%DEST%" /MIR /R:5 /W:2 /NFL /NDL /NJH /NJS /XD __pycache__ "%SOURCE%\Pengu Loader\plugins" /XF config.ini ltk_patcher_host.exe ltk_patcher_dll.dll hashes.game.txt %KEEP_OFFLINE% >> "%LOG%" 2>&1
+robocopy "%SOURCE%" "%DEST%" /MIR /R:5 /W:2 /NFL /NDL /NJH /NJS /XD __pycache__ "%SOURCE%\Pengu Loader\plugins" /XF config.ini hashes.game.txt >> "%LOG%" 2>&1
 set "RC=%ERRORLEVEL%"
 echo [%date% %time%] robocopy exit code %RC% >> "%LOG%"
 if %RC% GEQ 8 goto :robofail
-echo [%date% %time%] Updating LUST plugins (preserving user-installed) >> "%LOG%"
+echo [%date% %time%] Updating ROSE plugins (preserving user-installed) >> "%LOG%"
 if exist "%SOURCE%\Pengu Loader\plugins" (
     if not exist "%DEST%\Pengu Loader\plugins" mkdir "%DEST%\Pengu Loader\plugins"
-    for /d %%D in ("%SOURCE%\Pengu Loader\plugins\LUST-*") do (
+    for /d %%D in ("%SOURCE%\Pengu Loader\plugins\ROSE-*") do (
         echo [%date% %time%]   Sync plugin %%~nxD >> "%LOG%"
         robocopy "%%D" "%DEST%\Pengu Loader\plugins\%%~nxD" /MIR /R:5 /W:2 /NFL /NDL /NJH /NJS /XD __pycache__ >> "%LOG%" 2>&1
         if errorlevel 8 goto :robofail
     )
 )
-echo [%date% %time%] Starting Lust >> "%LOG%"
+echo [%date% %time%] Starting Rose >> "%LOG%"
 start "" /D "%DEST%" "%DEST%\%EXE%"
 echo [%date% %time%] Cleaning staging >> "%LOG%"
 if exist "%STAGING%" rd /s /q "%STAGING%" >> "%LOG%" 2>&1
@@ -72,8 +60,10 @@ echo [%date% %time%] Update done >> "%LOG%"
 exit
 
 :robofail
-echo [%date% %time%] Update failed; starting Lust again >> "%LOG%"
-start "" /D "%DEST%" "%DEST%\%EXE%"
+echo [%date% %time%] Update failed >> "%LOG%"
+echo Update failed, details in "%LOG%"
+echo Press any key to close.
+pause >nul
 exit 1
 """
 
@@ -135,7 +125,7 @@ class UpdateInstaller:
         staging_dir: Path,
         status_callback: Callable[[str], None],
     ) -> bool:
-        """Start the script that copies the update over the install once Lust exits
+        """Start the script that copies the update over the install once Rose exits
 
         Args:
             extracted_root: Root directory of extracted update
@@ -218,7 +208,7 @@ class UpdateInstaller:
             updater_log.error(f"Failed to launch installer: {exc}")
             return False
 
-        # The files are only copied once Lust has exited: whether that worked
+        # The files are only copied once Rose has exited: whether that worked
         # is in the script's own log
         updater_log.info(f"Update script started, its log is {log_path}")
         return True
@@ -232,4 +222,3 @@ class UpdateInstaller:
         if len(candidates) == 1 and candidates[0].is_dir():
             return candidates[0]
         return staging_dir
-

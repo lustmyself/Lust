@@ -13,8 +13,8 @@ installed, writes the skin's text over the champion's, and leaves the copy in th
 language and the patch are therefore always the player's own, and nothing has to be downloaded or shipped.
 
 The mod is a loose file, RAW/DATA/Menu/en_US/lol.stringtable (the folder is en_US in every language: the language is
-in the name of the game's wad, not in the path inside it). mod-tools resolves that path by its hash and packs it into
-every Global.<locale>.wad.client the player has, so the table is copied from the language the client runs the game in.
+in the name of the game's wad, not in the path inside it). The mod folder goes into the .fantome as it is, so the
+table is read under that path from the language the client runs the game in.
 
 The champion's text is also what the chat ("Player (Champion): ...") and the name over the champion's head print, and
 those should keep the champion's name. They read the key the champion's own record names
@@ -27,20 +27,20 @@ import json
 import re
 import struct
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Sequence, Tuple
 
 from utils.core.logging import get_logger
 
 log = get_logger()
 
-MOD_FOLDER = "LUST-LoadingName"
+MOD_FOLDER = "ROSE-LoadingName"
 TABLE_PATH = Path("RAW") / "DATA" / "Menu" / "en_US" / "lol.stringtable"
 TABLE_HASH = 0x062D6ED714BFF7DF  # xxh64("data/menu/en_us/lol.stringtable"), fixed for every language
 RST_MASK = (1 << 38) - 1
-# The champion's record points here instead, for the chat and the name over its head. "lust" is as long as "game",
+# The champion's record points here instead, for the chat and the name over its head. "rose" is as long as "game",
 # so the record's text keeps its length and the file keeps its layout.
 RECORD_KEY = "game_character_displayname_"
-RECORD_KEY_OWN = "lust_character_displayname_"
+RECORD_KEY_OWN = "rose_character_displayname_"
 
 
 # --------------------------------------------------------------------------------------
@@ -68,9 +68,8 @@ def _client_locale(game_dir: Path) -> Optional[str]:
 def _language_wad(game_dir: Path) -> Optional[Path]:
     """The language wad the game reads, or None when it can't be told.
 
-    mod-tools packs the mod's one table into every Global wad the game has, so the table has to come from the game's
-    own language. Copied from the first wad by name instead, a TW install that also had Global.en_US played its whole
-    match in English (#353).
+    The mod carries one table, so it has to come from the game's own language. Copied from the first wad by name
+    instead, a TW install that also had Global.en_US played its whole match in English (#353).
     """
     wads = _language_wads(game_dir)
     locale = _client_locale(game_dir)
@@ -113,9 +112,38 @@ def _record_path(alias: str) -> str:
     return f"data/characters/{alias}/{alias}.bin".lower()
 
 
-def _champion_record(game_dir: Path, mod_folder: Path, alias: str) -> Optional[bytes]:
-    """The champion's own bin: the skin's copy when it carries one, the game's otherwise."""
-    game_path = _record_path(alias)
+# The champion's other characters whose record prints the champion's name too (their name field is
+# game_character_displayname_<Champion>): its forms, and objects that carry its name. Each gets the same key of the
+# mod's own, or a transformed champion shows the skin's name over its head and in the chat (#427). Read from the
+# game's champion wads (patch 16.22): a record names its key, but a wad only holds hashed paths, so the paths are
+# listed here.
+FORM_RECORDS = {
+    "cassiopeia": ("cassiopeia_death",),
+    "elise": ("elisespider",),
+    "fiddlesticks": ("fiddlestickseffigy",),
+    "fizz": ("fizzbait", "fizzshark", "jade_fizzbait", "jade_fizzshark"),
+    "kogmaw": ("jade_kogmawdead", "kogmawdead"),
+    "locke": ("locketotem",),
+    "lux": ("luxair", "luxdark", "luxfire", "luxice", "luxmagma", "luxmystic", "luxnature", "luxstorm", "luxwater"),
+    "monkeyking": ("monkeykingflying",),
+    "nasus": ("jade_nasusult", "nasusult"),
+    "nidalee": ("jade_nidaleecougar", "nidaleecougar"),
+    "orianna": ("oriannaball", "oriannanoball"),
+    "quinn": ("quinnvalor",),
+    "rammus": ("jade_rammusdbc", "jade_rammuspb", "rammusdbc", "rammuspb"),
+    "shyvana": ("jade_shyvanadragon", "shyvanadragon"),
+    "sona": ("sonadjgenre01", "sonadjgenre02", "sonadjgenre03"),
+    "swain": ("jade_swaindemonform", "swaindemonform"),
+    "syndra": ("syndraorbs", "syndrasphere"),
+    "zed": ("zedshadow",),
+    "zoe": ("zoeorbs",),
+}
+
+
+def _champion_record(game_dir: Path, mod_folder: Path, alias: str, character: Optional[str] = None) -> Optional[bytes]:
+    """The bin of one of the champion's characters (the champion's own by default): the skin's copy when it carries
+    one, the game's otherwise."""
+    game_path = _record_path(character or alias)
     path_hash = _xxh64(game_path.encode("utf-8"))
     carried = Path(mod_folder) / "WAD" / f"{alias}.wad.client"
     if carried.is_file():
@@ -128,6 +156,61 @@ def _champion_record(game_dir: Path, mod_folder: Path, alias: str) -> Optional[b
                 return loose.read_bytes()
     installed = Path(game_dir) / "DATA" / "FINAL" / "Champions" / f"{alias}.wad.client"
     return _read_entry(installed, path_hash) if installed.is_file() else None
+
+
+def _table_hashes(wad_name: str) -> set:
+    """The path hashes the language table can have in a wad: the en_US path every language uses, and the wad's own
+    language's (Global.ko_KR.wad.client -> data/menu/ko_kr/lol.stringtable)."""
+    hashes = {TABLE_HASH}
+    parts = wad_name.lower().split(".")
+    if len(parts) >= 4 and parts[0] == "global":
+        hashes.add(_xxh64(f"data/menu/{parts[1]}/lol.stringtable".encode("utf-8")))
+    return hashes
+
+
+def _wad_holds(wad: Path, hashes: set) -> Optional[bool]:
+    """Whether a packed wad has an entry for one of these path hashes, or None when it can't be read."""
+    try:
+        with open(wad, "rb") as handle:
+            header = handle.read(272)
+            if len(header) < 272 or header[:2] != b"RW" or header[2] != 3:
+                return None
+            count = struct.unpack_from("<I", header, 268)[0]
+            toc = handle.read(count * 32)
+    except OSError:
+        return None
+    if len(toc) < count * 32:
+        return None
+    return any(struct.unpack_from("<Q", toc, i * 32)[0] in hashes for i in range(count))
+
+
+def ships_language_table(mod_folder: Path) -> bool:
+    """Whether a mod carries its own lol.stringtable (a whole Global.<language>.wad.client, as some font mods are).
+
+    LTK Manager keeps the table of one mod only, by priority. When that mod's wins, the champion's record that this
+    mod points at its own key still applies, and the name over the champion's head and the chat print that key
+    instead of the champion's name (#420).
+    """
+    folder = Path(mod_folder)
+    raw = folder / "RAW"
+    if raw.is_dir() and any(path.name.lower() == "lol.stringtable" for path in raw.rglob("*")):
+        return True
+    wad_dir = folder / "WAD"
+    if not wad_dir.is_dir():
+        return False
+    for wad in wad_dir.iterdir():
+        name = wad.name.lower()
+        if not (name.startswith("global") and name.endswith(".wad.client")):
+            continue
+        hashes = _table_hashes(wad.name)
+        if wad.is_dir():
+            names = {f"{h:016x}" for h in hashes}
+            for path in wad.rglob("*"):
+                if path.name.lower() == "lol.stringtable" or path.name.lower().split(".")[0] in names:
+                    return True
+        elif _wad_holds(wad, hashes) is not False:
+            return True  # holds it, or a packed language wad that can't be read: most likely a whole copy
+    return False
 
 
 def _with_own_record_key(record: bytes, alias: str) -> Optional[bytes]:
@@ -341,10 +424,54 @@ def parse_skin_id(skin_name: str, champion_id: Optional[int] = None) -> int:
     return 0
 
 
-def build(game_dir: Path, mods_dir: Path, mod_folder: Path, skin_id: int) -> Optional[str]:
+def parent_skin_id(archive: Path, skin_id: int) -> int:
+    """The skin a chroma belongs to, so the loading screen shows the skin's name, not the chroma's.
+
+    Rose stores a chroma under its skin: <champion>/<skin>/<chroma>/<chroma>.fantome (a skin is
+    <champion>/<skin>/<skin>.fantome). Any other place (a form found by name...) keeps *skin_id*.
+    """
+    try:
+        holder = Path(archive).parent
+        skin_dir, champion_dir = holder.parent, holder.parent.parent
+        if not (holder.name.isdigit() and skin_dir.name.isdigit() and champion_dir.name.isdigit()):
+            return skin_id
+        chroma, skin, champion = int(holder.name), int(skin_dir.name), int(champion_dir.name)
+        if skin // 1000 == champion and chroma // 1000 == champion and skin != chroma:
+            return skin
+    except (TypeError, ValueError):
+        pass
+    return skin_id
+
+
+def _uses_string_overrides(game_dir: Path) -> Optional[bool]:
+    """How LTK Manager lets this game's text change: True through string overrides, False through the mod's own
+    table, None when neither reaches the game.
+
+    The table sits at data/menu/en_us/lol.stringtable in every language's wad, and LTK Manager rejects a mod's
+    data/menu/<language>/lol.stringtable for every language installed (only string overrides may change those).
+    It applies string overrides to data/menu/<client language>/lol.stringtable. So an en_US client takes them, a
+    client in another language takes the mod's table, unless an en_US wad is installed too: then the table is
+    rejected and the overrides find no table of their language. Without the client's language, LTK Manager takes
+    en_us, and so does this.
+    """
+    locale = (_client_locale(Path(game_dir)) or "en_us").lower()
+    has_en_us = any(wad.name.lower() == "global.en_us.wad.client" for wad in _language_wads(Path(game_dir)))
+    if not has_en_us:
+        return False
+    return True if locale == "en_us" else None
+
+
+def build(game_dir: Path, mods_dir: Path, mod_folder: Path, skin_id: int,
+          other_mods: Sequence[Path] = ()) -> Optional[str]:
     """Writes the mod and returns its folder name, or None when there is nothing to show.
 
-    skin_id is the client's id (champion id * 1000 + skin number); chromas pass their base skin's id.
+    skin_id is the client's id (champion id * 1000 + skin number); chromas pass their base skin's id. *other_mods* are
+    the folders of the other mods installed with it: when one carries its own language table, the mod's own table
+    would compete with it, and nothing is built (see ships_language_table).
+
+    The texts reach the game as string overrides in META/info.json on an en_US client, as the mod's own table
+    otherwise (see _uses_string_overrides). The champion's record is only pointed at a key of the mod's own when
+    that key will have a text: else the name over the head would print the key (#420).
     """
     try:
         if not skin_id or skin_id % 1000 == 0:
@@ -353,6 +480,18 @@ def build(game_dir: Path, mods_dir: Path, mod_folder: Path, skin_id: int) -> Opt
         if not aliases:
             log.debug("[LOADNAME] the skin carries no champion wad, skipped")
             return None
+
+        overrides = _uses_string_overrides(Path(game_dir))
+        if overrides is None:
+            log.info("[LOADNAME] this install has an English text table next to the client's language: "
+                     "the loading screen keeps the champion's name")
+            return None
+        if not overrides:
+            for other in other_mods:
+                if ships_language_table(other):
+                    log.info(f"[LOADNAME] {Path(other).name} carries its own text table: the loading screen keeps "
+                             "the champion's name")
+                    return None
 
         wad = _language_wad(Path(game_dir))
         if not wad:
@@ -370,29 +509,45 @@ def build(game_dir: Path, mods_dir: Path, mod_folder: Path, skin_id: int) -> Opt
                 if champion_name is None:
                     continue
                 target = Path(mods_dir) / MOD_FOLDER
-                (target / TABLE_PATH.parent).mkdir(parents=True, exist_ok=True)
                 (target / "META").mkdir(parents=True, exist_ok=True)
-                (target / "META" / "info.json").write_text(json.dumps({
-                    "Author": "Lust",
-                    "Description": name,
-                    "Name": "Loading screen name",
-                    "Version": "1.0.0",
-                }), encoding="utf-8")
-                table = _with_text(table, champion_key, name)
+                texts = {f"{RECORD_KEY}{alias}": name}
 
-                # the chat and the name over the head keep the champion's name (see the module's note)
-                record = _champion_record(game_dir, mod_folder, alias)
-                own_record = _with_own_record_key(record, alias) if record else None
-                if own_record:
-                    table = _with_text(table, _key_hash(f"{RECORD_KEY_OWN}{alias}"), champion_name)
-                    record_file = target / "RAW" / _record_path(alias)
+                # the chat and the name over the head keep the champion's name (see the module's note), in its forms
+                # too (FORM_RECORDS)
+                repointed = 0
+                for character in (alias.lower(),) + FORM_RECORDS.get(alias.lower(), ()):
+                    record = _champion_record(game_dir, mod_folder, alias, character)
+                    own_record = _with_own_record_key(record, alias) if record else None
+                    if not own_record:
+                        continue
+                    record_file = target / "RAW" / _record_path(character)
                     record_file.parent.mkdir(parents=True, exist_ok=True)
                     record_file.write_bytes(own_record)
+                    repointed += 1
+                if repointed:
+                    texts[f"{RECORD_KEY_OWN}{alias}"] = champion_name
                 else:
                     log.debug(f"[LOADNAME] {alias}'s record not found, the chat shows the skin's name too")
 
-                (target / TABLE_PATH).write_bytes(table)
-                log.info(f"[LOADNAME] the loading screen will show '{name}'")
+                info = {
+                    "Author": "Rose",
+                    "Description": name,
+                    "Name": "Loading screen name",
+                    "Version": "1.0.0",
+                }
+                if overrides:
+                    # LTK Manager applies them to the en_US table, the one an en_US client reads
+                    info["Layers"] = {
+                        "base": {"Name": "base", "Priority": 0, "StringOverrides": {"en_us": texts}},
+                    }
+                else:
+                    for key, text in texts.items():
+                        table = _with_text(table, _key_hash(key), text)
+                    (target / TABLE_PATH.parent).mkdir(parents=True, exist_ok=True)
+                    (target / TABLE_PATH).write_bytes(table)
+                (target / "META" / "info.json").write_text(json.dumps(info, ensure_ascii=False), encoding="utf-8")
+                log.info(f"[LOADNAME] the loading screen will show '{name}'"
+                         + (" (string overrides)" if overrides else ""))
                 return MOD_FOLDER
         log.debug(f"[LOADNAME] the game has no name for skin {skin_id}, skipped")
         return None

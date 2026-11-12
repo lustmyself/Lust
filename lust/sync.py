@@ -712,6 +712,11 @@ EDITS += [
      '    // Append to container (same structure as QUIT button)\n'
      '    targetContainer.appendChild(button);\n'),
     ('Lust.spec', "    'launcher.core',\n", "    'launcher.core',\n    'pengu.communication.lust_custom_skins',\n"),
+    # LUST-ChromaPreview (big chroma preview) reads the flyout's chroma list from the panel
+    ('Pengu Loader/plugins/LUST-ChromaWheel/index.js',
+     '    panel.appendChild(flyoutFrame);\n',
+     '    panel.appendChild(flyoutFrame);\n'
+     '    panel.__lustChromas = chromas; // Lust: read by LUST-ChromaPreview\n'),
 ]
 
 
